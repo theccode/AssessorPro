@@ -39,18 +39,16 @@ export default function Landing() {
                 <GlowingText className="text-glow">
                   <AnimatedText 
                     text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
-                    delay={60}
+                    delay={80}
                     animationType="bounce"
+                    repeat={true}
+                    repeatDelay={3000}
                   />
                 </GlowingText>
               </h1>
-              <div className="text-xl mb-8 text-muted-foreground">
-                <AnimatedWords
-                  words={["Comprehensive", "sustainability", "evaluation,", "certification", "tracking,", "and", "environmental", "performance", "analytics", "for", "green", "building", "projects.", "Applicable", "to", "Residential", "Buildings", "and", "for", "the", "Design,", "Construction,", "Operation", "and", "Maintenance", "Phases."]}
-                  delay={50}
-                  wordDelay={150}
-                />
-              </div>
+              <p className="text-xl mb-8 text-muted-foreground">
+                Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects. Applicable to Residential Buildings and for the Design, Construction, Operation and Maintenance Phases.
+              </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
                   <a href="/api/login">Start Assessment</a>

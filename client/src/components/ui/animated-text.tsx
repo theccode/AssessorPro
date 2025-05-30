@@ -6,13 +6,17 @@ interface AnimatedTextProps {
   className?: string;
   delay?: number;
   animationType?: "fade" | "slide" | "bounce" | "typewriter";
+  repeat?: boolean;
+  repeatDelay?: number;
 }
 
 export function AnimatedText({ 
   text, 
   className = "", 
   delay = 50,
-  animationType = "fade"
+  animationType = "fade",
+  repeat = false,
+  repeatDelay = 2000
 }: AnimatedTextProps) {
   const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -25,8 +29,16 @@ export function AnimatedText({
       }, delay);
 
       return () => clearTimeout(timeout);
+    } else if (repeat && currentIndex >= text.length) {
+      // Reset for continuous repeat
+      const timeout = setTimeout(() => {
+        setCurrentIndex(0);
+        setDisplayedText("");
+      }, repeatDelay);
+
+      return () => clearTimeout(timeout);
     }
-  }, [currentIndex, text, delay]);
+  }, [currentIndex, text, delay, repeat, repeatDelay]);
 
   const getAnimationClass = () => {
     switch (animationType) {
