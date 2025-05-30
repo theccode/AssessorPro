@@ -3,29 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --background: 150 20% 98%; /* #F5FAF6 - Very light green */
-  --foreground: 150 30% 12%; /* #1A2F1F - Deep forest green */
-  --muted: 150 15% 95%; /* #F0F5F1 - Light mint */
-  --muted-foreground: 150 10% 45%; /* #6B7F6E - Muted green */
-  --popover: 0 0% 100%;
-  --popover-foreground: 150 30% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 150 30% 12%;
-  --border: 150 15% 88%; /* #DDE5DF - Soft green border */
-  --input: 150 15% 88%;
-  --primary: 150 65% 42%; /* #238C56 - Forest green */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 45% 85%; /* #C8E6C9 - Light green */
-  --secondary-foreground: 150 30% 12%;
-  --accent: 120 50% 75%; /* #A5D6A7 - Soft eco green */
-  --accent-foreground: 150 30% 12%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 150 65% 42%;
-  --radius: 0.5rem;
-}
-
-.dark {
   --background: 150 25% 8%; /* #0F1912 - Dark forest */
   --foreground: 150 15% 92%; /* #E6F0E8 - Light green */
   --muted: 150 20% 15%; /* #1F2D24 - Dark mint */
@@ -47,6 +24,8 @@
   --ring: 150 60% 50%;
   --radius: 0.5rem;
 }
+
+/* Remove .dark class since we're using dark mode only */
 
 @layer base {
   * {
