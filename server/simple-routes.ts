@@ -4,19 +4,21 @@ import { storage } from "./storage";
 import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Simple demo user middleware
+  // Session-based authentication middleware
+  app.use(require('express-session')({
+    secret: process.env.SESSION_SECRET || 'dev-session-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+    }
+  }));
+
+  // Authentication middleware
   app.use((req: any, res, next) => {
-    // Check if user was logged out
-    if (req.url === '/api/logout' || (req.headers.referer && req.headers.referer.includes('logout'))) {
-      req.user = null;
-    } else if (!req.session || !req.session.loggedOut) {
-      req.user = {
-        id: "demo-user-123",
-        email: "demo@example.com",
-        firstName: "Demo",
-        lastName: "User",
-        role: "assessor"
-      };
+    if (req.session && req.session.user) {
+      req.user = req.session.user;
     } else {
       req.user = null;
     }
