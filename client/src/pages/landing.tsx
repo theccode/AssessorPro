@@ -380,48 +380,64 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-secondary border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <Building className="h-8 w-8 text-primary" />
-                <span className="ml-2 text-xl font-medium">BuildAssess Pro</span>
+                <span className="ml-2 text-xl font-medium text-foreground">BuildAssess Pro</span>
               </div>
-              <p className="text-gray-400">
-                Professional building assessment platform for green certification and sustainability evaluation.
+              <p className="text-muted-foreground">
+                Professional building assessment platform for green certification and sustainability evaluation using GREDA standards.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-medium mb-4">Platform</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Assessments</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Reports</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Analytics</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+              <h4 className="text-lg font-medium mb-4 text-foreground">Platform</h4>
+              <ul className="space-y-2 text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-colors">GREDA Assessments</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Certification Reports</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Performance Analytics</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">API Access</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-medium mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+              <h4 className="text-lg font-medium mb-4 text-foreground">Support</h4>
+              <ul className="space-y-2 text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Contact Support</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">System Status</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-medium mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
+              <h4 className="text-lg font-medium mb-4 text-foreground">Resources</h4>
+              <ul className="space-y-2 text-muted-foreground">
+                <li><a href="#" className="hover:text-primary transition-colors">About GREDA</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Sustainability Blog</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Green Building Guide</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 BuildAssess Pro. All rights reserved.</p>
+          <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-muted-foreground text-sm">
+              © 2024 BuildAssess Pro - GREDA Green Building Assessment Platform. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <span className="sr-only">Professional Network</span>
+                <Users className="h-5 w-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <span className="sr-only">Building Community</span>
+                <Building className="h-5 w-5" />
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                <span className="sr-only">Certification</span>
+                <Shield className="h-5 w-5" />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
