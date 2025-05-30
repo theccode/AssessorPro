@@ -285,6 +285,100 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Assessed Buildings Gallery */}
+      <section className="py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+              Certified Green Buildings Gallery
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Explore our portfolio of successfully assessed and certified sustainable buildings
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-border transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <Building className="h-16 w-16 text-primary" />
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-foreground">Eco Residential Complex</h3>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Accra, Ghana • 85 Credits</p>
+                <p className="text-sm text-foreground mb-4">Modern residential complex featuring solar panels, rainwater harvesting, and energy-efficient design achieving 4-Star GREDA certification.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">4-Star Certified</span>
+                  <span className="text-xs text-muted-foreground">Completed 2024</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-border transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <Building className="h-16 w-16 text-primary" />
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-foreground">Green Office Tower</h3>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Kumasi, Ghana • 72 Credits</p>
+                <p className="text-sm text-foreground mb-4">Commercial building with advanced HVAC systems, natural lighting optimization, and sustainable material usage.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">3-Star Certified</span>
+                  <span className="text-xs text-muted-foreground">Completed 2023</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-border transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <Building className="h-16 w-16 text-primary" />
+              </div>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-foreground">Sustainable Housing Estate</h3>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-primary fill-current" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Takoradi, Ghana • 58 Credits</p>
+                <p className="text-sm text-foreground mb-4">Community housing project incorporating waste management systems and energy-efficient appliances.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">2-Star Certified</span>
+                  <span className="text-xs text-muted-foreground">Completed 2024</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              View Complete Portfolio
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
