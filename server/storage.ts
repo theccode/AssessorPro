@@ -202,4 +202,174 @@ class MemoryStorage implements IStorage {
   }
 }
 
+export class DatabaseStorage implements IStorage {
+  // User operations (mandatory for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { users } = await import("@shared/schema");
+    
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Assessment operations
+  async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
+    const { db } = await import("./db");
+    const { assessments } = await import("@shared/schema");
+    
+    const [created] = await db
+      .insert(assessments)
+      .values(assessment)
+      .returning();
+    return created;
+  }
+
+  async getAssessment(id: number): Promise<Assessment | undefined> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    const [assessment] = await db.select().from(assessments).where(eq(assessments.id, id));
+    return assessment;
+  }
+
+  async getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined> {
+    const assessment = await this.getAssessment(id);
+    if (!assessment) return undefined;
+
+    const sections = await this.getAssessmentSections(id);
+    const media = await this.getAssessmentMedia(id);
+
+    return { ...assessment, sections, media };
+  }
+
+  async getUserAssessments(userId: string): Promise<Assessment[]> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    return await db.select().from(assessments).where(eq(assessments.userId, userId));
+  }
+
+  async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    const [updated] = await db
+      .update(assessments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(assessments.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAssessment(id: number): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    await db.delete(assessments).where(eq(assessments.id, id));
+  }
+
+  // Assessment section operations
+  async upsertAssessmentSection(section: InsertAssessmentSection): Promise<AssessmentSection> {
+    const { db } = await import("./db");
+    const { assessmentSections } = await import("@shared/schema");
+    
+    const [upserted] = await db
+      .insert(assessmentSections)
+      .values(section)
+      .onConflictDoUpdate({
+        target: [assessmentSections.assessmentId, assessmentSections.sectionType],
+        set: {
+          ...section,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return upserted;
+  }
+
+  async getAssessmentSections(assessmentId: number): Promise<AssessmentSection[]> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessmentSections } = await import("@shared/schema");
+    
+    return await db.select().from(assessmentSections).where(eq(assessmentSections.assessmentId, assessmentId));
+  }
+
+  async getAssessmentSection(assessmentId: number, sectionType: string): Promise<AssessmentSection | undefined> {
+    const { db } = await import("./db");
+    const { eq, and } = await import("drizzle-orm");
+    const { assessmentSections } = await import("@shared/schema");
+    
+    const [section] = await db
+      .select()
+      .from(assessmentSections)
+      .where(and(
+        eq(assessmentSections.assessmentId, assessmentId),
+        eq(assessmentSections.sectionType, sectionType)
+      ));
+    return section;
+  }
+
+  // Media operations
+  async createAssessmentMedia(media: InsertAssessmentMedia): Promise<AssessmentMedia> {
+    const { db } = await import("./db");
+    const { assessmentMedia } = await import("@shared/schema");
+    
+    const [created] = await db
+      .insert(assessmentMedia)
+      .values(media)
+      .returning();
+    return created;
+  }
+
+  async getAssessmentMedia(assessmentId: number, sectionType?: string): Promise<AssessmentMedia[]> {
+    const { db } = await import("./db");
+    const { eq, and } = await import("drizzle-orm");
+    const { assessmentMedia } = await import("@shared/schema");
+    
+    if (sectionType) {
+      return await db
+        .select()
+        .from(assessmentMedia)
+        .where(and(
+          eq(assessmentMedia.assessmentId, assessmentId),
+          eq(assessmentMedia.sectionType, sectionType)
+        ));
+    }
+    
+    return await db.select().from(assessmentMedia).where(eq(assessmentMedia.assessmentId, assessmentId));
+  }
+
+  async deleteAssessmentMedia(id: number): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessmentMedia } = await import("@shared/schema");
+    
+    await db.delete(assessmentMedia).where(eq(assessmentMedia.id, id));
+  }
+}
+
 export const storage = new MemoryStorage();

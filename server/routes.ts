@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-// import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -27,20 +27,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Simple development auth - bypass Replit auth for now
-  app.use((req: any, res, next) => {
-    // Create a demo user for development
-    req.user = {
-      claims: {
-        sub: "demo-user-123",
-        email: "demo@example.com",
-        first_name: "Demo",
-        last_name: "User",
-        profile_image_url: null
-      }
-    };
-    next();
-  });
+  // Auth middleware
+  await setupAuth(app);
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
