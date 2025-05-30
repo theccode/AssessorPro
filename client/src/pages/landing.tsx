@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Leaf, Zap, Droplets, Recycle, BarChart3, FileText, Award, TrendingUp, Star, Shield, Users } from "lucide-react";
 import heroImage from "@assets/image_1748623363109.png";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function Landing() {
   return (
@@ -11,8 +12,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-foreground">BuildAssess Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-10 w-auto" />
             </div>
             <Button asChild>
               <a href="/api/login">Sign In</a>
@@ -385,8 +385,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <Building className="h-8 w-8 text-primary" />
-                <span className="ml-2 text-xl font-medium text-foreground">BuildAssess Pro</span>
+                <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
               </div>
               <p className="text-muted-foreground">
                 Professional building assessment platform for green certification and sustainability evaluation using GREDA standards.
