@@ -35,8 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/');
   });
 
-  app.get('/api/logout', (req, res) => {
-    // Simple logout - just redirect to landing page
+  app.get('/api/logout', (req: any, res) => {
+    // Clear the session and redirect
+    req.user = null;
     res.redirect('/');
   });
 
