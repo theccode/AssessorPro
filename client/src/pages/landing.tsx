@@ -148,19 +148,19 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
-              <div className="text-muted-foreground">Buildings Certified</div>
+              <div className="text-gray-600">Buildings Certified</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">85%</div>
-              <div className="text-muted-foreground">Energy Savings Average</div>
+              <div className="text-gray-600">Energy Savings Average</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">50+</div>
-              <div className="text-muted-foreground">Sustainability Metrics</div>
+              <div className="text-gray-600">Sustainability Metrics</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
-              <div className="text-muted-foreground">Platform Uptime</div>
+              <div className="text-gray-600">Platform Uptime</div>
             </div>
           </div>
         </div>
