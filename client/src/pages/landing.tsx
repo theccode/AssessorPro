@@ -21,22 +21,25 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary/80 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-primary via-primary to-secondary text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="w-full h-full bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-                Professional Building Assessment Platform
+              <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">
+                Green Building Assessment Platform
               </h1>
-              <p className="text-xl mb-8 text-blue-100">
-                Comprehensive green building certification tool following GREDA GBC framework standards
+              <p className="text-xl mb-8 text-green-100">
+                Comprehensive sustainable building certification tool following GREDA GBC framework standards
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" variant="secondary" asChild>
+                <Button size="lg" className="bg-accent hover:bg-accent/90 text-primary-foreground" asChild>
                   <a href="/api/login">Start Assessment</a>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
-                  View Demo
+                  Learn More
                 </Button>
               </div>
             </div>
