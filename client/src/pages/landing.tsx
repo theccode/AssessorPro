@@ -30,20 +30,20 @@ export default function Landing() {
           }}
         ></div>
         <div className="absolute inset-0 bg-eco-pattern opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 leaf-float">
+              <h1 className="text-4xl lg:text-6xl font-bold mb-6 leaf-float text-foreground">
                 Green Building Assessment & Rating Platform
               </h1>
-              <p className="text-xl mb-8 text-green-100">
+              <p className="text-xl mb-8 text-muted-foreground">
                 Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" variant="secondary" className="eco-bounce" asChild>
+                <Button size="lg" variant="default" className="eco-bounce" asChild>
                   <a href="/api/login">Start Assessment</a>
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary transition-material">
+                <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
                   View Analytics Demo
                 </Button>
               </div>
