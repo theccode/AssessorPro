@@ -202,9 +202,11 @@
 
 /* Prevent awkward word breaking in animated text */
 .animated-title {
-  word-break: keep-all;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
   hyphens: none;
+  line-height: 1.1;
+  word-spacing: 0.1em;
 }
 
 @keyframes character-bounce-in {
