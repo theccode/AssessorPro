@@ -8,6 +8,7 @@ interface AnimatedTextProps {
   animationType?: "fade" | "slide" | "bounce" | "typewriter";
   repeat?: boolean;
   repeatDelay?: number;
+  onPhaseChange?: (phase: "revealing" | "racing" | "settling" | "waiting") => void;
 }
 
 export function AnimatedText({ 
@@ -16,7 +17,8 @@ export function AnimatedText({
   delay = 50,
   animationType = "fade",
   repeat = false,
-  repeatDelay = 2000
+  repeatDelay = 2000,
+  onPhaseChange
 }: AnimatedTextProps) {
   const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,6 +35,7 @@ export function AnimatedText({
     } else if (animationPhase === "revealing" && currentIndex >= text.length) {
       // Move to racing phase after revealing is complete
       setAnimationPhase("racing");
+      onPhaseChange?.("racing");
     } else if (animationPhase === "racing") {
       // Racing border for a short time, then settle
       const timeout = setTimeout(() => {
@@ -91,7 +94,7 @@ export function AnimatedText({
   };
 
   return (
-    <span className={cn(className, getPhaseClass(), "whitespace-normal")}>
+    <span className={cn(className, "whitespace-normal")}>
       {text.split("").map((char, index) => (
         <span
           key={index}
@@ -99,7 +102,6 @@ export function AnimatedText({
             "inline-block transition-all duration-300",
             index < currentIndex ? getAnimationClass() : "opacity-0 transform translate-y-4",
             char === " " ? "w-2 break-before-auto" : "break-inside-avoid",
-            animationPhase === "racing" && index < currentIndex ? "" : "",
             animationPhase === "settling" && index < currentIndex ? "animate-pulse" : ""
           )}
           style={{

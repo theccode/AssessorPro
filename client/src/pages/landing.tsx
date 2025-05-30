@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimatedText, AnimatedWords, GlowingText } from "@/components/ui/animated-text";
+import { AnimatedBorder } from "@/components/ui/animated-border";
 import { Building, Leaf, Zap, Droplets, Recycle, BarChart3, FileText, Award, TrendingUp, Star, Shield, Users } from "lucide-react";
 import heroImage from "@assets/image_1748623363109.png";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
+import { useState } from "react";
 
 export default function Landing() {
+  const [isRacing, setIsRacing] = useState(false);
+
+  const handlePhaseChange = (phase: "revealing" | "racing" | "settling" | "waiting") => {
+    setIsRacing(phase === "racing");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -35,17 +43,22 @@ export default function Landing() {
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-8xl mx-auto">
             <div className="animate-in slide-in-from-left duration-500 lg:pr-8">
-              <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold mb-6 text-foreground animated-title leading-tight">
-                <GlowingText className="text-glow">
-                  <AnimatedText 
-                    text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
-                    delay={80}
-                    animationType="bounce"
-                    repeat={true}
-                    repeatDelay={3000}
-                  />
-                </GlowingText>
-              </h1>
+              <div className="mb-6">
+                <AnimatedBorder active={isRacing} className="inline-block">
+                  <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold text-foreground animated-title leading-tight px-6 py-4">
+                    <GlowingText className="text-glow">
+                      <AnimatedText 
+                        text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
+                        delay={80}
+                        animationType="bounce"
+                        repeat={true}
+                        repeatDelay={3000}
+                        onPhaseChange={handlePhaseChange}
+                      />
+                    </GlowingText>
+                  </h1>
+                </AnimatedBorder>
+              </div>
               <p className="text-xl mb-8 text-muted-foreground">
                 Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects. Applicable to Residential Buildings and for the Design, Construction, Operation and Maintenance Phases.
               </p>
