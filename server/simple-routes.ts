@@ -6,13 +6,20 @@ import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/s
 export async function registerRoutes(app: Express): Promise<Server> {
   // Simple demo user middleware
   app.use((req: any, res, next) => {
-    req.user = {
-      id: "demo-user-123",
-      email: "demo@example.com",
-      firstName: "Demo",
-      lastName: "User",
-      role: "assessor"
-    };
+    // Check if user was logged out
+    if (req.url === '/api/logout' || (req.headers.referer && req.headers.referer.includes('logout'))) {
+      req.user = null;
+    } else if (!req.session || !req.session.loggedOut) {
+      req.user = {
+        id: "demo-user-123",
+        email: "demo@example.com",
+        firstName: "Demo",
+        lastName: "User",
+        role: "assessor"
+      };
+    } else {
+      req.user = null;
+    }
     next();
   });
 
@@ -30,13 +37,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/login', (req, res) => {
-    // In a real app, this would redirect to authentication provider
+  app.get('/api/login', (req: any, res) => {
+    // Clear logout flag and redirect
+    if (req.session) {
+      req.session.loggedOut = false;
+    }
     res.redirect('/');
   });
 
   app.get('/api/logout', (req: any, res) => {
-    // Clear the session and redirect
+    // Mark session as logged out
+    if (req.session) {
+      req.session.loggedOut = true;
+    }
     req.user = null;
     res.redirect('/');
   });
