@@ -91,21 +91,19 @@ export function AnimatedText({
   };
 
   return (
-    <span className={cn(className, getPhaseClass(), "whitespace-normal")}>
+    <span className={cn(className, getPhaseClass(), "whitespace-nowrap")}>
       {text.split("").map((char, index) => (
         <span
           key={index}
           className={cn(
-            "inline-block transition-all duration-300",
+            "inline transition-all duration-300",
             index < currentIndex ? getAnimationClass() : "opacity-0 transform translate-y-4",
-            char === " " ? "w-2 break-before-auto" : "break-inside-avoid",
             animationPhase === "bouncing" && index < currentIndex ? "animate-bounce" : "",
             animationPhase === "settling" && index < currentIndex ? "animate-pulse" : ""
           )}
           style={{
             animationDelay: animationPhase === "revealing" ? `${index * 50}ms` : "0ms",
-            animationFillMode: "both",
-            wordBreak: "keep-all"
+            animationFillMode: "both"
           }}
         >
           {char === " " ? "\u00A0" : char}
