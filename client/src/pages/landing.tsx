@@ -225,24 +225,32 @@ export default function Landing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-white rounded-lg shadow-material transition-material hover:shadow-material-lg">
-              <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Energy Efficiency</h3>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Energy Efficiency</h3>
               <p className="text-sm text-muted-foreground">HVAC systems, lighting, renewable energy integration</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg shadow-material transition-material hover:shadow-material-lg">
-              <Droplets className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Water Management</h3>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Droplets className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Water Management</h3>
               <p className="text-sm text-muted-foreground">Conservation, recycling, stormwater management</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg shadow-material transition-material hover:shadow-material-lg">
-              <Leaf className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Indoor Quality</h3>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Leaf className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Indoor Quality</h3>
               <p className="text-sm text-muted-foreground">Air quality, natural lighting, thermal comfort</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg shadow-material transition-material hover:shadow-material-lg">
-              <Recycle className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="font-semibold mb-2">Materials & Waste</h3>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Recycle className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Materials & Waste</h3>
               <p className="text-sm text-muted-foreground">Sustainable materials, waste reduction, recycling</p>
             </div>
           </div>
