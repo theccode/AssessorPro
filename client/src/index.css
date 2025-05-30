@@ -202,8 +202,9 @@
 
 /* Prevent awkward word breaking in animated text */
 .animated-title {
-  word-break: normal;
-  overflow-wrap: break-word;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  white-space: normal;
   hyphens: none;
   line-height: 1.1;
   word-spacing: 0.1em;
