@@ -13,6 +13,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src={gredaLogo} alt="GREDA Green Building" className="h-10 w-auto" />
+              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
             <Button asChild>
               <a href="/api/login">Sign In</a>
