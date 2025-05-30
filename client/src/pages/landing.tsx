@@ -26,7 +26,7 @@ export default function Landing() {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `linear-gradient(rgba(15, 25, 18, 0.6), rgba(15, 25, 18, 0.5)), url(${heroImage})`,
+            backgroundImage: `linear-gradient(rgba(15, 25, 18, 0.85), rgba(15, 25, 18, 0.75)), url(${heroImage})`,
           }}
         ></div>
         <div className="absolute inset-0 bg-eco-pattern opacity-10"></div>
@@ -49,30 +49,30 @@ export default function Landing() {
               </div>
             </div>
             <div className="relative animate-in slide-in-from-right duration-500">
-              <div className="bg-card/80 backdrop-blur-md rounded-xl p-8 relative pulse-green border border-border shadow-xl">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 relative pulse-green">
                 <div className="grid grid-cols-2 gap-4">
-                  <Card className="bg-card border-border grow-in shadow-lg">
+                  <Card className="bg-white/20 border-white/20 grow-in">
                     <CardContent className="p-4 text-center">
-                      <Award className="h-8 w-8 mx-auto mb-2 text-primary" />
-                      <div className="text-sm text-foreground font-medium">LEED Certified</div>
+                      <Award className="h-8 w-8 mx-auto mb-2" />
+                      <div className="text-sm">LEED Certified</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card border-border grow-in shadow-lg">
+                  <Card className="bg-white/20 border-white/20 grow-in">
                     <CardContent className="p-4 text-center">
-                      <BarChart3 className="h-8 w-8 mx-auto mb-2 text-primary" />
-                      <div className="text-sm text-foreground font-medium">Real-time Analytics</div>
+                      <BarChart3 className="h-8 w-8 mx-auto mb-2" />
+                      <div className="text-sm">Real-time Analytics</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card border-border grow-in shadow-lg">
+                  <Card className="bg-white/20 border-white/20 grow-in">
                     <CardContent className="p-4 text-center">
-                      <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
-                      <div className="text-sm text-foreground font-medium">Automated Reports</div>
+                      <FileText className="h-8 w-8 mx-auto mb-2" />
+                      <div className="text-sm">Automated Reports</div>
                     </CardContent>
                   </Card>
-                  <Card className="bg-card border-border grow-in shadow-lg">
+                  <Card className="bg-white/20 border-white/20 grow-in">
                     <CardContent className="p-4 text-center">
-                      <Star className="h-8 w-8 mx-auto mb-2 text-primary" />
-                      <div className="text-sm text-foreground font-medium">Star Ratings</div>
+                      <Star className="h-8 w-8 mx-auto mb-2" />
+                      <div className="text-sm">Star Ratings</div>
                     </CardContent>
                   </Card>
                 </div>
