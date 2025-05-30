@@ -47,19 +47,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const now = Date.now();
     const [user] = await db
       .insert(users)
-      .values({
-        ...userData,
-        createdAt: now,
-        updatedAt: now,
-      })
+      .values(userData)
       .onConflictDoUpdate({
         target: users.id,
         set: {
           ...userData,
-          updatedAt: now,
+          updatedAt: new Date(),
         },
       })
       .returning();
@@ -68,14 +63,9 @@ export class DatabaseStorage implements IStorage {
 
   // Assessment operations
   async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
-    const now = Date.now();
     const [created] = await db
       .insert(assessments)
-      .values({
-        ...assessment,
-        createdAt: now,
-        updatedAt: now,
-      })
+      .values(assessment)
       .returning();
     return created;
   }
@@ -109,7 +99,7 @@ export class DatabaseStorage implements IStorage {
   async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment> {
     const [updated] = await db
       .update(assessments)
-      .set({ ...data, updatedAt: Date.now() })
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(assessments.id, id))
       .returning();
     return updated;
@@ -126,7 +116,7 @@ export class DatabaseStorage implements IStorage {
     if (existing) {
       const [updated] = await db
         .update(assessmentSections)
-        .set({ ...section, updatedAt: Date.now() })
+        .set({ ...section, updatedAt: new Date() })
         .where(and(
           eq(assessmentSections.assessmentId, section.assessmentId),
           eq(assessmentSections.sectionType, section.sectionType)
@@ -136,11 +126,7 @@ export class DatabaseStorage implements IStorage {
     } else {
       const [created] = await db
         .insert(assessmentSections)
-        .values({
-          ...section,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        })
+        .values(section)
         .returning();
       return created;
     }
@@ -168,29 +154,22 @@ export class DatabaseStorage implements IStorage {
   async createAssessmentMedia(media: InsertAssessmentMedia): Promise<AssessmentMedia> {
     const [created] = await db
       .insert(assessmentMedia)
-      .values({
-        ...media,
-        createdAt: Date.now(),
-      })
+      .values(media)
       .returning();
     return created;
   }
 
   async getAssessmentMedia(assessmentId: number, sectionType?: string): Promise<AssessmentMedia[]> {
-    if (sectionType) {
-      return await db
-        .select()
-        .from(assessmentMedia)
-        .where(and(
-          eq(assessmentMedia.assessmentId, assessmentId),
-          eq(assessmentMedia.sectionType, sectionType)
-        ));
-    }
-
-    return await db
+    let query = db
       .select()
       .from(assessmentMedia)
       .where(eq(assessmentMedia.assessmentId, assessmentId));
+
+    if (sectionType) {
+      query = query.where(eq(assessmentMedia.sectionType, sectionType));
+    }
+
+    return await query;
   }
 
   async deleteAssessmentMedia(id: number): Promise<void> {

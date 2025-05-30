@@ -1,84 +1,87 @@
 import {
-  sqliteTable,
+  pgTable,
   text,
-  integer,
-  real,
+  varchar,
+  timestamp,
+  jsonb,
   index,
-} from "drizzle-orm/sqlite-core";
+  serial,
+  integer,
+  boolean,
+  real,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Session storage table (mandatory for Replit Auth)
-export const sessions = sqliteTable(
+export const sessions = pgTable(
   "sessions",
   {
-    sid: text("sid").primaryKey(),
-    sess: text("sess").notNull(),
-    expire: integer("expire").notNull(),
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
   },
-  (table) => ({
-    expireIdx: index("IDX_session_expire").on(table.expire),
-  }),
+  (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
 // User storage table (mandatory for Replit Auth)
-export const users = sqliteTable("users", {
-  id: text("id").primaryKey().notNull(),
-  email: text("email"),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  profileImageUrl: text("profile_image_url"),
-  role: text("role").notNull().default("client"), // admin, assessor, client
-  createdAt: integer("created_at"),
-  updatedAt: integer("updated_at"),
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").notNull().default("client"), // admin, assessor, client
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Building assessments
-export const assessments = sqliteTable("assessments", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: text("user_id").notNull().references(() => users.id),
-  status: text("status").notNull().default("draft"), // draft, completed, submitted
+export const assessments = pgTable("assessments", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  status: varchar("status").notNull().default("draft"), // draft, completed, submitted
   buildingName: text("building_name"),
   publisherName: text("publisher_name"),
   buildingLocation: text("building_location"),
   detailedAddress: text("detailed_address"),
-  phoneNumber: text("phone_number"),
+  phoneNumber: varchar("phone_number"),
   additionalNotes: text("additional_notes"),
   overallScore: real("overall_score").default(0),
   maxPossibleScore: real("max_possible_score").default(0),
   completedSections: integer("completed_sections").default(0),
   totalSections: integer("total_sections").default(8),
-  createdAt: integer("created_at"),
-  updatedAt: integer("updated_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Assessment sections with scores
-export const assessmentSections = sqliteTable("assessment_sections", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  assessmentId: integer("assessment_id").notNull().references(() => assessments.id),
-  sectionType: text("section_type").notNull(), // site-transport, water-efficiency, etc.
-  sectionName: text("section_name").notNull(),
+export const assessmentSections = pgTable("assessment_sections", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  sectionType: varchar("section_type").notNull(), // site-transport, water-efficiency, etc.
+  sectionName: varchar("section_name").notNull(),
   score: real("score").default(0),
   maxScore: real("max_score").default(0),
-  isCompleted: integer("is_completed", { mode: 'boolean' }).default(false),
-  variables: text("variables"), // Store all variable scores as JSON string
-  createdAt: integer("created_at"),
-  updatedAt: integer("updated_at"),
+  isCompleted: boolean("is_completed").default(false),
+  variables: jsonb("variables"), // Store all variable scores as JSON
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Media files associated with assessment fields
-export const assessmentMedia = sqliteTable("assessment_media", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  assessmentId: integer("assessment_id").notNull().references(() => assessments.id),
-  sectionType: text("section_type").notNull(),
-  fieldName: text("field_name").notNull(),
+export const assessmentMedia = pgTable("assessment_media", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  sectionType: varchar("section_type").notNull(),
+  fieldName: varchar("field_name").notNull(),
   fileName: text("file_name").notNull(),
-  fileType: text("file_type").notNull(), // image, video, audio, document
+  fileType: varchar("file_type").notNull(), // image, video, audio, document
   fileSize: integer("file_size"),
   filePath: text("file_path").notNull(),
-  mimeType: text("mime_type"),
-  createdAt: integer("created_at"),
+  mimeType: varchar("mime_type"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations
