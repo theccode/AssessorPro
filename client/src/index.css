@@ -200,6 +200,13 @@
   animation: character-bounce-in 0.4s ease-out both;
 }
 
+/* Prevent awkward word breaking in animated text */
+.animated-title {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  hyphens: none;
+}
+
 @keyframes character-bounce-in {
   0% { 
     opacity: 0; 
