@@ -20,7 +20,7 @@ export function AnimatedText({
 }: AnimatedTextProps) {
   const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [animationPhase, setAnimationPhase] = useState<"revealing" | "bouncing" | "settling" | "waiting">("revealing");
+  const [animationPhase, setAnimationPhase] = useState<"revealing" | "racing" | "settling" | "waiting">("revealing");
 
   useEffect(() => {
     if (animationPhase === "revealing" && currentIndex < text.length) {
@@ -31,10 +31,10 @@ export function AnimatedText({
 
       return () => clearTimeout(timeout);
     } else if (animationPhase === "revealing" && currentIndex >= text.length) {
-      // Move to bounce phase after revealing is complete
-      setAnimationPhase("bouncing");
-    } else if (animationPhase === "bouncing") {
-      // Bounce for a short time, then settle
+      // Move to racing phase after revealing is complete
+      setAnimationPhase("racing");
+    } else if (animationPhase === "racing") {
+      // Racing border for a short time, then settle
       const timeout = setTimeout(() => {
         setAnimationPhase("settling");
       }, 1000);
@@ -79,7 +79,7 @@ export function AnimatedText({
     switch (animationPhase) {
       case "revealing":
         return "";
-      case "bouncing":
+      case "racing":
         return "title-border-race";
       case "settling":
         return "title-settle";
@@ -99,7 +99,7 @@ export function AnimatedText({
             "inline-block transition-all duration-300",
             index < currentIndex ? getAnimationClass() : "opacity-0 transform translate-y-4",
             char === " " ? "w-2 break-before-auto" : "break-inside-avoid",
-            animationPhase === "bouncing" && index < currentIndex ? "animate-bounce" : "",
+            animationPhase === "racing" && index < currentIndex ? "" : "",
             animationPhase === "settling" && index < currentIndex ? "animate-pulse" : ""
           )}
           style={{
