@@ -55,7 +55,12 @@ class MemoryStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const user: User = {
-      ...userData,
+      id: userData.id,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      role: userData.role || "client",
       createdAt: this.users.get(userData.id)?.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -68,7 +73,14 @@ class MemoryStorage implements IStorage {
     const id = this.nextAssessmentId++;
     const created: Assessment = {
       id,
-      ...assessment,
+      userId: assessment.userId,
+      status: assessment.status || "draft",
+      buildingName: assessment.buildingName || null,
+      publisherName: assessment.publisherName || null,
+      buildingLocation: assessment.buildingLocation || null,
+      detailedAddress: assessment.detailedAddress || null,
+      phoneNumber: assessment.phoneNumber || null,
+      additionalNotes: assessment.additionalNotes || null,
       overallScore: assessment.overallScore || 0,
       maxPossibleScore: assessment.maxPossibleScore || 0,
       completedSections: assessment.completedSections || 0,
