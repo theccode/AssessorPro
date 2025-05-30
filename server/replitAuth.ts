@@ -6,11 +6,12 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
-import memorystore from "memorystore";
+
 import { storage } from "./storage";
 
-// Temporarily disable strict env check for development
-const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || "localhost";
+if (!process.env.REPLIT_DOMAINS) {
+  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+}
 
 const getOidcConfig = memoize(
   async () => {
@@ -24,21 +25,22 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
-  // Use memory store for now - will switch to database when available
-  const MemoryStore = memorystore(session);
-  const sessionStore = new MemoryStore({
-    checkPeriod: sessionTtl,
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
   });
   
   return session({
-    secret: process.env.SESSION_SECRET || 'dev-session-secret-change-in-production',
+    secret: process.env.SESSION_SECRET!,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: sessionTtl,
     },
   });
