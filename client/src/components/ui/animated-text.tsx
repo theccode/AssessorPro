@@ -20,37 +20,50 @@ export function AnimatedText({
 }: AnimatedTextProps) {
   const [displayedText, setDisplayedText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [animationPhase, setAnimationPhase] = useState<"revealing" | "bouncing" | "settling" | "waiting">("revealing");
 
   useEffect(() => {
-    if (currentIndex < text.length) {
+    if (animationPhase === "revealing" && currentIndex < text.length) {
       const timeout = setTimeout(() => {
         setDisplayedText(text.slice(0, currentIndex + 1));
         setCurrentIndex(currentIndex + 1);
       }, delay);
 
       return () => clearTimeout(timeout);
-    } else if (repeat && currentIndex >= text.length) {
-      // Reset for continuous repeat
+    } else if (animationPhase === "revealing" && currentIndex >= text.length) {
+      // Move to bounce phase after revealing is complete
+      setAnimationPhase("bouncing");
+    } else if (animationPhase === "bouncing") {
+      // Bounce for a short time, then settle
+      const timeout = setTimeout(() => {
+        setAnimationPhase("settling");
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    } else if (animationPhase === "settling") {
+      // Settle animation, then wait
+      const timeout = setTimeout(() => {
+        setAnimationPhase("waiting");
+      }, 500);
+
+      return () => clearTimeout(timeout);
+    } else if (animationPhase === "waiting" && repeat) {
+      // Wait, then reset for next cycle
       const timeout = setTimeout(() => {
         setCurrentIndex(0);
         setDisplayedText("");
+        setAnimationPhase("revealing");
       }, repeatDelay);
 
       return () => clearTimeout(timeout);
     }
-  }, [currentIndex, text, delay, repeat, repeatDelay]);
+  }, [currentIndex, text, delay, repeat, repeatDelay, animationPhase]);
 
   const getAnimationClass = () => {
-    switch (animationType) {
-      case "slide":
-        return "word-slide-up";
-      case "bounce":
-        return "character-reveal";
-      case "typewriter":
-        return "typewriter-cursor";
-      default:
-        return "character-reveal";
+    if (animationPhase === "revealing") {
+      return "character-bounce-in";
     }
+    return "";
   };
 
   if (animationType === "typewriter") {
@@ -62,18 +75,35 @@ export function AnimatedText({
     );
   }
 
+  const getPhaseClass = () => {
+    switch (animationPhase) {
+      case "revealing":
+        return "";
+      case "bouncing":
+        return "title-bounce";
+      case "settling":
+        return "title-settle";
+      case "waiting":
+        return "";
+      default:
+        return "";
+    }
+  };
+
   return (
-    <span className={className}>
+    <span className={cn(className, getPhaseClass())}>
       {text.split("").map((char, index) => (
         <span
           key={index}
           className={cn(
             "inline-block transition-all duration-300",
             index < currentIndex ? getAnimationClass() : "opacity-0 transform translate-y-4",
-            char === " " ? "w-2" : ""
+            char === " " ? "w-2" : "",
+            animationPhase === "bouncing" && index < currentIndex ? "animate-bounce" : "",
+            animationPhase === "settling" && index < currentIndex ? "animate-pulse" : ""
           )}
           style={{
-            animationDelay: `${index * 50}ms`,
+            animationDelay: animationPhase === "revealing" ? `${index * 50}ms` : "0ms",
             animationFillMode: "both"
           }}
         >
