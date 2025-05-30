@@ -33,9 +33,13 @@ export function AnimatedText({
 
       return () => clearTimeout(timeout);
     } else if (animationPhase === "revealing" && currentIndex >= text.length) {
-      // Move to racing phase after revealing is complete
-      setAnimationPhase("racing");
-      onPhaseChange?.("racing");
+      // Wait a bit after text is complete, then start racing
+      const timeout = setTimeout(() => {
+        setAnimationPhase("racing");
+        onPhaseChange?.("racing");
+      }, 500);
+      
+      return () => clearTimeout(timeout);
     } else if (animationPhase === "racing") {
       // Racing border for a short time, then settle
       const timeout = setTimeout(() => {
