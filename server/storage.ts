@@ -12,7 +12,6 @@ import {
   type AssessmentMedia,
   type InsertAssessmentMedia,
 } from "@shared/schema";
-import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -39,47 +38,54 @@ export interface IStorage {
   deleteAssessmentMedia(id: number): Promise<void>;
 }
 
-export class DatabaseStorage implements IStorage {
+// Temporary in-memory storage for development
+class MemoryStorage implements IStorage {
+  private users: Map<string, User> = new Map();
+  private assessments: Map<number, Assessment> = new Map();
+  private sections: Map<string, AssessmentSection> = new Map();
+  private media: Map<number, AssessmentMedia> = new Map();
+  private nextAssessmentId = 1;
+  private nextSectionId = 1;
+  private nextMediaId = 1;
+
   // User operations (mandatory for Replit Auth)
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return this.users.get(id);
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+    const user: User = {
+      ...userData,
+      createdAt: this.users.get(userData.id)?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(userData.id, user);
     return user;
   }
 
   // Assessment operations
   async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
-    const [created] = await db
-      .insert(assessments)
-      .values(assessment)
-      .returning();
+    const id = this.nextAssessmentId++;
+    const created: Assessment = {
+      id,
+      ...assessment,
+      overallScore: assessment.overallScore || 0,
+      maxPossibleScore: assessment.maxPossibleScore || 0,
+      completedSections: assessment.completedSections || 0,
+      totalSections: assessment.totalSections || 8,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.assessments.set(id, created);
     return created;
   }
 
   async getAssessment(id: number): Promise<Assessment | undefined> {
-    const [assessment] = await db
-      .select()
-      .from(assessments)
-      .where(eq(assessments.id, id));
-    return assessment;
+    return this.assessments.get(id);
   }
 
   async getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined> {
-    const assessment = await this.getAssessment(id);
+    const assessment = this.assessments.get(id);
     if (!assessment) return undefined;
 
     const sections = await this.getAssessmentSections(id);
@@ -89,92 +95,90 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserAssessments(userId: string): Promise<Assessment[]> {
-    return await db
-      .select()
-      .from(assessments)
-      .where(eq(assessments.userId, userId))
-      .orderBy(desc(assessments.updatedAt));
+    return Array.from(this.assessments.values())
+      .filter(a => a.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
   }
 
   async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment> {
-    const [updated] = await db
-      .update(assessments)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(assessments.id, id))
-      .returning();
+    const existing = this.assessments.get(id);
+    if (!existing) throw new Error('Assessment not found');
+    
+    const updated = { ...existing, ...data, updatedAt: new Date() };
+    this.assessments.set(id, updated);
     return updated;
   }
 
   async deleteAssessment(id: number): Promise<void> {
-    await db.delete(assessments).where(eq(assessments.id, id));
+    this.assessments.delete(id);
+    // Delete related sections and media
+    Array.from(this.sections.keys())
+      .filter(key => key.startsWith(`${id}-`))
+      .forEach(key => this.sections.delete(key));
+    Array.from(this.media.values())
+      .filter(m => m.assessmentId === id)
+      .forEach(m => this.media.delete(m.id));
   }
 
   // Assessment section operations
   async upsertAssessmentSection(section: InsertAssessmentSection): Promise<AssessmentSection> {
-    const existing = await this.getAssessmentSection(section.assessmentId, section.sectionType);
+    const key = `${section.assessmentId}-${section.sectionType}`;
+    const existing = this.sections.get(key);
     
     if (existing) {
-      const [updated] = await db
-        .update(assessmentSections)
-        .set({ ...section, updatedAt: new Date() })
-        .where(and(
-          eq(assessmentSections.assessmentId, section.assessmentId),
-          eq(assessmentSections.sectionType, section.sectionType)
-        ))
-        .returning();
+      const updated = { ...existing, ...section, updatedAt: new Date() };
+      this.sections.set(key, updated);
       return updated;
     } else {
-      const [created] = await db
-        .insert(assessmentSections)
-        .values(section)
-        .returning();
+      const created: AssessmentSection = {
+        id: this.nextSectionId++,
+        ...section,
+        score: section.score || 0,
+        maxScore: section.maxScore || 0,
+        isCompleted: section.isCompleted || false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.sections.set(key, created);
       return created;
     }
   }
 
   async getAssessmentSections(assessmentId: number): Promise<AssessmentSection[]> {
-    return await db
-      .select()
-      .from(assessmentSections)
-      .where(eq(assessmentSections.assessmentId, assessmentId));
+    return Array.from(this.sections.values())
+      .filter(s => s.assessmentId === assessmentId);
   }
 
   async getAssessmentSection(assessmentId: number, sectionType: string): Promise<AssessmentSection | undefined> {
-    const [section] = await db
-      .select()
-      .from(assessmentSections)
-      .where(and(
-        eq(assessmentSections.assessmentId, assessmentId),
-        eq(assessmentSections.sectionType, sectionType)
-      ));
-    return section;
+    const key = `${assessmentId}-${sectionType}`;
+    return this.sections.get(key);
   }
 
   // Media operations
   async createAssessmentMedia(media: InsertAssessmentMedia): Promise<AssessmentMedia> {
-    const [created] = await db
-      .insert(assessmentMedia)
-      .values(media)
-      .returning();
+    const id = this.nextMediaId++;
+    const created: AssessmentMedia = {
+      id,
+      ...media,
+      fileSize: media.fileSize || 0,
+      createdAt: new Date(),
+    };
+    this.media.set(id, created);
     return created;
   }
 
   async getAssessmentMedia(assessmentId: number, sectionType?: string): Promise<AssessmentMedia[]> {
-    let query = db
-      .select()
-      .from(assessmentMedia)
-      .where(eq(assessmentMedia.assessmentId, assessmentId));
-
-    if (sectionType) {
-      query = query.where(eq(assessmentMedia.sectionType, sectionType));
-    }
-
-    return await query;
+    return Array.from(this.media.values())
+      .filter(m => {
+        if (m.assessmentId !== assessmentId) return false;
+        if (sectionType && m.sectionType !== sectionType) return false;
+        return true;
+      });
   }
 
   async deleteAssessmentMedia(id: number): Promise<void> {
-    await db.delete(assessmentMedia).where(eq(assessmentMedia.id, id));
+    this.media.delete(id);
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemoryStorage();
