@@ -144,10 +144,13 @@ class MemoryStorage implements IStorage {
     } else {
       const created: AssessmentSection = {
         id: this.nextSectionId++,
-        ...section,
+        assessmentId: section.assessmentId,
+        sectionType: section.sectionType,
+        sectionName: section.sectionName,
         score: section.score || 0,
         maxScore: section.maxScore || 0,
         isCompleted: section.isCompleted || false,
+        variables: section.variables || {},
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -171,8 +174,14 @@ class MemoryStorage implements IStorage {
     const id = this.nextMediaId++;
     const created: AssessmentMedia = {
       id,
-      ...media,
+      assessmentId: media.assessmentId,
+      sectionType: media.sectionType,
+      fieldName: media.fieldName,
+      fileName: media.fileName,
+      fileType: media.fileType,
       fileSize: media.fileSize || 0,
+      filePath: media.filePath,
+      mimeType: media.mimeType || null,
       createdAt: new Date(),
     };
     this.media.set(id, created);

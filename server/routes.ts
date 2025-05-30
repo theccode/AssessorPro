@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -27,14 +27,39 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Simple development auth - bypass Replit auth for now
+  app.use((req: any, res, next) => {
+    // Create a demo user for development
+    req.user = {
+      claims: {
+        sub: "demo-user-123",
+        email: "demo@example.com",
+        first_name: "Demo",
+        last_name: "User",
+        profile_image_url: null
+      }
+    };
+    next();
+  });
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      let user = await storage.getUser(userId);
+      
+      if (!user) {
+        // Create demo user if doesn't exist
+        user = await storage.upsertUser({
+          id: userId,
+          email: req.user.claims.email,
+          firstName: req.user.claims.first_name,
+          lastName: req.user.claims.last_name,
+          profileImageUrl: req.user.claims.profile_image_url,
+          role: "assessor"
+        });
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -43,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment routes
-  app.post('/api/assessments', isAuthenticated, async (req: any, res) => {
+  app.post('/api/assessments', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const data = insertAssessmentSchema.parse({ ...req.body, userId });
@@ -56,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const assessments = await storage.getUserAssessments(userId);
@@ -67,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id',  async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const assessment = await storage.getAssessmentWithSections(id);
@@ -91,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/assessments/:id',  async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -110,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/assessments/:id',  async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -130,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment section routes
-  app.post('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
+  app.post('/api/assessments/:id/sections',  async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -163,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id/sections',  async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const sections = await storage.getAssessmentSections(assessmentId);
@@ -175,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Media upload routes
-  app.post('/api/assessments/:id/media', isAuthenticated, upload.array('files'), async (req: any, res) => {
+  app.post('/api/assessments/:id/media',  upload.array('files'), async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -227,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id/media', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id/media',  async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const { sectionType } = req.query;
@@ -241,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files
-  app.get('/api/media/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/media/:id',  async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       const media = await storage.getAssessmentMedia(0); // This would need adjustment
