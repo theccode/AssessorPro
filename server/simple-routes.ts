@@ -18,6 +18,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication middleware with enterprise security
   app.use((req: any, res, next) => {
+    // Skip auto-login for logout and login routes
+    if (req.url === '/api/logout' || req.url === '/api/login') {
+      req.user = req.session?.user || null;
+      return next();
+    }
+
     // For demo purposes, auto-login a user if not authenticated
     if (!req.session.user) {
       req.session.user = {
@@ -58,7 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Session destroy error:', err);
       }
       res.clearCookie('connect.sid');
-      res.redirect('/');
+      // Send 401 to trigger frontend logout state
+      res.status(401).json({ message: 'Logged out' });
     });
   });
 
