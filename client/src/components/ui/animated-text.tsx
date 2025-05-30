@@ -80,7 +80,7 @@ export function AnimatedText({
       case "revealing":
         return "";
       case "bouncing":
-        return "title-bounce";
+        return "title-border-race";
       case "settling":
         return "title-settle";
       case "waiting":
