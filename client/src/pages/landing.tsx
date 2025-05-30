@@ -217,41 +217,69 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Comprehensive Assessment Framework
+              GREDA Green Building Assessment Framework
             </h2>
             <p className="text-xl text-muted-foreground">
-              Evaluate all aspects of building sustainability across 8 core categories
+              Comprehensive evaluation across 7 core sustainability criteria with 130 total credits
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-primary" />
+                <Building className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2 text-foreground">Energy Efficiency</h3>
-              <p className="text-sm text-muted-foreground">HVAC systems, lighting, renewable energy integration</p>
+              <h3 className="font-semibold mb-2 text-foreground">Site and Transport</h3>
+              <p className="text-sm text-muted-foreground mb-2">Habitat protection, heat island reduction, public transport access</p>
+              <div className="text-xs text-primary font-medium">20 Credits</div>
             </div>
             <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Droplets className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2 text-foreground">Water Management</h3>
-              <p className="text-sm text-muted-foreground">Conservation, recycling, stormwater management</p>
+              <h3 className="font-semibold mb-2 text-foreground">Water Efficiency</h3>
+              <p className="text-sm text-muted-foreground mb-2">Water quality, fixtures, rainwater management, recycling</p>
+              <div className="text-xs text-primary font-medium">16 Credits</div>
+            </div>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Energy Efficiency & Carbon</h3>
+              <p className="text-sm text-muted-foreground mb-2">Renewable energy, efficient equipment, emissions reduction</p>
+              <div className="text-xs text-primary font-medium">34 Credits</div>
             </div>
             <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Leaf className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2 text-foreground">Indoor Quality</h3>
-              <p className="text-sm text-muted-foreground">Air quality, natural lighting, thermal comfort</p>
+              <h3 className="font-semibold mb-2 text-foreground">Indoor Environmental Quality</h3>
+              <p className="text-sm text-muted-foreground mb-2">Air quality, lighting, acoustics, thermal comfort</p>
+              <div className="text-xs text-primary font-medium">20 Credits</div>
+            </div>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Materials & Resources</h3>
+              <p className="text-sm text-muted-foreground mb-2">Sustainable sourcing, recycled content, local materials</p>
+              <div className="text-xs text-primary font-medium">18 Credits</div>
             </div>
             <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Recycle className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2 text-foreground">Materials & Waste</h3>
-              <p className="text-sm text-muted-foreground">Sustainable materials, waste reduction, recycling</p>
+              <h3 className="font-semibold mb-2 text-foreground">Waste & Pollution</h3>
+              <p className="text-sm text-muted-foreground mb-2">Construction waste, operational waste, emissions control</p>
+              <div className="text-xs text-primary font-medium">14 Credits</div>
+            </div>
+            <div className="text-center p-6 bg-card rounded-lg border border-border shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 hover:border-primary/50">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Innovation</h3>
+              <p className="text-sm text-muted-foreground mb-2">Innovative technologies, materials, and design solutions</p>
+              <div className="text-xs text-primary font-medium">8 Credits</div>
             </div>
           </div>
         </div>
