@@ -32,9 +32,9 @@ export default function Landing() {
           }}
         ></div>
         <div className="absolute inset-0 bg-eco-pattern opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-in slide-in-from-left duration-500">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-8xl mx-auto">
+            <div className="animate-in slide-in-from-left duration-500 lg:pr-8">
               <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold mb-6 text-foreground animated-title leading-tight">
                 <GlowingText className="text-glow">
                   <AnimatedText 

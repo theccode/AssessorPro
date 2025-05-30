@@ -207,6 +207,16 @@
   hyphens: none;
   line-height: 1.1;
   word-spacing: 0.1em;
+  max-width: none;
+}
+
+/* Custom max-width for wider containers */
+.max-w-8xl {
+  max-width: 88rem;
+}
+
+.max-w-9xl {
+  max-width: 96rem;
 }
 
 @keyframes character-bounce-in {
