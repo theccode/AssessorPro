@@ -142,33 +142,64 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section - Auto-scrolling Carousel */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 animate-in slide-in-from-right duration-700">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
-              <div className="text-gray-600">Buildings Certified</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">85%</div>
-              <div className="text-gray-600">Energy Savings Average</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">50+</div>
-              <div className="text-gray-600">Sustainability Metrics</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
-              <div className="text-gray-600">Platform Uptime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">150+</div>
-              <div className="text-gray-600">Certified Assessors</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
-              <div className="text-gray-600">Support</div>
+          <div className="carousel-container">
+            <div className="carousel-track scroll-right-to-left">
+              <div className="flex gap-16 min-w-max">
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
+                  <div className="text-gray-600">Buildings Certified</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">85%</div>
+                  <div className="text-gray-600">Energy Savings Average</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">50+</div>
+                  <div className="text-gray-600">Sustainability Metrics</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
+                  <div className="text-gray-600">Platform Uptime</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">150+</div>
+                  <div className="text-gray-600">Certified Assessors</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                  <div className="text-gray-600">Support</div>
+                </div>
+              </div>
+              {/* Duplicate set for seamless looping */}
+              <div className="flex gap-16 min-w-max">
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
+                  <div className="text-gray-600">Buildings Certified</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">85%</div>
+                  <div className="text-gray-600">Energy Savings Average</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">50+</div>
+                  <div className="text-gray-600">Sustainability Metrics</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
+                  <div className="text-gray-600">Platform Uptime</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">150+</div>
+                  <div className="text-gray-600">Certified Assessors</div>
+                </div>
+                <div className="text-center min-w-[200px]">
+                  <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                  <div className="text-gray-600">Support</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

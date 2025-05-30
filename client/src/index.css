@@ -217,6 +217,15 @@
   }
 }
 
+@keyframes scrollRightToLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 /* Material Design shadows */
 .shadow-material {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
@@ -252,4 +261,20 @@
 
 .border-eco {
   border-image: linear-gradient(45deg, hsl(150, 45%, 85%), hsl(120, 50%, 75%)) 1;
+}
+
+/* Auto-scrolling carousel styles */
+.scroll-right-to-left {
+  animation: scrollRightToLeft 25s linear infinite;
+}
+
+.carousel-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.carousel-track {
+  display: inline-flex;
+  gap: 4rem;
+  min-width: 200%;
 }
