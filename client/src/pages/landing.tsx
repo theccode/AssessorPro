@@ -1,17 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Leaf, Zap, Droplets, Recycle, BarChart3, FileText, Award, TrendingUp, Star, Shield, Users } from "lucide-react";
+import heroImage from "@assets/image_1748623363109.png";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-gray-900">BuildAssess Pro</span>
+              <span className="ml-2 text-xl font-medium text-foreground">BuildAssess Pro</span>
             </div>
             <Button asChild>
               <a href="/api/login">Sign In</a>
@@ -20,9 +21,15 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-green text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-eco-pattern opacity-20"></div>
+      {/* Hero Section with Background Image */}
+      <section className="relative py-20 overflow-hidden min-h-[600px]">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `linear-gradient(rgba(15, 25, 18, 0.85), rgba(15, 25, 18, 0.75)), url(${heroImage})`,
+          }}
+        ></div>
+        <div className="absolute inset-0 bg-eco-pattern opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
