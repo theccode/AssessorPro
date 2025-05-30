@@ -197,24 +197,17 @@
 }
 
 .character-bounce-in {
-  animation: character-bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+  animation: character-bounce-in 0.4s ease-out both;
 }
 
 @keyframes character-bounce-in {
   0% { 
     opacity: 0; 
-    transform: translateY(20px) scale(0.8) rotate(5deg); 
-  }
-  60% { 
-    opacity: 1; 
-    transform: translateY(-5px) scale(1.1) rotate(-2deg); 
-  }
-  80% { 
-    transform: translateY(2px) scale(1.05) rotate(1deg); 
+    transform: translateY(10px) scale(0.9); 
   }
   100% { 
     opacity: 1; 
-    transform: translateY(0px) scale(1) rotate(0deg); 
+    transform: translateY(0px) scale(1); 
   }
 }
 
