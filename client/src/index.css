@@ -207,6 +207,7 @@
   padding: 1rem;
   border-radius: 8px;
   position: relative;
+  border: 2px solid transparent; /* Start with transparent border */
 }
 
 .title-settle {

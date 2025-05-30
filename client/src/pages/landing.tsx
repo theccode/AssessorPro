@@ -45,7 +45,7 @@ export default function Landing() {
             <div className="animate-in slide-in-from-left duration-500 lg:pr-8">
               <div className="mb-6">
                 <AnimatedBorder active={isRacing} className="inline-block">
-                  <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold text-foreground animated-title leading-tight px-6 py-4">
+                  <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold text-foreground animated-title leading-tight">
                     <GlowingText className="text-glow">
                       <AnimatedText 
                         text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"

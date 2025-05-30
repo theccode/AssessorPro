@@ -27,6 +27,7 @@ export function AnimatedBorder({
   return (
     <div className={cn(
       "relative inline-block",
+      "px-6 py-4 border-2 border-transparent rounded-lg",
       isActive ? "title-border-race" : "",
       className
     )}>
