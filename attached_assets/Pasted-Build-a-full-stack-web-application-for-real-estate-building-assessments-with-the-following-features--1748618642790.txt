@@ -1,0 +1,64 @@
+Build a full-stack web application for real estate building assessments with the following features:
+
+1. **User Management System:**
+   - Three user roles: Admin, Assessor, Client
+   - Signup/login with email/password
+   - Role-based access control:
+     * Admins manage all data and users
+     * Assessors create building assessments
+     * Clients subscribe to view assessments
+
+2. **Building Assessment Module:**
+   Implement assessment forms for these categories (based on GREDA GBC framework):
+   - Site and Transport (ST)
+   - Water Efficiency (WE)
+   - Energy Efficiency & Carbon Emission (EEMR)
+   - Indoor Environmental Quality (IEQ)
+   - Materials & Resources (MR)
+   - Waste & Pollution (WP)
+   - Innovation (IN)
+   
+   Each form should include:
+   - Dynamic fields (text, numbers, checkboxes, file uploads)
+   - Scoring system with calculations
+   - Progress saving functionality
+   - Validation rules
+
+3. **Subscription System:**
+   - Stripe integration for payments
+   - Tiered subscription plans (Basic, Pro, Enterprise)
+   - Client dashboard showing subscribed assessments
+   - Automatic renewal and cancellation
+
+4. **Dashboard & Reporting:**
+   - Role-specific dashboards:
+     * Admin: User management, analytics
+     * Assessor: Assessment creation, drafts
+     * Client: Subscribed reports
+   - Generate PDF assessment reports
+   - Data visualization (charts/graphs) for scores
+   - Export data to CSV/Excel
+
+5. **Technical Requirements:**
+   - **Frontend:** React with Material-UI
+   - **Backend:** Node.js/Express
+   - **Database:** PostgreSQL with Prisma ORM
+   - **Auth:** JWT authentication
+   - **Hosting:** Render.com
+   - **File Storage:** AWS S3 for document uploads
+
+6. **Key Features from Documents:**
+   - Building data collection form (name, location, address, etc.)
+   - Score tracking across 7 assessment categories
+   - Third-party certification tracking
+   - Energy efficiency metrics
+   - Carbon emission calculations
+   - Material sustainability scoring
+   - Indoor environmental quality parameters
+
+7. **Additional Requirements:**
+   - Responsive mobile-friendly design
+   - Role-based permissions system
+   - Audit logs for assessments
+   - Email notifications
+   - Dark mode support

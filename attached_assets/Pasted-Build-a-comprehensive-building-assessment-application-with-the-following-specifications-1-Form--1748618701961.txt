@@ -1,0 +1,78 @@
+Build a comprehensive building assessment application with the following specifications:
+
+1. **Form Structure & Sequence:**
+   - Building Information (BI) - First section (non-scored)
+   - Site and Transport (ST)
+   - Water Efficiency (WE)
+   - Energy Efficiency (EEMR)
+   - Indoor Environmental Quality (IEQ)
+   - Materials & Resources (MR)
+   - Waste & Pollution (WP)
+   - Innovation (IN)
+
+2. **Building Information Section (First Section):**
+   - Non-scored descriptive fields:
+     * Building Name (text)
+     * Publisher Name (text)
+     * Building Location (text)
+     * Detailed Address (text)
+     * Phone Number (tel)
+     * Additional Notes (textarea)
+   - Reference numbers: 1, n, 17, 14, 12, 16, 18, 19, 20, 21 (store as metadata)
+
+3. **Scoring System Implementation:**
+   Each variable has a maximum score (N) with range validation (0-N):
+
+   ### Site and Transport (ST) - Max: 14
+   - Access to Public Transport (Max: 14)
+   - Facilities for Cycling/Walking (Max: 12)
+   - Local Security and Pedestrian Access (Max: 16)
+
+   ### Water Efficiency (WE) - Max: 15
+   - Water Quality (Max: 15)
+   - High Efficiency Water Fixtures (Max: 1)
+   - Surface Water Management (Max: 2)
+   - Water Recycling (Max: 5)
+   - Metering/Leak Detection (Max: 6)
+
+   ### Energy Efficiency (EEMR) - Max: 10
+   - Renewable Energy Use (Max: 9)
+   - Energy Efficient Equipment (Max: 4)
+   - Carbon Emission Reduction (Max: 10)
+   - Cold Storage Efficiency (Max: 4)
+   - Ventilation/AC Efficiency (Max: 6)
+
+   ### Indoor Environmental Quality (IEQ) - Max: 2
+   - Daylighting (Max: 2)
+   - Indoor Air Quality (Max: 1)
+   - Natural Lighting Sources (Max: 2)
+   - Acoustic Performance (Max: 1)
+
+   ### Materials & Resources (MR) - Max: 7
+   - Recycled Content Materials (Max: 4)
+   - Low Embedded Energy Materials (Max: 5)
+   - Locally Sourced Materials (Max: 7)
+   - Third-Party Certified Materials (Max: 6)
+
+   ### Waste & Pollution (WP) - Max: 14
+   - Construction Waste Management (Max: 14)
+   - Operational Waste Management (Max: 1)
+   - Pollution Control (Max: 2)
+
+   ### Innovation (IN) - Max: 11
+   - Innovative Technologies (Max: 11)
+   - Sustainable Products (Max: 3)
+   - Eco-Friendly Designs (Max: 7)
+
+4. **Score Calculation Engine:**
+   ```javascript
+   // Per-variable validation
+   const validateScore = (value, max) => value >= 0 && value <= max;
+   
+   // Category calculation
+   const categoryScore = (variables) => 
+     variables.reduce((sum, {value}) => sum + value, 0);
+   
+   // Overall percentage
+   const maxPossible = 14 + 15 + 10 + 2 + 7 + 14 + 11; // = 73
+   const overallPercentage = (totalScore / maxPossible) * 100;

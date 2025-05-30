@@ -1,0 +1,86 @@
+Build a comprehensive building assessment application with the following specifications:
+
+1. **Scoring System Implementation:**
+   - Each assessment variable has a maximum score (N) as shown in the reference images
+   - Implement score inputs with range validation (0 to N)
+   - Calculate category totals and overall building score automatically
+   - Visual score indicators showing achieved vs maximum points
+
+2. **Assessment Categories & Variables:**
+   Create assessment forms for these categories with their variables and max scores:
+
+   ### Site and Transport (ST)
+   - Access to Public Transport (Max: 14)
+   - Facilities for Cycling/Walking (Max: 12)
+   - Local Security and Pedestrian Access (Max: 16)
+
+   ### Water Efficiency (WE)
+   - Water Quality (Max: 15)
+   - High Efficiency Water Fixtures (Max: 1)
+   - Surface Water Management (Max: 2)
+   - Water Recycling (Max: 5)
+   - Metering/Leak Detection (Max: 6)
+
+   ### Energy Efficiency (EEMR)
+   - Renewable Energy Use (Max: 9)
+   - Energy Efficient Equipment (Max: 4)
+   - Carbon Emission Reduction (Max: 10)
+   - Cold Storage Efficiency (Max: 4)
+   - Ventilation/AC Efficiency (Max: 6)
+
+   ### Indoor Environmental Quality (IEQ)
+   - Daylighting (Max: 2)
+   - Indoor Air Quality (Max: 1)
+   - Natural Lighting Sources (Max: 2)
+   - Acoustic Performance (Max: 1)
+
+   ### Materials & Resources (MR)
+   - Recycled Content Materials (Max: 4)
+   - Low Embedded Energy Materials (Max: 5)
+   - Locally Sourced Materials (Max: 7)
+   - Third-Party Certified Materials (Max: 6)
+
+   ### Waste & Pollution (WP)
+   - Construction Waste Management (Max: 14)
+   - Operational Waste Management (Max: 1)
+   - Pollution Control (Max: 2)
+
+   ### Innovation (IN)
+   - Innovative Technologies (Max: 11)
+   - Sustainable Products (Max: 3)
+   - Eco-Friendly Designs (Max: 7)
+
+3. **User Management:**
+   - 3 roles: Admin, Assessor, Client
+   - Assessors: Create/manage assessments, input scores
+   - Clients: View subscribed reports, track building performance
+   - Admins: Manage users, configure scoring, generate analytics
+
+4. **Subscription System:**
+   - Tiered access (Basic/Pro/Enterprise)
+   - Stripe integration for payments
+   - Client dashboard with assessment history
+   - PDF report generation for completed assessments
+
+5. **Technical Implementation:**
+   - **Frontend:** React with Material-UI components
+   - **Backend:** Node.js/Express REST API
+   - **Database:** PostgreSQL with Prisma ORM
+   - **Scoring Engine:** Automated calculation of:
+        Category Score = Σ(achieved points)
+        Overall Score = Σ(category scores)
+        Percentage Score = (Overall Score / Total Possible) × 100
+   - **Visualization:** Chart.js for score breakdowns
+
+6. **Key Features:**
+   - Dynamic forms with field-specific max scores
+   - Score progress bars showing 0/N status
+   - Historical score tracking for buildings
+   - Comparison tools against industry benchmarks
+   - Mobile-responsive assessment interface
+   - Audit trail for all score modifications
+
+7. **Deployment:**
+   - Docker containerization
+   - AWS deployment (EC2 + RDS + S3)
+   - CI/CD pipeline with GitHub Actions

@@ -1,0 +1,139 @@
+Build a complete building assessment application with the following specifications:
+
+1. **Form Structure & Sequence:**
+   - Building Information (BI) - First section (non-scored)
+   - Site and Transport (ST)
+   - Water Efficiency (WE)
+   - Energy Efficiency (EEMR)
+   - Indoor Environmental Quality (IEQ)
+   - Materials & Resources (MR)
+   - Waste & Pollution (WP)
+   - Innovation (IN)
+
+2. **Building Information Section (First):**
+   - Fields with metadata reference numbers: 1, n, 17, 14, 12, 16, 18, 19, 20, 21
+   - Form fields:
+     * Name of Building (text)
+     * Building Location (text)
+     * Digital Address (text)
+     * Telephone Number (tel)
+     * Site of Internet (number)
+     * Posted On Picture Notice (text)
+
+3. **Scoring Sections with Max Values:**
+   Implement these sections with their variables and max scores:
+
+   ### Site and Transport (ST)
+   - Next-time Production: 1
+   - Landscaping And Pictures: 2
+   - Access to Public Transport: 3
+   - Facilities for Cycling/Walking: 4
+
+   ### Water Efficiency (WE)
+   - Water Quality: 15
+   - High Efficiency Water Fixtures: 1
+   - Rain Water Management: 2
+   - Outdoor Water Use Reduction: 3
+   - Surface Water Run Off Management: 4
+   - Water Recycling: 5
+   - Metering/Leak Detection System: 6
+   - Water Efficient Irrigation: 7
+   - Water Conservation And Management: 8
+
+   ### Energy Efficiency (EEMR)
+   - Renewable Energy Use: 1
+   - Energy Metering and Monitoring: 2
+   - Low and Zero Carbon Technologies: 3
+   - Energy Efficient Cold Storage: 4
+   - Efficient Ventilation And AC Equipment: 5
+   - Alternative Protein Design: 6
+   - Embedded Energy in Building Elements: 7
+   - Eco-Building Performance: 8
+   - Environmental Quality/NO: 9
+   - Low Emitting Materials: 10
+   - Optimum Interior Lighting: 11
+   - Daylighting: 12
+
+   ### Materials & Resources (MR)
+   - Life Cycle Impact Reduction: 2
+   - Environmental Product Declaration: 2
+   - Responsible Sourcing of Raw Materials: 3
+   - Sustainable/Green Products: 1
+   - Materials with Recycled Content: 1
+   - Materials with Low Embodied Energy: 1
+   - Riveted Materials: 1
+   - Locally Sourced Materials: 2
+   - Third-Party Certified Materials: 2
+
+   ### Waste & Pollution (WP)
+   - Construction Waste Management: 4
+   - Operational Waste Management: 5
+   - Public Transport Access: 6
+   - Waste Disposal Facilities: 7
+   - Low Emitting Vehicles: 8
+
+   ### Innovation (IN)
+   - Innovative Technologies: 9
+   - Innovative Materials and Products: (max from context)
+   - Innovative Design: (max from context)
+   - Certificates: 117
+
+4. **Preview Page Implementation:**
+   - Summary table showing all sections
+   - For each variable:
+     * Achieved score
+     * Max possible score
+     * Progress bar (achieved/max)
+   - Section totals with star ratings:
+     * 0-25%: ⭐
+     * 26-50%: ⭐⭐
+     * 51-75%: ⭐⭐⭐
+     * 76-90%: ⭐⭐⭐⭐
+     * 91-100%: ⭐⭐⭐⭐⭐
+   - Overall building score visualization:
+     * Radial progress chart
+     * Color-coded performance indicator
+     * Comparison to industry benchmarks
+
+5. **Technical Implementation:**
+   - **Score Validation:**
+     ```javascript
+     // Frontend validation
+     const validateScore = (value, max) => 
+       value >= 0 && value <= max && !isNaN(value);
+     ```
+   - **Section Total Calculation:**
+     ```javascript
+     const sectionTotal = variables.reduce(
+       (sum, {score}) => sum + score, 0
+     );
+     ```
+   - **Overall Percentage:**
+     ```javascript
+     const maxPossible = sections.reduce(
+       (sum, section) => sum + section.maxTotal, 0
+     );
+     const overallPercentage = (totalScore / maxPossible) * 100;
+     ```
+
+6. **Preview UI Components:**
+   - Section accordions with expand/collapse
+   - Score comparison cards (current vs previous assessments)
+   - Downloadable PDF report button
+   - Interactive score breakdown charts
+   - Performance improvement suggestions
+
+7. **User Workflow:**
+   1. User completes all form sections
+   2. System validates all scores (0 ≤ score ≤ max)
+   3. Preview page shows:
+      - Summary of all inputs
+      - Section scores with star ratings
+      - Total building score (X/Y points)
+      - Overall performance percentage
+      - Visual rating indicator
+   4. User can:
+      - Go back to edit sections
+      - Save as draft
+      - Submit final assessment
+      - Download PDF report

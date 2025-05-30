@@ -1,0 +1,82 @@
+Build a complete Firebase-based building assessment application with the following specifications:
+
+1. **Landing Page with Animations:**
+   - Modern hero section with animated elements (fade-ins, slide-ups)
+   - Animated statistics counters (building assessments, users, etc.)
+   - Interactive building visualization with hover effects
+   - Smooth scroll animations between sections
+   - Responsive design with mobile-friendly animations
+
+2. **Firebase Integration:**
+   - **Authentication:** Firebase Auth (Email/Password, Google)
+   - **Database:** Firestore for structured data storage
+   - **Storage:** Firebase Storage for media files
+   - **Serverless:** Cloud Functions for backend logic
+
+3. **Form Management System:**
+   - Multi-step form with 7 sections:
+     1. Building Information
+     2. Site and Transport
+     3. Water Efficiency
+     4. Energy Efficiency
+     5. Indoor Environmental Quality
+     6. Materials & Resources
+     7. Waste & Pollution
+     8. Innovation
+   - Navigation: Back/Next buttons with progress tracking
+   - Draft saving: Auto-save every 30 seconds
+
+4. **Media Handling:**
+   - Each field supports:
+     * Image upload (JPG, PNG)
+     * Video upload (MP4)
+     * Audio recordings (MP3)
+     * File attachments (PDF, DOC)
+   - Media preview with thumbnail generation
+   - Replace functionality for existing media
+   - Storage organization: /assessments/{assessmentId}/{section}/{field}/
+
+5. **Review & Submission Page:**
+   - Summary table of all sections
+   - Score totals with visual indicators
+   - Star rating system (1-5 stars) based on performance
+   - Submit button to finalize assessment
+
+6. **Assessment Detail View:**
+   - Route: /assessments/{id}
+   - Show all fields with labels and entered values
+   - Media gallery with:
+     * Image carousel (lightbox on click)
+     * Video player with controls
+     * Audio player
+     * File download links
+   - Section navigation within the detail view
+   - Print/export to PDF option
+
+7. **Technical Implementation:**
+   - **Frontend:**
+     * React with React Router
+     * Tailwind CSS with custom animations
+     * Framer Motion for advanced animations
+     * React Player for media
+     * React PDF for report generation
+   - **Firebase:**
+     * Firestore data structure:
+       - assessments/{id}
+         - buildingInfo: { ... }
+         - siteTransport: { ... }
+         - ...
+         - media: { fieldName: [downloadURLs] }
+     * Storage rules for user-specific access
+     * Security rules for role-based data access
+
+8. **Animation Implementation:**
+   ```jsx
+   // Hero section animation
+   <motion.div
+     initial={{ opacity: 0, y: 20 }}
+     animate={{ opacity: 1, y: 0 }}
+     transition={{ duration: 0.5 }}
+   >
+     <h1>Building Assessment Platform</h1>
+   </motion.div>
