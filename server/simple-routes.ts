@@ -16,7 +16,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Auth route
+  // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
       let user = await storage.getUser(req.user.id);
@@ -28,6 +28,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
+  });
+
+  app.get('/api/login', (req, res) => {
+    // In a real app, this would redirect to authentication provider
+    res.redirect('/');
+  });
+
+  app.get('/api/logout', (req, res) => {
+    // Simple logout - just redirect to landing page
+    res.redirect('/');
   });
 
   // Assessment routes
