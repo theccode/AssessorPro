@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedText, AnimatedWords, GlowingText } from "@/components/ui/animated-text";
 import { Building, Leaf, Zap, Droplets, Recycle, BarChart3, FileText, Award, TrendingUp, Star, Shield, Users } from "lucide-react";
 import heroImage from "@assets/image_1748623363109.png";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
@@ -34,12 +35,22 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 leaf-float text-foreground">
-                GREDA Green Building Checklist (GREDA-GBC) Certification Tool
+              <h1 className="text-4xl lg:text-6xl font-bold mb-6 text-foreground">
+                <GlowingText className="text-glow">
+                  <AnimatedText 
+                    text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
+                    delay={60}
+                    animationType="bounce"
+                  />
+                </GlowingText>
               </h1>
-              <p className="text-xl mb-8 text-muted-foreground">
-                Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects. Applicable to Residential Buildings and for the Design, Construction, Operation and Maintenance Phases.
-              </p>
+              <div className="text-xl mb-8 text-muted-foreground">
+                <AnimatedWords
+                  words={["Comprehensive", "sustainability", "evaluation,", "certification", "tracking,", "and", "environmental", "performance", "analytics", "for", "green", "building", "projects.", "Applicable", "to", "Residential", "Buildings", "and", "for", "the", "Design,", "Construction,", "Operation", "and", "Maintenance", "Phases."]}
+                  delay={50}
+                  wordDelay={150}
+                />
+              </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
                   <a href="/api/login">Start Assessment</a>
