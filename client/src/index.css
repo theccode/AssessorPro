@@ -3,48 +3,48 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 11% 98%; /* #FAFAFA */
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
+  --background: 150 20% 98%; /* #F5FAF6 - Very light green */
+  --foreground: 150 30% 12%; /* #1A2F1F - Deep forest green */
+  --muted: 150 15% 95%; /* #F0F5F1 - Light mint */
+  --muted-foreground: 150 10% 45%; /* #6B7F6E - Muted green */
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
+  --popover-foreground: 150 30% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 207 90% 54%; /* #1976D2 */
-  --primary-foreground: 211 100% 99%;
-  --secondary: 124 55% 44%; /* #388E3C */
-  --secondary-foreground: 0 0% 98%;
-  --accent: 38 100% 48%; /* #F57C00 */
-  --accent-foreground: 0 0% 98%;
+  --card-foreground: 150 30% 12%;
+  --border: 150 15% 88%; /* #DDE5DF - Soft green border */
+  --input: 150 15% 88%;
+  --primary: 150 65% 42%; /* #238C56 - Forest green */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 45% 85%; /* #C8E6C9 - Light green */
+  --secondary-foreground: 150 30% 12%;
+  --accent: 120 50% 75%; /* #A5D6A7 - Soft eco green */
+  --accent-foreground: 150 30% 12%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
+  --ring: 150 65% 42%;
   --radius: 0.5rem;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 207 90% 54%; /* #1976D2 */
-  --primary-foreground: 211 100% 99%;
-  --secondary: 124 55% 44%; /* #388E3C */
-  --secondary-foreground: 0 0% 98%;
-  --accent: 38 100% 48%; /* #F57C00 */
-  --accent-foreground: 0 0% 98%;
+  --background: 150 25% 8%; /* #0F1912 - Dark forest */
+  --foreground: 150 15% 92%; /* #E6F0E8 - Light green */
+  --muted: 150 20% 15%; /* #1F2D24 - Dark mint */
+  --muted-foreground: 150 10% 65%; /* #9BA69D - Muted light green */
+  --popover: 150 25% 10%; /* #14201A - Dark green popover */
+  --popover-foreground: 150 15% 92%;
+  --card: 150 25% 10%; /* #14201A - Dark green card */
+  --card-foreground: 150 15% 92%;
+  --border: 150 20% 20%; /* #2A3E31 - Dark green border */
+  --input: 150 20% 20%;
+  --primary: 150 60% 50%; /* #33A366 - Bright forest green */
+  --primary-foreground: 150 25% 8%;
+  --secondary: 150 30% 25%; /* #3A5243 - Dark secondary green */
+  --secondary-foreground: 150 15% 92%;
+  --accent: 120 40% 35%; /* #4A7C59 - Dark eco green */
+  --accent-foreground: 150 15% 92%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 240 4.9% 83.9%;
+  --ring: 150 60% 50%;
   --radius: 0.5rem;
 }
 
@@ -61,8 +61,9 @@
 
 @layer utilities {
   .animate-in {
-    animation-duration: 0.5s;
+    animation-duration: 0.6s;
     animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .slide-in-from-left {
@@ -75,6 +76,29 @@
 
   .fade-in {
     animation-name: fadeIn;
+  }
+
+  .grow-in {
+    animation-name: growIn;
+  }
+
+  .leaf-float {
+    animation-name: leafFloat;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  .pulse-green {
+    animation-name: pulseGreen;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+  }
+
+  .eco-bounce {
+    animation-name: ecoBounce;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 }
 
@@ -109,6 +133,47 @@
   }
 }
 
+@keyframes growIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes leafFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+@keyframes pulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(35, 140, 86, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(35, 140, 86, 0);
+  }
+}
+
+@keyframes ecoBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Material Design shadows */
 .shadow-material {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
@@ -121,4 +186,27 @@
 /* Transition utilities */
 .transition-material {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Green building specific utilities */
+.bg-gradient-green {
+  background: linear-gradient(135deg, 
+    hsl(150, 65%, 42%) 0%, 
+    hsl(120, 50%, 75%) 100%);
+}
+
+.bg-eco-pattern {
+  background-image: radial-gradient(circle at 2px 2px, rgba(35, 140, 86, 0.15) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, hsl(150, 65%, 42%), hsl(120, 50%, 35%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.border-eco {
+  border-image: linear-gradient(45deg, hsl(150, 45%, 85%), hsl(120, 50%, 75%)) 1;
 }
