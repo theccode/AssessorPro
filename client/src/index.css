@@ -3,49 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 11% 98%; /* #FAFAFA */
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
+  --background: 210 20% 98%; /* Light gray-white */
+  --foreground: 180 25% 15%; /* Dark teal text */
+  --muted: 155 15% 94%;
+  --muted-foreground: 180 10% 45%;
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
+  --popover-foreground: 180 25% 15%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 207 90% 54%; /* #1976D2 */
-  --primary-foreground: 211 100% 99%;
-  --secondary: 124 55% 44%; /* #388E3C */
-  --secondary-foreground: 0 0% 98%;
-  --accent: 38 100% 48%; /* #F57C00 */
+  --card-foreground: 180 25% 15%;
+  --border: 155 20% 85%;
+  --input: 155 20% 85%;
+  --primary: 180 35% 25%; /* Dark teal green */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 120 50% 50%; /* Bright green accent */
+  --secondary-foreground: 180 25% 15%;
+  --accent: 120 70% 40%; /* Vibrant green */
   --accent-foreground: 0 0% 98%;
+  --success: 120 60% 45%; /* Success green */
+  --success-foreground: 0 0% 98%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
+  --ring: 180 35% 25%;
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 207 90% 54%; /* #1976D2 */
-  --primary-foreground: 211 100% 99%;
-  --secondary: 124 55% 44%; /* #388E3C */
+  --background: 180 35% 8%; /* Dark teal background */
+  --foreground: 155 20% 95%;
+  --muted: 180 25% 15%;
+  --muted-foreground: 155 15% 70%;
+  --popover: 180 30% 12%;
+  --popover-foreground: 155 20% 95%;
+  --card: 180 30% 12%;
+  --card-foreground: 155 20% 95%;
+  --border: 180 25% 20%;
+  --input: 180 25% 20%;
+  --primary: 120 50% 50%; /* Bright green for dark mode */
+  --primary-foreground: 180 35% 8%;
+  --secondary: 120 70% 40%; /* Vibrant green */
   --secondary-foreground: 0 0% 98%;
-  --accent: 38 100% 48%; /* #F57C00 */
+  --accent: 120 60% 45%; /* Success green */
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --success: 120 60% 45%;
+  --success-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 50%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 240 4.9% 83.9%;
-  --radius: 0.5rem;
+  --ring: 120 50% 50%;
+  --radius: 0.75rem;
 }
 
 @layer base {

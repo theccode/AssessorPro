@@ -47,14 +47,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    const now = Date.now();
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values({
+        ...userData,
+        createdAt: now,
+        updatedAt: now,
+      })
       .onConflictDoUpdate({
         target: users.id,
         set: {
           ...userData,
-          updatedAt: new Date(),
+          updatedAt: now,
         },
       })
       .returning();
@@ -160,16 +165,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAssessmentMedia(assessmentId: number, sectionType?: string): Promise<AssessmentMedia[]> {
-    let query = db
+    if (sectionType) {
+      return await db
+        .select()
+        .from(assessmentMedia)
+        .where(and(
+          eq(assessmentMedia.assessmentId, assessmentId),
+          eq(assessmentMedia.sectionType, sectionType)
+        ));
+    }
+
+    return await db
       .select()
       .from(assessmentMedia)
       .where(eq(assessmentMedia.assessmentId, assessmentId));
-
-    if (sectionType) {
-      query = query.where(eq(assessmentMedia.sectionType, sectionType));
-    }
-
-    return await query;
   }
 
   async deleteAssessmentMedia(id: number): Promise<void> {
