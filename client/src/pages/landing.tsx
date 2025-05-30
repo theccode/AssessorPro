@@ -34,7 +34,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 leaf-float text-foreground">
-                Green Building Assessment & Rating Platform
+                GREDA Green Building Checklist (GREDA-GBC) Certification Tool
               </h1>
               <p className="text-xl mb-8 text-muted-foreground">
                 Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects
