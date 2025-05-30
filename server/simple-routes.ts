@@ -16,16 +16,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
-  // Authentication middleware with enterprise security
+  // Authentication middleware with enterprise security  
   app.use((req: any, res, next) => {
-    // Skip auto-login for logout and login routes
-    if (req.url === '/api/logout' || req.url === '/api/login') {
-      req.user = req.session?.user || null;
-      return next();
-    }
-
-    // For demo purposes, auto-login a user if not authenticated
-    if (!req.session.user) {
+    // Set user from session if it exists
+    req.user = req.session?.user || null;
+    
+    // Auto-login for demo purposes, but only if accessing protected routes
+    // and not if we just logged out
+    if (!req.user && req.url.startsWith('/api/') && 
+        req.url !== '/api/logout' && req.url !== '/api/login' && 
+        req.url !== '/api/auth/user') {
       req.session.user = {
         id: "demo-user-123",
         email: "demo@example.com",
@@ -33,14 +33,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: "User",
         role: "assessor"
       };
+      req.user = req.session.user;
     }
-    req.user = req.session.user;
+    
     next();
   });
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
+      // If no user in session, return 401
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       let user = await storage.getUser(req.user.id);
       if (!user) {
         user = await storage.upsertUser(req.user);
