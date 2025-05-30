@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { Building, Plus, FileText, Users, BarChart3, LogOut } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -27,6 +28,19 @@ export default function Dashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/logout", { method: "GET" });
+      return response;
+    },
+    onSuccess: () => {
+      // Clear all cached data
+      queryClient.clear();
+      // Redirect to landing page
+      setLocation("/");
     },
   });
 
@@ -71,10 +85,13 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 capitalize">{user?.role}</span>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/api/logout">
-                  <LogOut className="h-4 w-4" />
-                </a>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+              >
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
