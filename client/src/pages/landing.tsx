@@ -35,15 +35,26 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="animate-in slide-in-from-left duration-500">
-              <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold mb-6 text-foreground animated-title leading-tight">
+              <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold mb-6 text-foreground leading-tight">
                 <GlowingText className="text-glow">
-                  <AnimatedText 
-                    text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
-                    delay={80}
-                    animationType="bounce"
-                    repeat={true}
-                    repeatDelay={3000}
-                  />
+                  <div className="whitespace-nowrap">
+                    <AnimatedText 
+                      text="GREDA Green Building Checklist"
+                      delay={80}
+                      animationType="bounce"
+                      repeat={true}
+                      repeatDelay={3000}
+                    />
+                  </div>
+                  <div className="whitespace-nowrap">
+                    <AnimatedText 
+                      text="(GREDA-GBC) Certification Tool"
+                      delay={80}
+                      animationType="bounce"
+                      repeat={true}
+                      repeatDelay={3000}
+                    />
+                  </div>
                 </GlowingText>
               </h1>
               <p className="text-xl mb-8 text-muted-foreground">
