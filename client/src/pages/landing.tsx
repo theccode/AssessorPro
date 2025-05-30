@@ -37,7 +37,7 @@ export default function Landing() {
                 GREDA Green Building Checklist (GREDA-GBC) Certification Tool
               </h1>
               <p className="text-xl mb-8 text-muted-foreground">
-                Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects
+                Comprehensive sustainability evaluation, certification tracking, and environmental performance analytics for green building projects. Applicable to Residential Buildings and for the Design, Construction, Operation and Maintenance Phases.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
