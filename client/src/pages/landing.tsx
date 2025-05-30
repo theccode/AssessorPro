@@ -37,35 +37,13 @@ export default function Landing() {
             <div className="animate-in slide-in-from-left duration-500 lg:pr-8">
               <h1 className="text-3xl lg:text-5xl xl:text-6xl font-bold mb-6 text-foreground animated-title leading-tight">
                 <GlowingText className="text-glow">
-                  <div className="space-y-1">
-                    <div>
-                      <AnimatedText 
-                        text="GREDA Green Building"
-                        delay={80}
-                        animationType="bounce"
-                        repeat={true}
-                        repeatDelay={5000}
-                      />
-                    </div>
-                    <div>
-                      <AnimatedText 
-                        text="Checklist (GREDA-GBC)"
-                        delay={80}
-                        animationType="bounce"
-                        repeat={true}
-                        repeatDelay={5000}
-                      />
-                    </div>
-                    <div>
-                      <AnimatedText 
-                        text="Certification Tool"
-                        delay={80}
-                        animationType="bounce"
-                        repeat={true}
-                        repeatDelay={5000}
-                      />
-                    </div>
-                  </div>
+                  <AnimatedText 
+                    text="GREDA Green Building Checklist (GREDA-GBC) Certification Tool"
+                    delay={80}
+                    animationType="bounce"
+                    repeat={true}
+                    repeatDelay={3000}
+                  />
                 </GlowingText>
               </h1>
               <p className="text-xl mb-8 text-muted-foreground">
