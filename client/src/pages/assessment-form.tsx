@@ -41,11 +41,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     enabled: !!assessmentId,
   });
 
-  // Debug logging
-  console.log("Assessment ID:", assessmentId);
-  console.log("Assessment data:", assessment);
-  console.log("Assessment loading:", assessmentLoading);
-  console.log("Assessment error:", assessmentError);
+
 
   // Fetch sections
   const { data: sections = [] } = useQuery({
@@ -93,7 +89,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         buildingName: assessment.buildingName || "",
         publisherName: assessment.publisherName || "",
         buildingLocation: assessment.buildingLocation || "",
-        detailedAddress: assessment.detailedAddress || "",
+        digitalAddress: assessment.digitalAddress || assessment.detailedAddress || "",
         phoneNumber: assessment.phoneNumber || "",
         additionalNotes: assessment.additionalNotes || "",
       });
@@ -298,13 +294,18 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     />
                   </div>
                   <div>
-                    <Label htmlFor="detailedAddress">Detailed Address</Label>
+                    <Label htmlFor="digitalAddress">Digital Address</Label>
                     <Input
-                      id="detailedAddress"
-                      value={formData.detailedAddress || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, detailedAddress: e.target.value }))}
-                      placeholder="Enter detailed address"
+                      id="digitalAddress"
+                      value={formData.digitalAddress || ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, digitalAddress: e.target.value }))}
+                      placeholder="e.g. GA-543-0125"
+                      pattern="[A-Z]{2}-\d{3}-\d{4}"
+                      title="Format: Two letters, hyphen, 3 digits, hyphen, 4 digits (e.g. GA-543-0125)"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Format: Two letters, hyphen, 3 digits, hyphen, 4 digits
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="phoneNumber">Phone Number</Label>

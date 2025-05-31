@@ -55,7 +55,8 @@ export const assessments = pgTable("assessments", {
   buildingName: text("building_name"),
   publisherName: text("publisher_name"),
   buildingLocation: text("building_location"),
-  detailedAddress: text("detailed_address"),
+  digitalAddress: text("digital_address"),
+  detailedAddress: text("detailed_address"), // Keep for backward compatibility
   phoneNumber: varchar("phone_number"),
   additionalNotes: text("additional_notes"),
   overallScore: real("overall_score").default(0),
