@@ -107,6 +107,41 @@ export default function AdminDashboard() {
     }
   });
 
+  // Cancel invitation mutation
+  const cancelInvitationMutation = useMutation({
+    mutationFn: (invitationId: number) => 
+      apiRequest(`/api/admin/invitations/${invitationId}`, "DELETE", {}),
+    onSuccess: () => {
+      toast({ title: "Invitation canceled successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to cancel invitation", variant: "destructive" });
+    }
+  });
+
+  // Resend invitation mutation
+  const resendInvitationMutation = useMutation({
+    mutationFn: ({ invitationId, email }: { invitationId: number; email: string }) => 
+      apiRequest(`/api/admin/invitations/${invitationId}/resend`, "POST", {}),
+    onSuccess: () => {
+      toast({ title: "Invitation resent successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to resend invitation", variant: "destructive" });
+    }
+  });
+
+  // Handler functions
+  const handleCancelInvitation = (invitationId: number) => {
+    cancelInvitationMutation.mutate(invitationId);
+  };
+
+  const handleResendInvitation = (invitationId: number, email: string) => {
+    resendInvitationMutation.mutate({ invitationId, email });
+  };
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case "admin": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";

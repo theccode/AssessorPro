@@ -246,4 +246,72 @@ export function registerAdminRoutes(app: Express) {
       res.status(500).json({ message: "Failed to cleanup invitations" });
     }
   });
+
+  // Cancel invitation
+  app.delete('/api/admin/invitations/:id', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const dbUser = (req as any).dbUser;
+      
+      // Get invitation to verify ownership
+      const invitation = await storage.getInvitation(id);
+      if (!invitation || invitation.inviterId !== dbUser.id) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Update invitation status to expired (soft delete)
+      await storage.updateInvitationStatus(id, "expired");
+      
+      res.json({ message: "Invitation canceled successfully" });
+    } catch (error) {
+      console.error("Error canceling invitation:", error);
+      res.status(500).json({ message: "Failed to cancel invitation" });
+    }
+  });
+
+  // Resend invitation
+  app.post('/api/admin/invitations/:id/resend', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const dbUser = (req as any).dbUser;
+      
+      // Get existing invitation to verify ownership
+      const existingInvitation = await storage.getInvitation(id);
+      if (!existingInvitation || existingInvitation.inviterId !== dbUser.id) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Cancel the old invitation
+      await storage.updateInvitationStatus(id, "expired");
+      
+      // Create a new invitation with fresh token and expiry
+      const newToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+      
+      const newInvitation = await storage.createInvitation({
+        email: existingInvitation.email,
+        role: existingInvitation.role,
+        subscriptionTier: existingInvitation.subscriptionTier,
+        organizationName: existingInvitation.organizationName,
+        inviterId: dbUser.id,
+        token: newToken,
+        expiresAt,
+        status: "pending"
+      });
+      
+      // Send invitation email
+      await emailService.sendInvitationEmail(
+        existingInvitation.email,
+        existingInvitation.role,
+        newToken,
+        `${dbUser.firstName} ${dbUser.lastName}` || dbUser.email || "Admin"
+      );
+      
+      res.json({ message: "Invitation resent successfully", invitation: newInvitation });
+    } catch (error) {
+      console.error("Error resending invitation:", error);
+      res.status(500).json({ message: "Failed to resend invitation" });
+    }
+  });
 }
