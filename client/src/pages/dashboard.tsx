@@ -57,39 +57,40 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <nav className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-gray-900">BuildAssess Pro</span>
+              <Building className="h-8 w-8 text-white" />
+              <span className="ml-2 text-xl font-medium text-white">GREDA-GBC Assessor Pro</span>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
+              <Link href="/" className="text-white/90 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
-              <Link href="/assessments" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
+              <Link href="/assessments" className="text-white/90 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                 Assessments
               </Link>
-              <Link href="/reports" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
+              <Link href="/reports" className="text-white/90 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                 Reports
               </Link>
               {user?.role === "admin" && (
-                <Link href="/admin" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium flex items-center gap-2">
+                <Link href="/admin" className="text-white/90 hover:text-white px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
                   <Shield className="h-4 w-4" />
                   Admin
                 </Link>
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 capitalize">{user?.role}</span>
+              <span className="text-sm text-white/90 capitalize bg-white/20 px-2 py-1 rounded">{user?.role}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
+                className="text-white hover:bg-white/20 hover:text-white"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -101,8 +102,8 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Assessment Dashboard</h1>
-          <p className="text-gray-600">Manage your building assessments with comprehensive tracking and reporting tools</p>
+          <h1 className="text-3xl font-bold text-green-800 mb-2">GREDA Green Building Assessment Dashboard</h1>
+          <p className="text-green-700">Manage sustainable building evaluations with comprehensive GREDA-GBC certification tracking and environmental performance reporting</p>
         </div>
 
         {/* Stats Cards */}
@@ -181,13 +182,14 @@ export default function Dashboard() {
             size="lg" 
             onClick={() => createAssessmentMutation.mutate()}
             disabled={createAssessmentMutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white shadow-lg"
           >
             <Plus className="h-4 w-4 mr-2" />
-            New Assessment
+            New GREDA-GBC Assessment
           </Button>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" className="border-green-600 text-green-700 hover:bg-green-50">
             <FileText className="h-4 w-4 mr-2" />
-            View All Reports
+            Sustainability Reports
           </Button>
         </div>
 
