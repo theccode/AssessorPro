@@ -38,6 +38,7 @@ export const users = pgTable("users", {
   subscriptionStatus: varchar("subscription_status", { enum: ["active", "inactive", "trial", "cancelled"] }).notNull().default("inactive"),
   billingEmail: varchar("billing_email"),
   organizationName: varchar("organization_name"),
+  buildingName: varchar("building_name"),
   phoneNumber: varchar("phone_number"),
   invitedBy: varchar("invited_by").references(() => users.id),
   lastLoginAt: timestamp("last_login_at"),
