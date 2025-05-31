@@ -295,9 +295,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/assessments/:id/media',  async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
-      const { sectionType } = req.query;
+      const { sectionType, fieldName } = req.query;
       
-      const media = await storage.getAssessmentMedia(assessmentId, sectionType as string);
+      let media;
+      if (sectionType && fieldName) {
+        // Filter by both section and field
+        const allMedia = await storage.getAssessmentMedia(assessmentId, sectionType as string);
+        media = allMedia.filter(m => m.fieldName === fieldName);
+      } else {
+        media = await storage.getAssessmentMedia(assessmentId, sectionType as string);
+      }
+      
       res.json(media);
     } catch (error) {
       console.error("Error fetching media:", error);
@@ -306,17 +314,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files
-  app.get('/api/media/:id',  async (req: any, res) => {
+  app.get('/api/media/serve/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
-      const media = await storage.getAssessmentMedia(0); // This would need adjustment
       
-      // Find the specific media file and serve it
-      // Implementation would depend on your file storage strategy
-      res.status(501).json({ message: "File serving not implemented" });
+      // First get all media to find the specific one
+      // This is a workaround since we don't have a direct getMediaById method
+      const allAssessments = await storage.getUserAssessments(req.user?.claims?.sub || '');
+      let targetMedia = null;
+      
+      for (const assessment of allAssessments) {
+        const media = await storage.getAssessmentMedia(assessment.id);
+        targetMedia = media.find(m => m.id === mediaId);
+        if (targetMedia) break;
+      }
+      
+      if (!targetMedia) {
+        return res.status(404).json({ message: "Media not found" });
+      }
+
+      // Serve the file
+      const filePath = path.resolve(targetMedia.filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found on disk" });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', targetMedia.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${targetMedia.fileName}"`);
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
     } catch (error) {
       console.error("Error serving media:", error);
       res.status(500).json({ message: "Failed to serve media" });
+    }
+  });
+
+  // Delete media file
+  app.delete('/api/media/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const mediaId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // First find the media and verify ownership
+      const allAssessments = await storage.getUserAssessments(userId);
+      let targetMedia = null;
+      let ownsMedia = false;
+      
+      for (const assessment of allAssessments) {
+        if (assessment.userId === userId) {
+          const media = await storage.getAssessmentMedia(assessment.id);
+          targetMedia = media.find(m => m.id === mediaId);
+          if (targetMedia) {
+            ownsMedia = true;
+            break;
+          }
+        }
+      }
+      
+      if (!targetMedia || !ownsMedia) {
+        return res.status(404).json({ message: "Media not found or access denied" });
+      }
+
+      // Delete the file from disk
+      const filePath = path.resolve(targetMedia.filePath);
+      if (fs.existsSync(filePath)) {
+        await fs.promises.unlink(filePath);
+      }
+
+      // Delete from database
+      await storage.deleteAssessmentMedia(mediaId);
+      
+      res.json({ message: "Media deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting media:", error);
+      res.status(500).json({ message: "Failed to delete media" });
     }
   });
 

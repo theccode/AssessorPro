@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, FileText, Image, Video, Music } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Upload, X, FileText, Image, Video, Music, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -16,8 +17,23 @@ interface MediaUploadProps {
 export function MediaUpload({ assessmentId, sectionType, fieldName, className }: MediaUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+
+  // Fetch existing media for this field
+  const { data: existingMedia = [] } = useQuery({
+    queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName],
+    queryFn: async () => {
+      if (!assessmentId) return [];
+      const response = await fetch(`/api/assessments/${assessmentId}/media?sectionType=${sectionType}&fieldName=${fieldName}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!assessmentId,
+  });
 
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
@@ -44,9 +60,33 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
       setUploadedFiles([]);
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (mediaId: number) => {
+      const response = await fetch(`/api/media/${mediaId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Delete failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
+    },
+  });
+
+  const deleteMedia = (mediaId: number) => {
+    deleteMutation.mutate(mediaId);
+  };
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -190,6 +230,69 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
           </Button>
         </div>
       )}
+
+      {/* Existing Uploaded Media with Thumbnails */}
+      {existingMedia.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Uploaded Images:</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {existingMedia.map((media: any) => (
+              <div key={media.id} className="relative group">
+                <img
+                  src={`/api/media/serve/${media.id}`}
+                  alt={media.fileName}
+                  className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                  onClick={() => setPreviewImage(`/api/media/serve/${media.id}`)}
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreviewImage(`/api/media/serve/${media.id}`);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="absolute top-1 right-1">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteMedia(media.id);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="absolute bottom-1 left-1 right-1">
+                  <div className="bg-black bg-opacity-60 text-white text-xs p-1 rounded truncate">
+                    {media.fileName}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl">
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="w-full h-auto max-h-[80vh] object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
