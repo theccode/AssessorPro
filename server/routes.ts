@@ -95,7 +95,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/assessments', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const data = insertAssessmentSchema.parse({ ...req.body, userId });
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const assessorName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+      const assessorRole = user.role;
+      const conductedAt = new Date();
+
+      const data = insertAssessmentSchema.parse({ 
+        ...req.body, 
+        userId,
+        assessorName,
+        assessorRole,
+        conductedAt
+      });
       
       const assessment = await storage.createAssessment(data);
       res.json(assessment);

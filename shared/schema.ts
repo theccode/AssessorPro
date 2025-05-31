@@ -61,6 +61,9 @@ export const assessments = pgTable("assessments", {
   maxPossibleScore: real("max_possible_score").default(0),
   completedSections: integer("completed_sections").default(0),
   totalSections: integer("total_sections").default(8),
+  assessorName: text("assessor_name"), // name of the person who conducted the assessment
+  assessorRole: varchar("assessor_role"), // role of the assessor (admin/assessor)
+  conductedAt: timestamp("conducted_at"), // when the assessment was actually conducted
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

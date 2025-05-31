@@ -298,6 +298,16 @@ export default function Dashboard() {
                         <span className="text-sm text-gray-500">
                           {assessment.completedSections}/{assessment.totalSections} sections
                         </span>
+                        {assessment.assessorName && (
+                          <span className="text-xs text-gray-400">
+                            By {assessment.assessorName}
+                          </span>
+                        )}
+                        {assessment.conductedAt && (
+                          <span className="text-xs text-gray-400">
+                            {new Date(assessment.conductedAt).toLocaleDateString()}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
