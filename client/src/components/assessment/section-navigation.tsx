@@ -21,13 +21,6 @@ export function SectionNavigation({
   completedSections 
 }: SectionNavigationProps) {
   const getSectionStatus = (sectionId: string, index: number) => {
-    console.log(`Checking section ${sectionId} (index ${index}):`, {
-      isCompleted: completedSections.includes(sectionId),
-      isCurrent: index === currentSection,
-      isPastCurrent: index < currentSection,
-      completedSections
-    });
-    
     if (completedSections.includes(sectionId)) return "completed";
     if (index === currentSection) return "current";
     if (index < currentSection) return "current";
@@ -36,7 +29,6 @@ export function SectionNavigation({
 
   const getSectionIcon = (sectionId: string, index: number) => {
     const status = getSectionStatus(sectionId, index);
-    console.log(`Section ${sectionId} icon status:`, status);
     
     switch (status) {
       case "completed":

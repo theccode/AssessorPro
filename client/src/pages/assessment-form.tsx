@@ -124,6 +124,18 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       createAssessmentMutation.mutate(formData);
     } else {
       updateAssessmentMutation.mutate(formData);
+      
+      // Mark building information section as completed
+      saveSectionMutation.mutate({
+        sectionType: "building-information",
+        sectionName: "Building Information",
+        score: 0,
+        maxScore: 0,
+        variables: formData,
+        locationData: {},
+        isCompleted: true,
+      });
+      
       setCurrentSectionIndex(1);
     }
   };
@@ -275,11 +287,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           sections={assessmentSections}
           currentSection={currentSectionIndex}
           onSectionSelect={setCurrentSectionIndex}
-          completedSections={(() => {
-            const completed = sections.filter((s: any) => s.isCompleted).map((s: any) => s.sectionType);
-            console.log("Completed sections for navigation:", completed);
-            return completed;
-          })()}
+          completedSections={sections.filter((s: any) => s.isCompleted).map((s: any) => s.sectionType)}
         />
 
         {/* Current Section Content */}
