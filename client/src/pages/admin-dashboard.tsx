@@ -135,11 +135,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage users, invitations, and system access</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage users, invitations, and system access</p>
         </div>
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogTrigger asChild>
@@ -213,18 +213,18 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Users
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4" />
-            Invitations
+          <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Invites</span>
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Audit Logs
+          <TabsTrigger value="audit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Logs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -242,29 +242,31 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-4">
                   {users.map((user: User) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-medium">{user.firstName} {user.lastName}</h4>
-                          <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
-                          <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
-                          <Badge className={getTierColor(user.subscriptionTier)}>
-                            {user.subscriptionTier}
-                          </Badge>
+                    <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          <h4 className="font-medium text-sm sm:text-base">{user.firstName} {user.lastName}</h4>
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
+                            <Badge className={`${getRoleColor(user.role)} text-xs`}>{user.role}</Badge>
+                            <Badge className={`${getStatusColor(user.status)} text-xs`}>{user.status}</Badge>
+                            <Badge className={`${getTierColor(user.subscriptionTier)} text-xs`}>
+                              {user.subscriptionTier}
+                            </Badge>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-all">{user.email}</p>
                         {user.organizationName && (
-                          <p className="text-sm text-muted-foreground">{user.organizationName}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{user.organizationName}</p>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Select
                           value={user.status}
                           onValueChange={(status) => 
                             updateUserStatusMutation.mutate({ userId: user.id, status })
                           }
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="w-full sm:w-24 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -284,7 +286,7 @@ export default function AdminDashboard() {
                             });
                           }}
                         >
-                          <SelectTrigger className="w-40">
+                          <SelectTrigger className="w-full sm:w-32 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

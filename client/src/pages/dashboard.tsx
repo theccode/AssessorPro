@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield } from "lucide-react";
+import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield, Menu, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
