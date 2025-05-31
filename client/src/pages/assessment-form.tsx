@@ -15,6 +15,7 @@ import { Building, ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 import type { Assessment, AssessmentSection } from "@shared/schema";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface AssessmentFormProps {
   assessmentId?: string;
@@ -173,8 +174,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-gray-900">BuildAssess Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
+              <span className="ml-3 text-xl font-medium text-gray-900">GREDA-GBC Assessor Pro</span>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
@@ -191,8 +192,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Building Assessment Form</h1>
-          <p className="text-gray-600">Complete all sections to generate comprehensive building evaluation</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">GREDA Green Building Assessment Form</h1>
+          <p className="text-gray-600">Complete all sections to generate comprehensive GREDA-GBC sustainability evaluation</p>
         </div>
 
         {/* Progress Indicator */}

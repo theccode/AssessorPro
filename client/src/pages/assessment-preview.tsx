@@ -7,6 +7,7 @@ import { ProgressRing } from "@/components/ui/progress-ring";
 import { Building, Edit, Download, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
   const [, navigate] = useLocation();
@@ -51,8 +52,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-gray-900">BuildAssess Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
+              <span className="ml-3 text-xl font-medium text-gray-900">GREDA-GBC Assessor Pro</span>
             </div>
             <Button variant="outline" asChild>
               <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
