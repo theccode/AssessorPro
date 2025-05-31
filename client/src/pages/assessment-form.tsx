@@ -83,7 +83,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "sections"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessmentId}/sections`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
   });
 
