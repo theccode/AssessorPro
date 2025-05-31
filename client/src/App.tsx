@@ -13,12 +13,16 @@ import AssessmentDetail from "@/pages/assessment-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ClientSelection from "@/pages/client-selection";
 import Drafts from "@/pages/drafts";
+import InvitationAccept from "@/pages/invitation-accept";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   return (
     <Switch>
+      {/* Public invitation route - no authentication required */}
+      <Route path="/invitations/:token/accept" component={InvitationAccept} />
+      
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

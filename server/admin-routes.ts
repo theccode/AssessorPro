@@ -87,9 +87,9 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // Create user invitation (admin only)
-  app.post('/api/admin/invitations', requireAuth, requireAdmin, auditLog("user_invited"), async (req, res) => {
+  app.post('/api/admin/invitations', requireAuth, requireAdmin, auditLog("user_invited"), async (req: any, res) => {
     try {
-      const dbUser = (req as any).dbUser;
+      const dbUser = req.dbUser;
       const invitationData = insertUserInvitationSchema.parse(req.body);
       
       // Generate unique token
@@ -105,6 +105,30 @@ export function registerAdminRoutes(app: Express) {
         token,
         expiresAt,
       });
+
+      // Generate invitation link
+      const domain = req.get('host');
+      const protocol = req.secure ? 'https' : 'http';
+      const invitationLink = `${protocol}://${domain}/invitations/${token}/accept`;
+
+      // Send invitation email
+      try {
+        const inviterName = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim() || dbUser.email || 'Admin';
+        
+        await emailService.sendInvitationEmail(
+          invitationData.email,
+          inviterName,
+          invitationData.role,
+          invitationData.organizationName,
+          token,
+          invitationLink
+        );
+        
+        console.log(`Invitation email sent to ${invitationData.email}`);
+      } catch (emailError) {
+        console.error("Failed to send invitation email:", emailError);
+        // Continue anyway - invitation is created even if email fails
+      }
       
       res.json(invitation);
     } catch (error) {
@@ -122,6 +146,30 @@ export function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching invitations:", error);
       res.status(500).json({ message: "Failed to fetch invitations" });
+    }
+  });
+
+  // Get invitation details (public route with token)
+  app.get('/api/invitations/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const invitation = await storage.getInvitation(token);
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Return invitation details without sensitive information
+      res.json({
+        email: invitation.email,
+        role: invitation.role,
+        organizationName: invitation.organizationName,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt
+      });
+    } catch (error) {
+      console.error("Error fetching invitation:", error);
+      res.status(500).json({ message: "Failed to fetch invitation" });
     }
   });
 
