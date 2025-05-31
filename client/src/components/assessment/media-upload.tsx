@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Upload, X, FileText, Image, Video, Music, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -244,11 +244,11 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
                   className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
                   onClick={() => setPreviewImage(`/api/media/serve/${media.id}`)}
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-white hover:bg-gray-100"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity bg-green-600 hover:bg-green-700 text-white border border-green-500 shadow-lg"
                     onClick={(e) => {
                       e.stopPropagation();
                       setPreviewImage(`/api/media/serve/${media.id}`);
@@ -284,6 +284,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       {/* Image Preview Modal */}
       <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="max-w-3xl">
+          <DialogTitle className="sr-only">Image Preview</DialogTitle>
           {previewImage && (
             <img
               src={previewImage}
