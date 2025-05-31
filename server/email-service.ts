@@ -67,7 +67,7 @@ class EmailService {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               line-height: 1.6;
               color: #333;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               padding: 40px 20px;
               min-height: 100vh;
             }
@@ -80,7 +80,7 @@ class EmailService {
               box-shadow: 0 25px 50px rgba(0,0,0,0.15);
             }
             .header {
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               color: white;
               text-align: center;
               padding: 50px 40px;
@@ -130,7 +130,7 @@ class EmailService {
               border-radius: 15px;
               padding: 30px;
               margin: 30px 0;
-              border-left: 5px solid #2563eb;
+              border-left: 5px solid #10b981;
             }
             .invitation-card h3 {
               color: #1e293b;
@@ -169,7 +169,7 @@ class EmailService {
             }
             .cta-button {
               display: inline-block;
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               color: white;
               padding: 18px 40px;
               text-decoration: none;
@@ -179,7 +179,7 @@ class EmailService {
               letter-spacing: 0.5px;
               text-transform: uppercase;
               transition: all 0.3s ease;
-              box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
             }
             .features-grid {
               display: grid;
