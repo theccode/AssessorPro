@@ -183,6 +183,7 @@ class MemoryStorage implements IStorage {
         maxScore: section.maxScore || 0,
         isCompleted: section.isCompleted || false,
         variables: section.variables || {},
+        locationData: section.locationData || {},
         createdAt: new Date(),
         updatedAt: new Date(),
       };

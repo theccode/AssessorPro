@@ -35,7 +35,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
-  const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string }>>>({});
+  const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
@@ -134,6 +134,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       score,
       maxScore,
       variables,
+      locationData: locationData[currentSection.id] || {},
       isCompleted: true,
     });
 
@@ -150,6 +151,16 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       [currentSection.id]: {
         ...prev[currentSection.id],
         [variableId]: value,
+      }
+    }));
+  };
+
+  const handleLocationChange = (variableId: string, location: { lat: number; lng: number; address: string } | null) => {
+    setLocationData(prev => ({
+      ...prev,
+      [currentSection.id]: {
+        ...prev[currentSection.id],
+        [variableId]: location,
       }
     }));
   };
@@ -348,13 +359,26 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       />
                       
                       {/* Media Upload Section - Only for specific variables */}
-                      {(variable.id === 'landscapingPlanters' || variable.id === 'cyclingWalking') && (
+                      {variable.requiresImages && (
                         <div className="mt-4">
                           <Label className="text-sm font-medium">Supporting Evidence (Images Required)</Label>
                           <MediaUpload
                             assessmentId={assessmentId}
                             sectionType={currentSection.id}
                             fieldName={variable.id}
+                            className="mt-2"
+                          />
+                        </div>
+                      )}
+
+                      {/* Location Picker Section - Only for variables that require location */}
+                      {variable.requiresLocation && (
+                        <div className="mt-4">
+                          <Label className="text-sm font-medium">Location Selection (Required for Transport Assessment)</Label>
+                          <LocationPicker
+                            value={locationData[currentSection.id]?.[variable.id]}
+                            onChange={(location) => handleLocationChange(variable.id, location)}
+                            placeholder="Search for a location (e.g., Accra, Ghana)"
                             className="mt-2"
                           />
                         </div>
