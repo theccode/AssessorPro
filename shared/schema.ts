@@ -48,7 +48,8 @@ export const users = pgTable("users", {
 // Building assessments
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id),
+  userId: varchar("user_id").notNull().references(() => users.id), // assessor who created it
+  clientId: varchar("client_id").notNull().references(() => users.id), // client who owns the assessment
   status: varchar("status").notNull().default("draft"), // draft, completed, submitted
   buildingName: text("building_name"),
   publisherName: text("publisher_name"),
@@ -147,6 +148,10 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
 export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
   user: one(users, {
     fields: [assessments.userId],
+    references: [users.id],
+  }),
+  client: one(users, {
+    fields: [assessments.clientId],
     references: [users.id],
   }),
   sections: many(assessmentSections),
