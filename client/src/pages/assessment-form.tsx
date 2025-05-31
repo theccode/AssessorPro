@@ -54,7 +54,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   // Create assessment mutation
   const createAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/assessments", data);
+      const response = await apiRequest("/api/assessments", "POST", data);
       return response.json();
     },
     onSuccess: (data) => {
@@ -66,7 +66,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   // Update assessment mutation
   const updateAssessmentMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", `/api/assessments/${assessmentId}`, data);
+      const response = await apiRequest(`/api/assessments/${assessmentId}`, "PATCH", data);
       return response.json();
     },
     onSuccess: () => {
