@@ -108,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertAssessmentSchema.parse({ 
         ...req.body, 
         userId,
+        clientId: req.body.clientId || userId, // Default to current user if no client specified
         assessorName,
         assessorRole,
         conductedAt

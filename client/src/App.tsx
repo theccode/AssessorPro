@@ -26,18 +26,12 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/assessments" component={Assessments} />
-          {(user?.role === "admin" || user?.role === "assessor") && (
-            <>
-              <Route path="/assessments/select-client" component={ClientSelection} />
-              <Route path="/assessments/new" component={AssessmentForm} />
-              <Route path="/drafts" component={Drafts} />
-            </>
-          )}
+          <Route path="/assessments/select-client" component={ClientSelection} />
+          <Route path="/assessments/new" component={AssessmentForm} />
           <Route path="/assessments/:id/preview" component={AssessmentPreview} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
-          {user?.role === "admin" && (
-            <Route path="/admin" component={AdminDashboard} />
-          )}
+          <Route path="/drafts" component={Drafts} />
+          <Route path="/admin" component={AdminDashboard} />
         </>
       )}
       <Route component={NotFound} />
