@@ -46,13 +46,17 @@ export default function Dashboard() {
     },
   });
 
-  const recentAssessments = assessments.slice(0, 5);
+  // Only show completed/submitted assessments on dashboard
+  const completedAssessments = assessments.filter((a: Assessment) => 
+    a.status === "completed" || a.status === "submitted"
+  );
+  const recentAssessments = completedAssessments.slice(0, 5);
   const completedThisMonth = assessments.filter((a: Assessment) => 
     a.status === "completed" && new Date(a.updatedAt || "").getMonth() === new Date().getMonth()
   ).length;
   const draftAssessments = assessments.filter((a: Assessment) => a.status === "draft").length;
-  const averageScore = assessments.length > 0 
-    ? assessments.reduce((sum: number, a: Assessment) => sum + (a.overallScore || 0), 0) / assessments.length 
+  const averageScore = completedAssessments.length > 0 
+    ? completedAssessments.reduce((sum: number, a: Assessment) => sum + (a.overallScore || 0), 0) / completedAssessments.length 
     : 0;
 
   if (isLoading) {
