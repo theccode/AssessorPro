@@ -258,7 +258,7 @@ export default function Dashboard() {
               asChild
               variant="default"
             >
-              <Link href="/assessments/new">
+              <Link href="/assessments/select-client">
                 <Plus className="h-4 w-4 mr-2" />
                 New Assessment
               </Link>

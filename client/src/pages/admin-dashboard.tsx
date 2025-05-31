@@ -144,7 +144,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex gap-2">
           <Button asChild>
-            <Link href="/assessments/new">
+            <Link href="/assessments/select-client">
               <Plus className="w-4 h-4 mr-2" />
               New Assessment
             </Link>

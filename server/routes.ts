@@ -80,6 +80,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available clients for assessment creation
+  app.get('/api/clients', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
+    try {
+      const clients = await storage.getUsersByRole("client");
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
   // Assessment routes
   app.post('/api/assessments', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {

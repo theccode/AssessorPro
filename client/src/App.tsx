@@ -13,6 +13,7 @@ import AssessmentDetail from "@/pages/assessment-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
 import Reports from "@/pages/reports";
 import Assessments from "@/pages/assessments";
+import ClientSelection from "@/pages/client-selection";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -25,6 +26,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/assessments" component={Assessments} />
+          <Route path="/assessments/select-client" component={ClientSelection} />
           <Route path="/assessments/new" component={AssessmentForm} />
           <Route path="/assessments/:id/preview" component={AssessmentPreview} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
