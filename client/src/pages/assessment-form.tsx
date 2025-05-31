@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { SectionNavigation } from "@/components/assessment/section-navigation";
 import { ScoreInput } from "@/components/assessment/score-input";
 import { MediaUpload } from "@/components/assessment/media-upload";
+import { LocationPicker } from "@/components/assessment/location-picker";
 import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -34,6 +35,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [formData, setFormData] = useState<any>({});
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
+  const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string }>>>({});
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({

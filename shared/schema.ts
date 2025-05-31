@@ -80,6 +80,7 @@ export const assessmentSections = pgTable("assessment_sections", {
   maxScore: real("max_score").default(0),
   isCompleted: boolean("is_completed").default(false),
   variables: jsonb("variables"), // Store all variable scores as JSON
+  locationData: jsonb("location_data"), // Store location data for variables that require it
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
