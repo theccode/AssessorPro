@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  attachments?: any[];
 }
 
 class EmailService {
@@ -34,6 +36,7 @@ class EmailService {
         subject: options.subject,
         html: options.html,
         text: options.text || this.stripHtml(options.html),
+        attachments: options.attachments || [],
       };
 
       const result = await this.transporter.sendMail(mailOptions);
@@ -102,6 +105,13 @@ class EmailService {
               50% { transform: scale(1.1) rotate(180deg); opacity: 0.1; }
             }
             .logo {
+              width: 80px;
+              height: 80px;
+              margin: 0 auto 15px;
+              position: relative;
+              z-index: 2;
+            }
+            .logo-text {
               font-size: 36px;
               font-weight: 900;
               letter-spacing: 2px;
@@ -260,7 +270,8 @@ class EmailService {
         <body>
           <div class="email-wrapper">
             <div class="header">
-              <div class="logo">GREDA</div>
+              <img src="cid:logo" alt="GREDA Logo" class="logo" />
+              <div class="logo-text">GREDA</div>
               <h1>🎉 You're Invited!</h1>
               <p>Join the future of sustainable building assessment</p>
             </div>
@@ -340,11 +351,20 @@ This invitation will expire in 7 days.
 If you didn't expect this invitation, you can safely ignore this email.
     `;
 
+    const logoPath = path.join(process.cwd(), 'attached_assets', 'Greda-Green-Building-Logo.png');
+    
     await this.sendEmail({
       to: email,
       subject,
       html,
       text,
+      attachments: [
+        {
+          filename: 'greda-logo.png',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ]
     });
   }
 
