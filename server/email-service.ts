@@ -62,87 +62,259 @@ class EmailService {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>GREDA Platform Invitation</title>
           <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               line-height: 1.6;
               color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-              background-color: #f5f5f5;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              padding: 40px 20px;
+              min-height: 100vh;
             }
-            .email-container {
-              background-color: white;
-              border-radius: 8px;
-              padding: 40px;
-              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            .email-wrapper {
+              max-width: 650px;
+              margin: 0 auto;
+              background: white;
+              border-radius: 20px;
+              overflow: hidden;
+              box-shadow: 0 25px 50px rgba(0,0,0,0.15);
             }
             .header {
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
               text-align: center;
-              margin-bottom: 30px;
+              padding: 50px 40px;
+              position: relative;
+              overflow: hidden;
+            }
+            .header::before {
+              content: '';
+              position: absolute;
+              top: -50%;
+              left: -50%;
+              width: 200%;
+              height: 200%;
+              background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+              animation: shimmer 3s ease-in-out infinite;
+            }
+            @keyframes shimmer {
+              0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+              50% { transform: scale(1.1) rotate(180deg); opacity: 0.1; }
             }
             .logo {
-              font-size: 24px;
-              font-weight: bold;
-              color: #2563eb;
-              margin-bottom: 10px;
+              font-size: 36px;
+              font-weight: 900;
+              letter-spacing: 2px;
+              margin-bottom: 15px;
+              position: relative;
+              z-index: 2;
             }
-            .invitation-button {
-              display: inline-block;
-              background-color: #2563eb;
-              color: white;
-              padding: 12px 24px;
-              text-decoration: none;
-              border-radius: 6px;
+            .header h1 {
+              font-size: 28px;
               font-weight: 600;
-              margin: 20px 0;
+              margin-bottom: 10px;
+              position: relative;
+              z-index: 2;
             }
-            .details {
-              background-color: #f8fafc;
+            .header p {
+              font-size: 16px;
+              opacity: 0.9;
+              position: relative;
+              z-index: 2;
+            }
+            .content {
+              padding: 50px 40px;
+            }
+            .invitation-card {
+              background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+              border-radius: 15px;
+              padding: 30px;
+              margin: 30px 0;
+              border-left: 5px solid #2563eb;
+            }
+            .invitation-card h3 {
+              color: #1e293b;
+              font-size: 18px;
+              margin-bottom: 15px;
+              display: flex;
+              align-items: center;
+            }
+            .invitation-card h3::before {
+              content: '🏢';
+              margin-right: 10px;
+              font-size: 20px;
+            }
+            .role-badge {
+              display: inline-block;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              padding: 8px 16px;
+              border-radius: 20px;
+              font-size: 14px;
+              font-weight: 600;
+              text-transform: capitalize;
+              margin: 10px 0;
+            }
+            .building-name {
+              background: white;
+              padding: 15px 20px;
+              border-radius: 10px;
+              margin: 15px 0;
+              border: 2px dashed #cbd5e1;
+              text-align: center;
+            }
+            .cta-section {
+              text-align: center;
+              margin: 40px 0;
+            }
+            .cta-button {
+              display: inline-block;
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
+              padding: 18px 40px;
+              text-decoration: none;
+              border-radius: 50px;
+              font-weight: 700;
+              font-size: 16px;
+              letter-spacing: 0.5px;
+              text-transform: uppercase;
+              transition: all 0.3s ease;
+              box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+            }
+            .features-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 20px;
+              margin: 30px 0;
+            }
+            .feature-item {
+              background: white;
+              padding: 25px;
+              border-radius: 12px;
+              text-align: center;
+              border: 1px solid #e2e8f0;
+              transition: transform 0.3s ease;
+            }
+            .feature-icon {
+              font-size: 32px;
+              margin-bottom: 15px;
+              display: block;
+            }
+            .feature-title {
+              font-weight: 600;
+              color: #1e293b;
+              margin-bottom: 8px;
+            }
+            .feature-desc {
+              font-size: 14px;
+              color: #64748b;
+            }
+            .link-section {
+              background: #f1f5f9;
               padding: 20px;
+              border-radius: 10px;
+              margin: 25px 0;
+            }
+            .link-text {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              color: #475569;
+              word-break: break-all;
+              padding: 10px;
+              background: white;
               border-radius: 6px;
-              margin: 20px 0;
+              border: 1px solid #cbd5e1;
             }
             .footer {
+              background: #f8fafc;
+              padding: 30px 40px;
               text-align: center;
-              margin-top: 30px;
-              font-size: 12px;
-              color: #666;
+              border-top: 1px solid #e2e8f0;
+            }
+            .footer-text {
+              font-size: 13px;
+              color: #64748b;
+              margin-bottom: 10px;
+            }
+            .expiry-notice {
+              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+              border: 1px solid #f59e0b;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 25px 0;
+              text-align: center;
+            }
+            .expiry-notice strong {
+              color: #92400e;
+            }
+            @media (max-width: 600px) {
+              body { padding: 20px 10px; }
+              .content { padding: 30px 25px; }
+              .header { padding: 40px 25px; }
+              .logo { font-size: 28px; }
+              .header h1 { font-size: 24px; }
+              .features-grid { grid-template-columns: 1fr; }
             }
           </style>
         </head>
         <body>
-          <div class="email-container">
+          <div class="email-wrapper">
             <div class="header">
               <div class="logo">GREDA</div>
-              <h1>You're Invited!</h1>
+              <h1>🎉 You're Invited!</h1>
+              <p>Join the future of sustainable building assessment</p>
             </div>
             
-            <p>Hello,</p>
-            
-            <p><strong>${inviterName}</strong> has invited you to join the <strong>GREDA Green Building Assessment Platform</strong> as a <strong>${role}</strong>.</p>
-            
-            ${organizationName ? `<p><strong>Building Name:</strong> ${organizationName}</p>` : ''}
-            
-            <div class="details">
-              <h3>About GREDA Platform</h3>
-              <p>Our comprehensive Green Building Certification Tool enables detailed sustainability assessments for residential buildings with enterprise-grade features and intelligent reporting capabilities.</p>
+            <div class="content">
+              <p style="font-size: 16px; margin-bottom: 20px;">Hello there!</p>
+              
+              <div class="invitation-card">
+                <h3>Invitation Details</h3>
+                <p><strong>${inviterName}</strong> has invited you to join the <strong>GREDA Green Building Assessment Platform</strong></p>
+                <div class="role-badge">${role}</div>
+                ${organizationName ? `
+                  <div class="building-name">
+                    <strong>🏢 Building Name:</strong> ${organizationName}
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="features-grid">
+                <div class="feature-item">
+                  <span class="feature-icon">🌱</span>
+                  <div class="feature-title">Sustainability Assessment</div>
+                  <div class="feature-desc">Comprehensive green building evaluations</div>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">📊</span>
+                  <div class="feature-title">Smart Reporting</div>
+                  <div class="feature-desc">Intelligent analytics and insights</div>
+                </div>
+                <div class="feature-item">
+                  <span class="feature-icon">🏆</span>
+                  <div class="feature-title">Certification Ready</div>
+                  <div class="feature-desc">Enterprise-grade compliance tools</div>
+                </div>
+              </div>
+
+              <div class="cta-section">
+                <p style="margin-bottom: 25px; font-size: 16px;">Ready to get started? Accept your invitation below:</p>
+                <a href="${invitationLink}" class="cta-button">Accept Invitation</a>
+              </div>
+
+              <div class="link-section">
+                <p style="margin-bottom: 10px; font-size: 14px; color: #64748b;">Or copy and paste this link in your browser:</p>
+                <div class="link-text">${invitationLink}</div>
+              </div>
+
+              <div class="expiry-notice">
+                <strong>⏰ Important:</strong> This invitation will expire in 7 days.
+              </div>
             </div>
-            
-            <p>To accept your invitation and create your account, click the button below:</p>
-            
-            <div style="text-align: center;">
-              <a href="${invitationLink}" class="invitation-button">Accept Invitation</a>
-            </div>
-            
-            <p>Or copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; background-color: #f8fafc; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">${invitationLink}</p>
-            
-            <p><strong>Important:</strong> This invitation will expire in 7 days.</p>
-            
+
             <div class="footer">
-              <p>If you didn't expect this invitation, you can safely ignore this email.</p>
-              <p>© ${new Date().getFullYear()} GREDA Green Building Assessment Platform</p>
+              <div class="footer-text">If you didn't expect this invitation, you can safely ignore this email.</div>
+              <div class="footer-text">© ${new Date().getFullYear()} GREDA Green Building Assessment Platform - Building a sustainable future</div>
             </div>
           </div>
         </body>
