@@ -102,10 +102,13 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     // Initialize section data from fetched sections
     if (sections && sections.length > 0) {
       const initialSectionData: Record<string, any> = {};
+      const initialLocationData: Record<string, any> = {};
       sections.forEach((section: AssessmentSection) => {
         initialSectionData[section.sectionType] = section.variables || {};
+        initialLocationData[section.sectionType] = section.locationData || {};
       });
       setSectionData(initialSectionData);
+      setLocationData(initialLocationData);
     }
   }, [sections?.length]);
 
@@ -183,6 +186,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         score,
         maxScore,
         variables,
+        locationData: locationData[currentSection.id] || {},
         isCompleted: false,
       });
     }
