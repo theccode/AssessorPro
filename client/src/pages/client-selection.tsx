@@ -25,7 +25,7 @@ export default function ClientSelection() {
 
   const createAssessmentMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      return await apiRequest("/api/assessments", "POST", {
+      return await apiRequest("POST", "/api/assessments", {
         clientId,
         buildingName: "New Assessment",
         status: "draft"
