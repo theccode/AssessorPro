@@ -32,7 +32,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { enum: ["admin", "client"] }).notNull().default("client"),
+  role: varchar("role", { enum: ["admin", "assessor", "client"] }).notNull().default("client"),
   status: varchar("status", { enum: ["active", "suspended", "pending"] }).notNull().default("pending"),
   subscriptionTier: varchar("subscription_tier", { enum: ["free", "basic", "premium", "enterprise"] }).notNull().default("free"),
   subscriptionStatus: varchar("subscription_status", { enum: ["active", "inactive", "trial", "cancelled"] }).notNull().default("inactive"),
@@ -96,7 +96,7 @@ export const assessmentMedia = pgTable("assessment_media", {
 export const userInvitations = pgTable("user_invitations", {
   id: serial("id").primaryKey(),
   email: varchar("email").notNull(),
-  role: varchar("role", { enum: ["admin", "client"] }).notNull().default("client"),
+  role: varchar("role", { enum: ["admin", "assessor", "client"] }).notNull().default("client"),
   subscriptionTier: varchar("subscription_tier", { enum: ["free", "basic", "premium", "enterprise"] }).notNull().default("free"),
   organizationName: varchar("organization_name"),
   invitedBy: varchar("invited_by").notNull().references(() => users.id),

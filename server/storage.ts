@@ -32,7 +32,7 @@ export interface IStorage {
   updateUser(id: string, data: UpdateUser): Promise<User>;
   updateUserStatus(id: string, status: "active" | "suspended" | "pending"): Promise<User>;
   updateUserSubscription(id: string, tier: string, status: string): Promise<User>;
-  getUsersByRole(role: "admin" | "client"): Promise<User[]>;
+  getUsersByRole(role: "admin" | "assessor" | "client"): Promise<User[]>;
   
   // User invitation operations
   createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation>;
@@ -243,21 +243,183 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const { db } = await import("./db");
-    const { users } = await import("@shared/schema");
-    
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values({
+        ...userData,
+        lastLoginAt: new Date(),
+      })
       .onConflictDoUpdate({
         target: users.id,
         set: {
           ...userData,
+          lastLoginAt: new Date(),
           updatedAt: new Date(),
         },
       })
       .returning();
     return user;
+  }
+
+  // Enterprise user management
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUser(id: string, data: UpdateUser): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserStatus(id: string, status: "active" | "suspended" | "pending"): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserSubscription(id: string, tier: string, status: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        subscriptionTier: tier as any,
+        subscriptionStatus: status as any,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getUsersByRole(role: "admin" | "assessor" | "client"): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
+  }
+
+  // User invitation operations
+  async createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation> {
+    const [created] = await db
+      .insert(userInvitations)
+      .values(invitation)
+      .returning();
+    return created;
+  }
+
+  async getInvitation(token: string): Promise<UserInvitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(userInvitations)
+      .where(eq(userInvitations.token, token));
+    return invitation;
+  }
+
+  async getInvitationsByInviter(inviterId: string): Promise<UserInvitation[]> {
+    return await db
+      .select()
+      .from(userInvitations)
+      .where(eq(userInvitations.invitedBy, inviterId))
+      .orderBy(desc(userInvitations.createdAt));
+  }
+
+  async updateInvitationStatus(token: string, status: "accepted" | "expired"): Promise<UserInvitation> {
+    const [invitation] = await db
+      .update(userInvitations)
+      .set({ status })
+      .where(eq(userInvitations.token, token))
+      .returning();
+    return invitation;
+  }
+
+  async cleanupExpiredInvitations(): Promise<void> {
+    await db
+      .update(userInvitations)
+      .set({ status: "expired" })
+      .where(and(
+        eq(userInvitations.status, "pending"),
+        lt(userInvitations.expiresAt, new Date())
+      ));
+  }
+
+  // Audit logging
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [created] = await db
+      .insert(auditLogs)
+      .values(log)
+      .returning();
+    return created;
+  }
+
+  async getAuditLogs(userId?: string, limit: number = 100): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs);
+    
+    if (userId) {
+      query = query.where(eq(auditLogs.userId, userId));
+    }
+    
+    return await query
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
+  }
+
+  // Feature access control
+  async hasFeatureAccess(userId: string, feature: string): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user || user.status !== "active") {
+      return false;
+    }
+
+    // Admin has access to everything
+    if (user.role === "admin") {
+      return true;
+    }
+
+    // Assessor has access to data collection and viewing features
+    if (user.role === "assessor") {
+      const assessorFeatures = [
+        "assessment_forms", 
+        "data_collection", 
+        "results_viewing", 
+        "ratings", 
+        "analytics", 
+        "reports", 
+        "certification"
+      ];
+      return assessorFeatures.includes(feature);
+    }
+
+    // Client access is subscription-based
+    if (user.role === "client") {
+      if (user.subscriptionStatus !== "active") {
+        return false;
+      }
+
+      const featureAccess: Record<string, string[]> = {
+        "ratings": ["basic", "premium", "enterprise"],
+        "analytics": ["premium", "enterprise"],
+        "reports": ["basic", "premium", "enterprise"],
+        "certification": ["premium", "enterprise"],
+        "bulk_assessments": ["enterprise"],
+        "api_access": ["enterprise"],
+        "white_label": ["enterprise"],
+        "assessment_viewing": ["basic", "premium", "enterprise"]
+      };
+
+      const allowedTiers = featureAccess[feature] || [];
+      return allowedTiers.includes(user.subscriptionTier);
+    }
+
+    return false;
   }
 
   // Assessment operations
