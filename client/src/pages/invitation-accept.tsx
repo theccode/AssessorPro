@@ -60,18 +60,18 @@ export default function InvitationAccept() {
     try {
       const response = await apiRequest(`/api/invitations/${token}/accept`, "POST", {});
       
-      if (response && typeof response === 'object' && 'redirectTo' in response) {
-        setAccepted(true);
-        toast({
-          title: "Invitation accepted!",
-          description: "You can now log in to access the platform.",
-        });
-        
-        // Redirect to login after a short delay
-        setTimeout(() => {
-          window.location.href = response.redirectTo as string;
-        }, 2000);
-      }
+      // Always mark as accepted on successful response
+      setAccepted(true);
+      toast({
+        title: "Invitation accepted!",
+        description: "You can now log in to access the platform.",
+      });
+      
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 2000);
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Please try again.";
       
