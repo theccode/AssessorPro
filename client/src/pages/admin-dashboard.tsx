@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 Invite User
               </Button>
             </DialogTrigger>
-          <DialogContent>
+            <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite New User</DialogTitle>
               <DialogDescription>
@@ -217,7 +217,8 @@ export default function AdminDashboard() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
