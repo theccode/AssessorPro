@@ -13,7 +13,13 @@ import {
   Image as ImageIcon,
   Video,
   Music,
-  FileDown
+  FileDown,
+  BarChart3,
+  TrendingUp,
+  Star,
+  Award,
+  Eye,
+  PieChart
 } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection, AssessmentMedia } from "@shared/schema";
@@ -56,16 +62,26 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Building className="h-8 w-8 text-primary" />
-              <span className="ml-2 text-xl font-medium text-gray-900">BuildAssess Pro</span>
+              <span className="ml-2 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Download Report
+              </Button>
+              <Button variant="outline" size="sm">
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -81,109 +97,340 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Assessment Details</h1>
-          <div className="flex items-center space-x-4">
-            <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
-              {assessment.status}
-            </Badge>
-            <span className="text-gray-500">
-              Last updated: {new Date(assessment.updatedAt || "").toLocaleDateString()}
-            </span>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                {assessment.buildingName || "GREDA-GBC Assessment"}
+              </h1>
+              <div className="flex items-center space-x-4">
+                <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
+                  {assessment.status}
+                </Badge>
+                <span className="text-muted-foreground">
+                  Last updated: {new Date(assessment.updatedAt || "").toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {Math.round(assessment.overallScore || 0)}
+                </div>
+                <div className="text-sm text-muted-foreground">Overall Score</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < Math.floor((assessment.overallScore || 0) / 20)
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground">Rating</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Section Navigation Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-lg">Sections</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <nav className="space-y-2">
-                  <Button
-                    variant={selectedSection === "building-information" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setSelectedSection("building-information")}
-                  >
-                    <Building className="h-4 w-4 mr-2" />
-                    Building Information
-                  </Button>
-                  {assessment.sections?.map((section: AssessmentSection) => (
-                    <Button
-                      key={section.id}
-                      variant={selectedSection === section.sectionType ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedSection(section.sectionType)}
-                    >
-                      {getFileIcon("document")}
-                      <span className="ml-2 text-sm">{section.sectionName}</span>
-                    </Button>
-                  ))}
-                </nav>
-              </CardContent>
-            </Card>
-          </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">
+              <Eye className="h-4 w-4 mr-2" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="variables">
+              <PieChart className="h-4 w-4 mr-2" />
+              Variables
+            </TabsTrigger>
+            <TabsTrigger value="media">
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Media
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Tabs value={selectedSection} onValueChange={setSelectedSection}>
-              <TabsContent value="building-information">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Building Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Building Name</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.buildingName || "Not provided"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Publisher Name</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.publisherName || "Not provided"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Building Location</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.buildingLocation || "Not provided"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Address</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.detailedAddress || "Not provided"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.phoneNumber || "Not provided"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Assessment Date</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {new Date(assessment.createdAt || "").toLocaleDateString()}
-                        </div>
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Building Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">Building Name</label>
+                      <div className="p-3 bg-secondary rounded-lg text-foreground">
+                        {assessment.buildingName || "Not provided"}
                       </div>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">Location</label>
+                      <div className="p-3 bg-secondary rounded-lg text-foreground">
+                        {assessment.buildingLocation || "Not provided"}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">Assessment Date</label>
+                      <div className="p-3 bg-secondary rounded-lg text-foreground">
+                        {new Date(assessment.createdAt || "").toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                    {assessment.additionalNotes && (
-                      <div className="mt-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                        <div className="p-3 bg-gray-50 rounded-lg text-gray-900">
-                          {assessment.additionalNotes}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Assessment Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Overall Score</span>
+                      <span className="text-2xl font-bold text-primary">{Math.round(assessment.overallScore || 0)}/130</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Completion Status</span>
+                      <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
+                        {assessment.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Sections Completed</span>
+                      <span className="font-medium">{assessment.completedSections || 0}/{assessment.totalSections || 8}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">GREDA-GBC Rating</span>
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor((assessment.overallScore || 0) / 26)
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2" />
+                    Performance Analytics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {assessment.sections?.map((section: AssessmentSection) => (
+                      <div key={section.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{section.sectionName}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {section.score || 0}/{section.maxScore || 0}
+                          </span>
+                        </div>
+                        <div className="w-full bg-secondary rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(((section.score || 0) / (section.maxScore || 1)) * 100, 100)}%`
+                            }}
+                          />
                         </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Award className="h-5 w-5 mr-2" />
+                    Certification Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">GREDA-GBC Certification</span>
+                        <Badge variant="outline">
+                          {assessment.overallScore && assessment.overallScore >= 100 ? "Eligible" : "In Progress"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Minimum 100 credits required for certification
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium">Environmental Impact</span>
+                        <span className="text-primary font-medium">
+                          {Math.round((assessment.overallScore || 0) / 130 * 100)}%
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Sustainability performance rating
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="variables" className="mt-6">
+            <div className="space-y-6">
+              {assessment.sections?.map((section: AssessmentSection) => (
+                <Card key={section.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{section.sectionName}</span>
+                      <Badge variant="outline">
+                        {section.score || 0}/{section.maxScore || 0} credits
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {section.variables ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(section.variables).map(([key, value]) => (
+                            <div key={key} className="p-3 border rounded-lg">
+                              <div className="text-sm font-medium text-muted-foreground mb-1">
+                                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              </div>
+                              <div className="text-foreground">
+                                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">No variable data available for this section.</p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="media" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <ImageIcon className="h-5 w-5 mr-2" />
+                    Images ({media.filter((m: any) => m.fileType === "image").length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {media.filter((m: any) => m.fileType === "image").length > 0 ? (
+                    <div className="space-y-2">
+                      {media.filter((m: any) => m.fileType === "image").map((image: any) => (
+                        <div key={image.id} className="p-2 border rounded">
+                          <p className="text-sm truncate">{image.fileName}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No images uploaded</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Video className="h-5 w-5 mr-2" />
+                    Videos ({media.filter((m: any) => m.fileType === "video").length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {media.filter((m: any) => m.fileType === "video").length > 0 ? (
+                    <div className="space-y-2">
+                      {media.filter((m: any) => m.fileType === "video").map((video: any) => (
+                        <div key={video.id} className="p-2 border rounded">
+                          <p className="text-sm truncate">{video.fileName}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No videos uploaded</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Music className="h-5 w-5 mr-2" />
+                    Audio ({media.filter((m: any) => m.fileType === "audio").length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {media.filter((m: any) => m.fileType === "audio").length > 0 ? (
+                    <div className="space-y-2">
+                      {media.filter((m: any) => m.fileType === "audio").map((audio: any) => (
+                        <div key={audio.id} className="p-2 border rounded">
+                          <p className="text-sm truncate">{audio.fileName}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No audio files uploaded</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileDown className="h-5 w-5 mr-2" />
+                    Documents ({media.filter((m: any) => m.fileType === "document").length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {media.filter((m: any) => m.fileType === "document").length > 0 ? (
+                    <div className="space-y-2">
+                      {media.filter((m: any) => m.fileType === "document").map((doc: any) => (
+                        <div key={doc.id} className="p-2 border rounded">
+                          <p className="text-sm truncate">{doc.fileName}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm">No documents uploaded</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
 
               {assessment.sections?.map((section: AssessmentSection) => (
                 <TabsContent key={section.id} value={section.sectionType}>
