@@ -85,18 +85,21 @@ async function upsertUser(
       lastLoginAt: new Date(),
     });
   } else {
-    // Create new user with default client role and pending status
-    // Admin will need to approve and assign proper role
+    // Check if this is the first user in the system
+    const allUsers = await storage.getAllUsers();
+    const isFirstUser = allUsers.length === 0;
+    
+    // Create new user - first user becomes admin, others are clients
     await storage.upsertUser({
       id: claims["sub"],
       email: claims["email"],
       firstName: claims["first_name"],
       lastName: claims["last_name"],
       profileImageUrl: claims["profile_image_url"],
-      role: "client",
-      status: "pending",
-      subscriptionTier: "free",
-      subscriptionStatus: "inactive",
+      role: isFirstUser ? "admin" : "client",
+      status: isFirstUser ? "active" : "pending",
+      subscriptionTier: isFirstUser ? "enterprise" : "free",
+      subscriptionStatus: isFirstUser ? "active" : "inactive",
     });
   }
 }
