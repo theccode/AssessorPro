@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Users, UserPlus, Shield, Activity, CreditCard, Settings } from "lucide-react";
+import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus } from "lucide-react";
+import { Link } from "wouter";
 
 interface User {
   id: string;
@@ -141,13 +142,20 @@ export default function AdminDashboard() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Manage users, invitations, and system access</p>
         </div>
-        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Invite User
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/assessments/new">
+              <Plus className="w-4 h-4 mr-2" />
+              New Assessment
+            </Link>
+          </Button>
+          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Invite User
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Invite New User</DialogTitle>
