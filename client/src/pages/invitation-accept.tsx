@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock, ExternalLink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface InvitationData {
   email: string;
@@ -190,8 +191,8 @@ export default function InvitationAccept() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <div className="text-2xl font-bold text-primary">GREDA</div>
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <img src={gredaLogo} alt="GREDA Logo" className="w-16 h-16 object-contain" />
           </div>
           <CardTitle>Platform Invitation</CardTitle>
           <CardDescription>
