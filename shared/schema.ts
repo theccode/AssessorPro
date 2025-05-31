@@ -9,6 +9,7 @@ import {
   integer,
   boolean,
   real,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -83,7 +84,9 @@ export const assessmentSections = pgTable("assessment_sections", {
   locationData: jsonb("location_data"), // Store location data for variables that require it
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  assessmentSectionUnique: unique("assessment_section_unique").on(table.assessmentId, table.sectionType),
+}));
 
 // Media files associated with assessment fields
 export const assessmentMedia = pgTable("assessment_media", {
