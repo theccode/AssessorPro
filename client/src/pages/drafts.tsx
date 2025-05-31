@@ -76,7 +76,7 @@ export default function Drafts() {
           </p>
         </div>
 
-        {/* Draft Assessments */}
+        {/* Draft Assessments Grouped by Client */}
         {draftAssessments.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
@@ -94,74 +94,92 @@ export default function Drafts() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {draftAssessments.map((assessment: Assessment) => (
-              <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">
-                        {assessment.buildingName || "Untitled Assessment"}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 mb-2">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <CardDescription>
-                          {assessment.publisherName || "Unknown Client"}
-                        </CardDescription>
-                      </div>
-                      {assessment.buildingLocation && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <Building className="w-4 h-4 text-muted-foreground" />
-                          <CardDescription>{assessment.buildingLocation}</CardDescription>
+          <div className="space-y-8">
+            {/* Group assessments by client */}
+            {Object.entries(
+              draftAssessments.reduce((groups: Record<string, Assessment[]>, assessment: Assessment) => {
+                const clientKey = `${assessment.publisherName || "Unknown Client"}`;
+                if (!groups[clientKey]) {
+                  groups[clientKey] = [];
+                }
+                groups[clientKey].push(assessment);
+                return groups;
+              }, {})
+            ).map(([clientName, clientAssessments]) => (
+              <div key={clientName} className="space-y-4">
+                {/* Client Header */}
+                <div className="flex items-center gap-3 pb-3 border-b border-border">
+                  <User className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">{clientName}</h2>
+                  <Badge variant="outline">{clientAssessments.length} draft{clientAssessments.length > 1 ? 's' : ''}</Badge>
+                </div>
+
+                {/* Assessments for this client */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clientAssessments.map((assessment: Assessment) => (
+                    <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-2">
+                              {assessment.buildingName || "Untitled Building"}
+                            </CardTitle>
+                            {assessment.buildingLocation && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <Building className="w-4 h-4 text-muted-foreground" />
+                                <CardDescription>{assessment.buildingLocation}</CardDescription>
+                              </div>
+                            )}
+                          </div>
+                          <Badge variant="secondary">Draft</Badge>
                         </div>
-                      )}
-                    </div>
-                    <Badge variant="secondary">Draft</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Progress */}
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Progress</span>
-                        <span>{assessment.completedSections || 0}/{assessment.totalSections || 8}</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full transition-all" 
-                          style={{ 
-                            width: `${((assessment.completedSections || 0) / (assessment.totalSections || 8)) * 100}%` 
-                          }}
-                        ></div>
-                      </div>
-                    </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {/* Progress */}
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Progress</span>
+                              <span>{assessment.completedSections || 0}/{assessment.totalSections || 8}</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full transition-all" 
+                                style={{ 
+                                  width: `${((assessment.completedSections || 0) / (assessment.totalSections || 8)) * 100}%` 
+                                }}
+                              ></div>
+                            </div>
+                          </div>
 
-                    {/* Last Updated */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        Updated {new Date(assessment.updatedAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                          {/* Last Updated */}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              Updated {new Date(assessment.updatedAt).toLocaleDateString()}
+                            </span>
+                          </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
-                        <Button className="w-full" size="sm">
-                          <Edit className="w-4 h-4 mr-2" />
-                          Continue
-                        </Button>
-                      </Link>
-                      <Link href={`/assessments/${assessment.id}/preview`}>
-                        <Button variant="outline" size="sm">
-                          <FileText className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-2">
+                            <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
+                              <Button className="w-full" size="sm">
+                                <Edit className="w-4 h-4 mr-2" />
+                                Continue
+                              </Button>
+                            </Link>
+                            <Link href={`/assessments/${assessment.id}/preview`}>
+                              <Button variant="outline" size="sm">
+                                <FileText className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
