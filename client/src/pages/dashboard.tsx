@@ -255,12 +255,13 @@ export default function Dashboard() {
           {(user?.role === "admin" || user?.role === "assessor") && (
             <Button 
               size="lg" 
-              onClick={() => createAssessmentMutation.mutate()}
-              disabled={createAssessmentMutation.isPending}
+              asChild
               variant="default"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              New Assessment
+              <Link href="/assessments/new">
+                <Plus className="h-4 w-4 mr-2" />
+                New Assessment
+              </Link>
             </Button>
           )}
           <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
