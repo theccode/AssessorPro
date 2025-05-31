@@ -15,6 +15,7 @@ import {
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function Assessments() {
   const { user } = useAuth();
