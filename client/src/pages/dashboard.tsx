@@ -78,8 +78,9 @@ export default function Dashboard() {
                 Reports
               </Link>
               {user?.role === "admin" && (
-                <Link href="/users" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">
-                  Users
+                <Link href="/admin" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Admin
                 </Link>
               )}
             </div>
