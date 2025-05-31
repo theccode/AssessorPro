@@ -3,8 +3,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, Calendar, Edit, FileText, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building, Calendar, Edit, FileText, User, Search, Filter } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useMemo } from "react";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface Assessment {
@@ -22,13 +25,53 @@ interface Assessment {
 
 export default function Drafts() {
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [progressFilter, setProgressFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("updated");
   
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
   });
 
-  // Filter only draft assessments
-  const draftAssessments = assessments.filter((a: Assessment) => a.status === "draft");
+  // Filter and search draft assessments
+  const filteredDraftAssessments = useMemo(() => {
+    let filtered = assessments.filter((a: Assessment) => a.status === "draft");
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter((a: Assessment) => 
+        (a.buildingName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (a.publisherName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (a.buildingLocation || "").toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply progress filter
+    if (progressFilter === "not-started") {
+      filtered = filtered.filter((a: Assessment) => (a.completedSections || 0) === 0);
+    } else if (progressFilter === "in-progress") {
+      filtered = filtered.filter((a: Assessment) => 
+        (a.completedSections || 0) > 0 && (a.completedSections || 0) < (a.totalSections || 8)
+      );
+    } else if (progressFilter === "almost-done") {
+      filtered = filtered.filter((a: Assessment) => 
+        (a.completedSections || 0) >= (a.totalSections || 8) * 0.75
+      );
+    }
+
+    // Apply sorting
+    if (sortBy === "updated") {
+      filtered = filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    } else if (sortBy === "progress") {
+      filtered = filtered.sort((a, b) => (b.completedSections || 0) - (a.completedSections || 0));
+    } else if (sortBy === "client") {
+      filtered = filtered.sort((a, b) => (a.publisherName || "").localeCompare(b.publisherName || ""));
+    } else if (sortBy === "building") {
+      filtered = filtered.sort((a, b) => (a.buildingName || "").localeCompare(b.buildingName || ""));
+    }
+
+    return filtered;
+  }, [assessments, searchTerm, progressFilter, sortBy]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -76,8 +119,73 @@ export default function Drafts() {
           </p>
         </div>
 
+        {/* Search and Filter Controls */}
+        <div className="mb-6 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search by client, building, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Progress Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={progressFilter} onValueChange={setProgressFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by progress" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Progress</SelectItem>
+                  <SelectItem value="not-started">Not Started</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="almost-done">Almost Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sort Options */}
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="updated">Last Updated</SelectItem>
+                <SelectItem value="progress">Progress</SelectItem>
+                <SelectItem value="client">Client Name</SelectItem>
+                <SelectItem value="building">Building Name</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Results Summary */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Found {filteredDraftAssessments.length} draft{filteredDraftAssessments.length !== 1 ? 's' : ''}
+              {searchTerm && ` matching "${searchTerm}"`}
+            </p>
+            {(searchTerm || progressFilter !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setProgressFilter("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Draft Assessments Grouped by Client */}
-        {draftAssessments.length === 0 ? (
+        {filteredDraftAssessments.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -97,7 +205,7 @@ export default function Drafts() {
           <div className="space-y-8">
             {/* Group assessments by client */}
             {Object.entries(
-              draftAssessments.reduce((groups: Record<string, Assessment[]>, assessment: Assessment) => {
+              filteredDraftAssessments.reduce((groups: Record<string, Assessment[]>, assessment: Assessment) => {
                 const clientKey = `${assessment.publisherName || "Unknown Client"}`;
                 if (!groups[clientKey]) {
                   groups[clientKey] = [];
