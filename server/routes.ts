@@ -216,7 +216,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = insertAssessmentSectionSchema.parse({ ...req.body, assessmentId });
+      console.log("Parsed section data:", JSON.stringify(data, null, 2));
       const section = await storage.upsertAssessmentSection(data);
+      console.log("Saved section with isCompleted:", section.isCompleted);
       
       // Update assessment completion status
       const sections = await storage.getAssessmentSections(assessmentId);

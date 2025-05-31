@@ -135,7 +135,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     const score = Object.values(variables).reduce((sum: number, val: any) => sum + (val || 0), 0);
     const maxScore = sectionVariables[currentSection.id]?.reduce((sum, v) => sum + v.maxScore, 0) || 0;
 
-    saveSectionMutation.mutate({
+    const sectionPayload = {
       sectionType: currentSection.id,
       sectionName: currentSection.name,
       score,
@@ -143,7 +143,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       variables,
       locationData: locationData[currentSection.id] || {},
       isCompleted: true,
-    });
+    };
+    
+    console.log("Submitting section with isCompleted=true:", sectionPayload);
+    saveSectionMutation.mutate(sectionPayload);
 
     if (currentSectionIndex < assessmentSections.length - 1) {
       setCurrentSectionIndex(currentSectionIndex + 1);
