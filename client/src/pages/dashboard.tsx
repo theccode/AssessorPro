@@ -259,12 +259,21 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8">
                 <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No assessments yet</h3>
-                <p className="text-gray-500 mb-4">Get started by creating your first building assessment</p>
-                <Button onClick={() => createAssessmentMutation.mutate()}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Assessment
-                </Button>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {user?.role === "client" ? "No reports available" : "No assessments yet"}
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  {user?.role === "client" 
+                    ? "Assessment reports will appear here once they are completed and shared with you" 
+                    : "Get started by creating your first building assessment"
+                  }
+                </p>
+                {(user?.role === "admin" || user?.role === "assessor") && (
+                  <Button onClick={() => createAssessmentMutation.mutate()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Assessment
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
