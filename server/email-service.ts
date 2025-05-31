@@ -1,7 +1,4 @@
-import Mailgun from 'mailgun.js';
-import formData from 'form-data';
-
-const mailgun = new Mailgun(formData);
+import nodemailer from 'nodemailer';
 
 interface EmailOptions {
   to: string;
@@ -11,33 +8,36 @@ interface EmailOptions {
 }
 
 class EmailService {
-  private mg: any;
-  private domain: string;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
-    if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
-      throw new Error('Mailgun credentials not found. Please set MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables.');
+    if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      throw new Error('Email credentials not found. Please set EMAIL_HOST, EMAIL_USER, and EMAIL_PASSWORD environment variables.');
     }
 
-    this.mg = mailgun.client({
-      username: 'api',
-      key: process.env.MAILGUN_API_KEY,
+    this.transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
     });
-    this.domain = process.env.MAILGUN_DOMAIN;
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
     try {
-      const messageData = {
-        from: `GREDA Green Building Assessment <noreply@${this.domain}>`,
+      const mailOptions = {
+        from: `"GREDA Green Building Assessment" <${process.env.EMAIL_USER}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
         text: options.text || this.stripHtml(options.html),
       };
 
-      await this.mg.messages.create(this.domain, messageData);
-      console.log(`Email sent successfully to ${options.to}`);
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('Email sent successfully:', result.messageId);
     } catch (error) {
       console.error('Failed to send email:', error);
       throw new Error('Failed to send email');
@@ -94,11 +94,8 @@ class EmailService {
               padding: 12px 24px;
               text-decoration: none;
               border-radius: 6px;
-              font-weight: 500;
+              font-weight: 600;
               margin: 20px 0;
-            }
-            .invitation-button:hover {
-              background-color: #1d4ed8;
             }
             .details {
               background-color: #f8fafc;
@@ -107,11 +104,10 @@ class EmailService {
               margin: 20px 0;
             }
             .footer {
+              text-align: center;
               margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #e5e7eb;
-              font-size: 14px;
-              color: #6b7280;
+              font-size: 12px;
+              color: #666;
             }
           </style>
         </head>
@@ -119,51 +115,34 @@ class EmailService {
           <div class="email-container">
             <div class="header">
               <div class="logo">GREDA</div>
-              <h1>Green Building Assessment Platform</h1>
+              <h1>You're Invited!</h1>
             </div>
-            
-            <h2>You've been invited!</h2>
             
             <p>Hello,</p>
             
-            <p><strong>${inviterName}</strong> has invited you to join the GREDA Green Building Assessment Platform as a <strong>${role}</strong>.</p>
+            <p><strong>${inviterName}</strong> has invited you to join the <strong>GREDA Green Building Assessment Platform</strong> as a <strong>${role}</strong>.</p>
             
-            ${organizationName ? `<p>Organization: <strong>${organizationName}</strong></p>` : ''}
+            ${organizationName ? `<p><strong>Building Name:</strong> ${organizationName}</p>` : ''}
             
             <div class="details">
               <h3>About GREDA Platform</h3>
               <p>Our comprehensive Green Building Certification Tool enables detailed sustainability assessments for residential buildings with enterprise-grade features and intelligent reporting capabilities.</p>
-              
-              <p>As a <strong>${role}</strong>, you'll have access to:</p>
-              <ul>
-                ${role === 'admin' ? `
-                  <li>Full system administration and user management</li>
-                  <li>Complete assessment oversight and reporting</li>
-                  <li>Enterprise-level analytics and insights</li>
-                ` : role === 'assessor' ? `
-                  <li>Assessment creation and management tools</li>
-                  <li>Advanced form builders and data collection</li>
-                  <li>Professional reporting and analytics</li>
-                ` : `
-                  <li>View your building assessment reports</li>
-                  <li>Track sustainability progress over time</li>
-                  <li>Access to certification documentation</li>
-                `}
-              </ul>
             </div>
+            
+            <p>To accept your invitation and create your account, click the button below:</p>
             
             <div style="text-align: center;">
               <a href="${invitationLink}" class="invitation-button">Accept Invitation</a>
             </div>
             
-            <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px; font-family: monospace;">${invitationLink}</p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p style="word-break: break-all; background-color: #f8fafc; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">${invitationLink}</p>
             
-            <p><strong>Important:</strong> This invitation will expire in 7 days. Please accept it soon to gain access to the platform.</p>
+            <p><strong>Important:</strong> This invitation will expire in 7 days.</p>
             
             <div class="footer">
               <p>If you didn't expect this invitation, you can safely ignore this email.</p>
-              <p>This is an automated message from the GREDA Green Building Assessment Platform.</p>
+              <p>© ${new Date().getFullYear()} GREDA Green Building Assessment Platform</p>
             </div>
           </div>
         </body>
@@ -177,7 +156,7 @@ Hello,
 
 ${inviterName} has invited you to join the GREDA Green Building Assessment Platform as a ${role}.
 
-${organizationName ? `Organization: ${organizationName}` : ''}
+${organizationName ? `Building Name: ${organizationName}` : ''}
 
 About GREDA Platform:
 Our comprehensive Green Building Certification Tool enables detailed sustainability assessments for residential buildings with enterprise-grade features and intelligent reporting capabilities.
