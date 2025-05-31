@@ -73,11 +73,24 @@ export default function InvitationAccept() {
         }, 2000);
       }
     } catch (err) {
-      toast({
-        title: "Failed to accept invitation",
-        description: err instanceof Error ? err.message : "Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = err instanceof Error ? err.message : "Please try again.";
+      
+      // If invitation was already processed, redirect to login
+      if (errorMessage.includes("already processed")) {
+        toast({
+          title: "Invitation already accepted",
+          description: "Redirecting you to login...",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 2000);
+      } else {
+        toast({
+          title: "Failed to accept invitation",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setAccepting(false);
     }
