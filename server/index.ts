@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,26 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Setup daily cleanup scheduler for expired invitations
+  const DAILY_CLEANUP_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+  const cleanupExpiredInvitations = async () => {
+    try {
+      await storage.cleanupExpiredInvitations();
+      log("Daily cleanup: Expired invitations cleaned up", "scheduler");
+    } catch (error) {
+      console.error("Failed to cleanup expired invitations:", error);
+    }
+  };
+  
+  // Run cleanup immediately on startup
+  cleanupExpiredInvitations();
+  
+  // Schedule daily cleanup
+  setInterval(cleanupExpiredInvitations, DAILY_CLEANUP_INTERVAL);
+  
+  log("Daily invitation cleanup scheduler started", "scheduler");
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
