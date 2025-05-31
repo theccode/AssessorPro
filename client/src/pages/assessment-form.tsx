@@ -11,7 +11,8 @@ import { Progress } from "@/components/ui/progress";
 import { SectionNavigation } from "@/components/assessment/section-navigation";
 import { ScoreInput } from "@/components/assessment/score-input";
 import { MediaUpload } from "@/components/assessment/media-upload";
-import { Building, ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 import type { Assessment, AssessmentSection } from "@shared/schema";
@@ -181,6 +182,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               <span className="text-sm text-gray-600">
                 Section {currentSectionIndex + 1} of {assessmentSections.length}
               </span>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={handleSaveDraft}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Draft

@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment routes
-  app.post('/api/assessments', isAuthenticated, requireAdminOrAssessor, async (req: any, res) => {
+  app.post('/api/assessments', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const data = insertAssessmentSchema.parse({ ...req.body, userId });
