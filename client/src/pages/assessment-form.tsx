@@ -46,10 +46,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
 
   // Fetch sections
-  const { data: sections = [] } = useQuery({
+  const { data: sections = [], isLoading: sectionsLoading } = useQuery({
     queryKey: ["/api/assessments", assessmentId, "sections"],
     enabled: !!assessmentId,
   });
+
+  console.log("Sections data:", sections);
 
   // Create assessment mutation
   const createAssessmentMutation = useMutation({
