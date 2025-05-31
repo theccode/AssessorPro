@@ -89,18 +89,42 @@ async function upsertUser(
     const allUsers = await storage.getAllUsers();
     const isFirstUser = allUsers.length === 0;
     
-    // Create new user - first user becomes admin, others are clients
-    await storage.upsertUser({
-      id: claims["sub"],
-      email: claims["email"],
-      firstName: claims["first_name"],
-      lastName: claims["last_name"],
-      profileImageUrl: claims["profile_image_url"],
-      role: isFirstUser ? "admin" : "client",
-      status: isFirstUser ? "active" : "pending",
-      subscriptionTier: isFirstUser ? "enterprise" : "free",
-      subscriptionStatus: isFirstUser ? "active" : "inactive",
-    });
+    // Check for accepted invitation by email
+    let invitationData = null;
+    if (claims["email"]) {
+      invitationData = await storage.getInvitationByEmail(claims["email"], "accepted");
+    }
+    
+    // Create new user with invitation data if available, otherwise use defaults
+    if (invitationData) {
+      // Create user based on invitation data
+      await storage.upsertUser({
+        id: claims["sub"],
+        email: claims["email"],
+        firstName: claims["first_name"],
+        lastName: claims["last_name"],
+        profileImageUrl: claims["profile_image_url"],
+        role: invitationData.role as "admin" | "assessor" | "client",
+        status: "active", // Activate user since they accepted invitation
+        organizationName: invitationData.organizationName,
+        subscriptionTier: invitationData.subscriptionTier,
+        subscriptionStatus: "active",
+        lastLoginAt: new Date(),
+      });
+    } else {
+      // Create new user - first user becomes admin, others are clients
+      await storage.upsertUser({
+        id: claims["sub"],
+        email: claims["email"],
+        firstName: claims["first_name"],
+        lastName: claims["last_name"],
+        profileImageUrl: claims["profile_image_url"],
+        role: isFirstUser ? "admin" : "client",
+        status: isFirstUser ? "active" : "pending",
+        subscriptionTier: isFirstUser ? "enterprise" : "free",
+        subscriptionStatus: isFirstUser ? "active" : "inactive",
+      });
+    }
   }
 }
 
