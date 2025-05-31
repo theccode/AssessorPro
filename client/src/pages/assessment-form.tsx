@@ -26,7 +26,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
-  const assessmentId = params?.id ? parseInt(params.id) : null;
+  
+  // Get assessment ID from URL query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const assessmentId = urlParams.get('id') ? parseInt(urlParams.get('id')!) : (params?.id ? parseInt(params.id) : null);
 
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [formData, setFormData] = useState<any>({});
