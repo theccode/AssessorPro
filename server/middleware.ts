@@ -35,6 +35,42 @@ export const requireAdmin: RequestHandler = async (req, res, next) => {
   next();
 };
 
+// Middleware to ensure user is an admin or assessor
+export const requireAdminOrAssessor: RequestHandler = async (req, res, next) => {
+  const dbUser = (req as any).dbUser;
+
+  if (!dbUser || (dbUser.role !== "admin" && dbUser.role !== "assessor")) {
+    return res.status(403).json({ message: "Admin or assessor access required" });
+  }
+
+  next();
+};
+
+// Middleware to ensure user can access assessments (admin, assessor, or client with subscription)
+export const requireAssessmentAccess: RequestHandler = async (req, res, next) => {
+  const dbUser = (req as any).dbUser;
+
+  if (!dbUser) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  // Admin and assessor always have access
+  if (dbUser.role === "admin" || dbUser.role === "assessor") {
+    return next();
+  }
+
+  // Client needs active subscription
+  if (dbUser.role === "client" && dbUser.subscriptionStatus === "active") {
+    return next();
+  }
+
+  return res.status(403).json({ 
+    message: "Assessment access denied",
+    role: dbUser.role,
+    subscriptionStatus: dbUser.subscriptionStatus
+  });
+};
+
 // Middleware to check feature access based on subscription
 export const requireFeature = (feature: string): RequestHandler => {
   return async (req, res, next) => {

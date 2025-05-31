@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
+import { registerAdminRoutes } from "./admin-routes";
 import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -30,25 +32,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Register admin routes
+  registerAdminRoutes(app);
+
+  // Auth routes with enterprise authentication
+  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      let user = await storage.getUser(userId);
-      
-      if (!user) {
-        // Create demo user if doesn't exist
-        user = await storage.upsertUser({
-          id: userId,
-          email: req.user.claims.email,
-          firstName: req.user.claims.first_name,
-          lastName: req.user.claims.last_name,
-          profileImageUrl: req.user.claims.profile_image_url,
-          role: "assessor"
-        });
-      }
-      
-      res.json(user);
+      const dbUser = req.dbUser;
+      res.json(dbUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
