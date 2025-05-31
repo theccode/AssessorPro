@@ -203,6 +203,30 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           <p className="text-gray-600">Complete all sections to generate comprehensive GREDA-GBC sustainability evaluation</p>
         </div>
 
+        {/* Client and Building Information */}
+        {assessment && (
+          <Card className="mb-8 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-primary">
+                <Building className="w-6 h-6" />
+                Assessment Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Building Name</p>
+                  <p className="text-lg font-semibold">{assessment.buildingName || "Building Assessment"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Client</p>
+                  <p className="text-lg font-semibold">{assessment.publisherName || "Client"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
