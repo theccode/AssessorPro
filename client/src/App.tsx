@@ -10,9 +10,10 @@ import Dashboard from "@/pages/dashboard";
 import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
 import AssessmentDetail from "@/pages/assessment-detail";
+import AdminDashboard from "@/pages/admin-dashboard";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   return (
     <Switch>
@@ -24,6 +25,9 @@ function Router() {
           <Route path="/assessments/new" component={AssessmentForm} />
           <Route path="/assessments/:id/preview" component={AssessmentPreview} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
+          {user?.role === "admin" && (
+            <Route path="/admin" component={AdminDashboard} />
+          )}
         </>
       )}
       <Route component={NotFound} />
