@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus } from "lucide-react";
+import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 
 interface User {
@@ -212,8 +212,19 @@ export default function AdminDashboard() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" onClick={() => inviteUserMutation.mutate(inviteForm)}>
-                Send Invitation
+              <Button 
+                type="submit" 
+                onClick={() => inviteUserMutation.mutate(inviteForm)}
+                disabled={inviteUserMutation.isPending}
+              >
+                {inviteUserMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending Invitation...
+                  </>
+                ) : (
+                  "Send Invitation"
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
