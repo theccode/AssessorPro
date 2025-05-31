@@ -11,9 +11,11 @@ export const assessmentSections = [
 
 export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number }>> = {
   "site-transport": [
+    { id: "protectRestoreHabitat", name: "Protect or Restore Habitat", maxScore: 20 },
+    { id: "heatIslandReduction", name: "Heat Island Reduction", maxScore: 18 },
+    { id: "landscapingPlanters", name: "Landscaping and Planters", maxScore: 15 },
     { id: "publicTransport", name: "Access to Public Transport", maxScore: 14 },
-    { id: "cyclingWalking", name: "Facilities for Cycling/Walking", maxScore: 12 },
-    { id: "securityAccess", name: "Local Security and Pedestrian Access", maxScore: 16 },
+    { id: "cyclingWalking", name: "Facilities for Cycling or Walking", maxScore: 12 },
   ],
   "water-efficiency": [
     { id: "waterQuality", name: "Water Quality", maxScore: 15 },
