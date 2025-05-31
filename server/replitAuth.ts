@@ -59,13 +59,35 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+  // Check if user exists first
+  const existingUser = await storage.getUser(claims["sub"]);
+  
+  if (existingUser) {
+    // Update last login time for existing user
+    await storage.upsertUser({
+      ...existingUser,
+      id: claims["sub"],
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+      lastLoginAt: new Date(),
+    });
+  } else {
+    // Create new user with default client role and pending status
+    // Admin will need to approve and assign proper role
+    await storage.upsertUser({
+      id: claims["sub"],
+      email: claims["email"],
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+      role: "client",
+      status: "pending",
+      subscriptionTier: "free",
+      subscriptionStatus: "inactive",
+    });
+  }
 }
 
 export async function setupAuth(app: Express) {

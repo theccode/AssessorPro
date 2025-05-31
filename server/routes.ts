@@ -46,6 +46,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to demonstrate role-based access
+  app.get('/api/test/auth-demo', async (req, res) => {
+    try {
+      // Simulate different user types for testing
+      const testUsers = [
+        { role: 'admin', name: 'Admin User', access: 'Full system access' },
+        { role: 'assessor', name: 'Assessor User', access: 'Assessment forms and data collection' },
+        { role: 'client', name: 'Client User', access: 'View reports based on subscription' }
+      ];
+      
+      const authStatus = {
+        message: 'Enterprise Authentication System Active',
+        availableRoles: testUsers,
+        protectedEndpoints: [
+          'GET /api/admin/users (Admin only)',
+          'POST /api/assessments (Admin/Assessor only)', 
+          'GET /api/assessments (Subscription-based for clients)'
+        ]
+      };
+      
+      res.json(authStatus);
+    } catch (error) {
+      res.status(500).json({ message: "Test endpoint error" });
+    }
+  });
+
   // Assessment routes
   app.post('/api/assessments', isAuthenticated, async (req: any, res) => {
     try {
