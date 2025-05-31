@@ -109,10 +109,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         initialSectionData[section.sectionType] = section.variables || {};
         initialLocationData[section.sectionType] = section.locationData || {};
       });
+      console.log("Setting section data:", initialSectionData);
+      console.log("Setting location data:", initialLocationData);
       setSectionData(initialSectionData);
       setLocationData(initialLocationData);
     }
-  }, [sections?.length]);
+  }, [sections]);
 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;
