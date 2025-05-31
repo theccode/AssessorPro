@@ -98,12 +98,14 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
   useEffect(() => {
     // Initialize section data from fetched sections
-    const initialSectionData: Record<string, any> = {};
-    sections.forEach((section: AssessmentSection) => {
-      initialSectionData[section.sectionType] = section.variables || {};
-    });
-    setSectionData(initialSectionData);
-  }, [sections]);
+    if (sections && sections.length > 0) {
+      const initialSectionData: Record<string, any> = {};
+      sections.forEach((section: AssessmentSection) => {
+        initialSectionData[section.sectionType] = section.variables || {};
+      });
+      setSectionData(initialSectionData);
+    }
+  }, [sections?.length]);
 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;

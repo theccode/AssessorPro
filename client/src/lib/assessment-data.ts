@@ -9,13 +9,13 @@ export const assessmentSections = [
   { id: "innovation", name: "Innovation" },
 ];
 
-export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number }>> = {
+export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number; requiresImages?: boolean; requiresLocation?: boolean }>> = {
   "site-transport": [
-    { id: "protectRestoreHabitat", name: "Protect or Restore Habitat", maxScore: 20 },
-    { id: "heatIslandReduction", name: "Heat Island Reduction", maxScore: 18 },
-    { id: "landscapingPlanters", name: "Landscaping and Planters", maxScore: 15 },
-    { id: "publicTransport", name: "Access to Public Transport", maxScore: 14 },
-    { id: "cyclingWalking", name: "Facilities for Cycling or Walking", maxScore: 12 },
+    { id: "protectRestoreHabitat", name: "Protect or Restore Habitat", maxScore: 6 },
+    { id: "heatIslandReduction", name: "Heat Island Reduction", maxScore: 4 },
+    { id: "landscapingPlanters", name: "Landscaping and Planters", maxScore: 4, requiresImages: true },
+    { id: "publicTransport", name: "Access to Public Transport", maxScore: 4, requiresLocation: true },
+    { id: "cyclingWalking", name: "Facilities for Cycling or Walking", maxScore: 3, requiresImages: true },
   ],
   "water-efficiency": [
     { id: "waterQuality", name: "Water Quality", maxScore: 15 },
