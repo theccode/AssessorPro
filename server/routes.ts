@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupDemoAuth, isDemoAuthenticated } from "./demo-auth";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
 import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
@@ -30,15 +31,17 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
+  setupDemoAuth(app);
   await setupAuth(app);
 
   // Register admin routes
   registerAdminRoutes(app);
 
   // Auth routes with enterprise authentication
-  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
+  app.get('/api/auth/user', isDemoAuthenticated, async (req: any, res) => {
     try {
-      const dbUser = req.dbUser;
+      const userId = req.user.claims.sub;
+      const dbUser = await storage.getUser(userId);
       res.json(dbUser);
     } catch (error) {
       console.error("Error fetching user:", error);

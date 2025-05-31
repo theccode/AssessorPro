@@ -64,7 +64,7 @@ export default function Landing() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
-                  <a href="/api/login">Start Assessment</a>
+                  <a href="/api/demo-login">Demo Login (Admin)</a>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
                   View Analytics Demo
