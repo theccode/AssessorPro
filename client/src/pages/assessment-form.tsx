@@ -77,7 +77,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   // Save section mutation
   const saveSectionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/assessments/${assessmentId}/sections`, data);
+      const response = await apiRequest(`/api/assessments/${assessmentId}/sections`, "POST", data);
       return response.json();
     },
     onSuccess: () => {
