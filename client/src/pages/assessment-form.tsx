@@ -275,7 +275,11 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           sections={assessmentSections}
           currentSection={currentSectionIndex}
           onSectionSelect={setCurrentSectionIndex}
-          completedSections={sections.filter((s: AssessmentSection) => s.isCompleted).map(s => s.sectionType)}
+          completedSections={(() => {
+            const completed = sections.filter((s: any) => s.isCompleted).map((s: any) => s.sectionType);
+            console.log("Completed sections for navigation:", completed);
+            return completed;
+          })()}
         />
 
         {/* Current Section Content */}
