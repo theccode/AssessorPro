@@ -30,20 +30,15 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  try {
-    await setupAuth(app);
-    console.log("Authentication setup completed successfully");
-  } catch (error) {
-    console.error("Authentication setup failed:", error);
-    // Continue without auth for now
-  }
+  // Setup demo authentication for admin access
+  setupDemoAuth(app);
+  console.log("Demo authentication setup completed");
 
   // Register admin routes
   registerAdminRoutes(app);
 
-  // Auth routes with enterprise authentication
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes with demo authentication
+  app.get('/api/auth/user', isDemoAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const dbUser = await storage.getUser(userId);
@@ -81,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get available clients for assessment creation
-  app.get('/api/clients', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
+  app.get('/api/clients', isDemoAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const clients = await storage.getUsersByRole("client");
       res.json(clients);
@@ -92,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment routes
-  app.post('/api/assessments', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
+  app.post('/api/assessments', isDemoAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -121,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments', isDemoAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const assessments = await storage.getUserAssessments(userId);
@@ -132,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id',  async (req: any, res) => {
+  app.get('/api/assessments/:id', isDemoAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const assessment = await storage.getAssessmentWithSections(id);
@@ -156,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assessments/:id',  async (req: any, res) => {
+  app.patch('/api/assessments/:id', isDemoAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -175,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assessments/:id',  async (req: any, res) => {
+  app.delete('/api/assessments/:id', isDemoAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -195,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment section routes
-  app.post('/api/assessments/:id/sections',  async (req: any, res) => {
+  app.post('/api/assessments/:id/sections', isDemoAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -228,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id/sections',  async (req: any, res) => {
+  app.get('/api/assessments/:id/sections', isDemoAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const sections = await storage.getAssessmentSections(assessmentId);
