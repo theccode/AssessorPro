@@ -77,6 +77,14 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
 
   const handleFiles = (files: File[]) => {
     const validFiles = files.filter(file => {
+      // For landscaping and cycling variables, only allow images
+      const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
+      if (imageOnlyFields.includes(fieldName)) {
+        const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        return imageTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
+      }
+      
+      // For other fields, allow all file types
       const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'audio/mp3', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
     });
@@ -117,13 +125,34 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       >
         <CardContent className="p-6 text-center">
           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-600 mb-1">Upload images, videos, or documents</p>
-          <p className="text-xs text-gray-500">PNG, JPG, MP4, MP3, PDF up to 10MB</p>
+          {(() => {
+            const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
+            if (imageOnlyFields.includes(fieldName)) {
+              return (
+                <>
+                  <p className="text-sm text-gray-600 mb-1">Upload images only</p>
+                  <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
+                </>
+              );
+            }
+            return (
+              <>
+                <p className="text-sm text-gray-600 mb-1">Upload images, videos, or documents</p>
+                <p className="text-xs text-gray-500">PNG, JPG, MP4, MP3, PDF up to 10MB</p>
+              </>
+            );
+          })()}
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.gif,.mp4,.mp3,.pdf,.doc,.docx"
+            accept={(() => {
+              const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
+              if (imageOnlyFields.includes(fieldName)) {
+                return ".jpg,.jpeg,.png,.gif,.webp";
+              }
+              return ".jpg,.jpeg,.png,.gif,.mp4,.mp3,.pdf,.doc,.docx";
+            })()}
             onChange={handleChange}
             className="hidden"
           />
