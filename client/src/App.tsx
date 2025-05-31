@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
-import Assessments from "@/pages/assessments";
 import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
 import AssessmentDetail from "@/pages/assessment-detail";
@@ -25,13 +24,14 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Dashboard} />
-          <Route path="/assessments" component={Assessments} />
           <Route path="/assessments/select-client" component={ClientSelection} />
           <Route path="/assessments/new" component={AssessmentForm} />
           <Route path="/assessments/:id/preview" component={AssessmentPreview} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
           <Route path="/drafts" component={Drafts} />
-          <Route path="/admin" component={AdminDashboard} />
+          {user?.role === "admin" && (
+            <Route path="/admin" component={AdminDashboard} />
+          )}
         </>
       )}
       <Route component={NotFound} />

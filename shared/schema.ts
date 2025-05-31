@@ -182,8 +182,6 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).partial({
-  clientId: true,
 });
 
 export const insertAssessmentSectionSchema = createInsertSchema(assessmentSections).omit({
