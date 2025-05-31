@@ -96,6 +96,18 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  console.log("Setting up authentication...");
+  console.log("REPL_ID:", process.env.REPL_ID);
+  console.log("REPLIT_DOMAINS:", process.env.REPLIT_DOMAINS);
+  
+  try {
+    const config = await getOidcConfig();
+    console.log("OIDC config obtained successfully");
+  } catch (error) {
+    console.error("Failed to get OIDC config:", error);
+    throw error;
+  }
+  
   const config = await getOidcConfig();
 
   const verify: VerifyFunction = async (
@@ -110,6 +122,7 @@ export async function setupAuth(app: Express) {
 
   for (const domain of process.env
     .REPLIT_DOMAINS!.split(",")) {
+    console.log("Registering strategy for domain:", domain);
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -120,6 +133,7 @@ export async function setupAuth(app: Express) {
       verify,
     );
     passport.use(strategy);
+    console.log("Strategy registered:", `replitauth:${domain}`);
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));

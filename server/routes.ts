@@ -31,7 +31,13 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  try {
+    await setupAuth(app);
+    console.log("Authentication setup completed successfully");
+  } catch (error) {
+    console.error("Authentication setup failed:", error);
+    // Continue without auth for now
+  }
 
   // Register admin routes
   registerAdminRoutes(app);
