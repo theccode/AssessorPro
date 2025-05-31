@@ -32,7 +32,15 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").notNull().default("client"), // admin, assessor, client
+  role: varchar("role", { enum: ["admin", "client"] }).notNull().default("client"),
+  status: varchar("status", { enum: ["active", "suspended", "pending"] }).notNull().default("pending"),
+  subscriptionTier: varchar("subscription_tier", { enum: ["free", "basic", "premium", "enterprise"] }).notNull().default("free"),
+  subscriptionStatus: varchar("subscription_status", { enum: ["active", "inactive", "trial", "cancelled"] }).notNull().default("inactive"),
+  billingEmail: varchar("billing_email"),
+  organizationName: varchar("organization_name"),
+  phoneNumber: varchar("phone_number"),
+  invitedBy: varchar("invited_by").references(() => users.id),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -84,9 +92,56 @@ export const assessmentMedia = pgTable("assessment_media", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User invitations for admin-controlled user registration
+export const userInvitations = pgTable("user_invitations", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").notNull(),
+  role: varchar("role", { enum: ["admin", "client"] }).notNull().default("client"),
+  subscriptionTier: varchar("subscription_tier", { enum: ["free", "basic", "premium", "enterprise"] }).notNull().default("free"),
+  organizationName: varchar("organization_name"),
+  invitedBy: varchar("invited_by").notNull().references(() => users.id),
+  status: varchar("status", { enum: ["pending", "accepted", "expired"] }).notNull().default("pending"),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Audit log for admin actions
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  action: varchar("action").notNull(), // user_invited, user_suspended, subscription_changed, etc.
+  targetUserId: varchar("target_user_id").references(() => users.id),
+  details: jsonb("details"), // Additional action details
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assessments: many(assessments),
+  sentInvitations: many(userInvitations, { relationName: "inviter" }),
+  auditLogs: many(auditLogs),
+}));
+
+export const userInvitationsRelations = relations(userInvitations, ({ one }) => ({
+  inviter: one(users, {
+    fields: [userInvitations.invitedBy],
+    references: [users.id],
+    relationName: "inviter",
+  }),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+  targetUser: one(users, {
+    fields: [auditLogs.targetUserId],
+    references: [users.id],
+  }),
 }));
 
 export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
@@ -130,6 +185,21 @@ export const insertAssessmentMediaSchema = createInsertSchema(assessmentMedia).o
   createdAt: true,
 });
 
+export const insertUserInvitationSchema = createInsertSchema(userInvitations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateUserSchema = createInsertSchema(users).partial().omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -139,3 +209,8 @@ export type AssessmentSection = typeof assessmentSections.$inferSelect;
 export type InsertAssessmentSection = z.infer<typeof insertAssessmentSectionSchema>;
 export type AssessmentMedia = typeof assessmentMedia.$inferSelect;
 export type InsertAssessmentMedia = z.infer<typeof insertAssessmentMediaSchema>;
+export type UserInvitation = typeof userInvitations.$inferSelect;
+export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;

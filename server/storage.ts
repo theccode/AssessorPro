@@ -3,6 +3,8 @@ import {
   assessments,
   assessmentSections,
   assessmentMedia,
+  userInvitations,
+  auditLogs,
   type User,
   type UpsertUser,
   type Assessment,
@@ -11,13 +13,40 @@ import {
   type InsertAssessmentSection,
   type AssessmentMedia,
   type InsertAssessmentMedia,
+  type UserInvitation,
+  type InsertUserInvitation,
+  type AuditLog,
+  type InsertAuditLog,
+  type UpdateUser,
 } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, lt } from "drizzle-orm";
+import { db } from "./db";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Enterprise user management
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: string, data: UpdateUser): Promise<User>;
+  updateUserStatus(id: string, status: "active" | "suspended" | "pending"): Promise<User>;
+  updateUserSubscription(id: string, tier: string, status: string): Promise<User>;
+  getUsersByRole(role: "admin" | "client"): Promise<User[]>;
+  
+  // User invitation operations
+  createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation>;
+  getInvitation(token: string): Promise<UserInvitation | undefined>;
+  getInvitationsByInviter(inviterId: string): Promise<UserInvitation[]>;
+  updateInvitationStatus(token: string, status: "accepted" | "expired"): Promise<UserInvitation>;
+  cleanupExpiredInvitations(): Promise<void>;
+  
+  // Audit logging
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(userId?: string, limit?: number): Promise<AuditLog[]>;
+  
+  // Feature access control
+  hasFeatureAccess(userId: string, feature: string): Promise<boolean>;
 
   // Assessment operations
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
