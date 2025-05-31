@@ -36,10 +36,16 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
 
   // Fetch assessment if editing
-  const { data: assessment } = useQuery({
+  const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
     queryKey: ["/api/assessments", assessmentId],
     enabled: !!assessmentId,
   });
+
+  // Debug logging
+  console.log("Assessment ID:", assessmentId);
+  console.log("Assessment data:", assessment);
+  console.log("Assessment loading:", assessmentLoading);
+  console.log("Assessment error:", assessmentError);
 
   // Fetch sections
   const { data: sections = [] } = useQuery({
