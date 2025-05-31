@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Upload, X, FileText, Image, Video, Music, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -59,7 +59,6 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
       setUploadedFiles([]);
     },
@@ -79,7 +78,6 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media"] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
     },
   });
@@ -285,6 +283,9 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="max-w-3xl">
           <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          <DialogDescription className="sr-only">
+            Full size preview of uploaded assessment image
+          </DialogDescription>
           {previewImage && (
             <img
               src={previewImage}
