@@ -70,11 +70,13 @@ export default function Dashboard() {
               <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
-              <Link href="/assessments" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
-                Assessments
-              </Link>
+              {(user?.role === "admin" || user?.role === "assessor") && (
+                <Link href="/assessments" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                  Assessments
+                </Link>
+              )}
               <Link href="/reports" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
-                Reports
+                {user?.role === "client" ? "My Reports" : "Reports"}
               </Link>
               {user?.role === "admin" && (
                 <Link href="/admin" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
@@ -101,8 +103,18 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">GREDA Green Building Assessment Dashboard</h1>
-          <p className="text-muted-foreground">Manage sustainable building evaluations with comprehensive GREDA-GBC certification tracking and environmental performance reporting</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {user?.role === "client" 
+              ? "GREDA Green Building Reports Dashboard" 
+              : "GREDA Green Building Assessment Dashboard"
+            }
+          </h1>
+          <p className="text-muted-foreground">
+            {user?.role === "client" 
+              ? "Access your building sustainability reports and certification tracking with comprehensive GREDA-GBC performance analytics"
+              : "Manage sustainable building evaluations with comprehensive GREDA-GBC certification tracking and environmental performance reporting"
+            }
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -177,18 +189,20 @@ export default function Dashboard() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <Button 
-            size="lg" 
-            onClick={() => createAssessmentMutation.mutate()}
-            disabled={createAssessmentMutation.isPending}
-            variant="default"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New GREDA-GBC Assessment
-          </Button>
+          {(user?.role === "admin" || user?.role === "assessor") && (
+            <Button 
+              size="lg" 
+              onClick={() => createAssessmentMutation.mutate()}
+              disabled={createAssessmentMutation.isPending}
+              variant="default"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New GREDA-GBC Assessment
+            </Button>
+          )}
           <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
             <FileText className="h-4 w-4 mr-2" />
-            Sustainability Reports
+            {user?.role === "client" ? "View Assessment Reports" : "Sustainability Reports"}
           </Button>
         </div>
 
