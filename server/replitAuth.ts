@@ -15,10 +15,21 @@ if (!process.env.REPLIT_DOMAINS) {
 
 const getOidcConfig = memoize(
   async () => {
-    return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
-    );
+    try {
+      const issuerUrl = process.env.ISSUER_URL ?? "https://replit.com/oidc";
+      console.log(`Attempting OIDC discovery with issuer: ${issuerUrl}, client_id: ${process.env.REPL_ID}`);
+      
+      const config = await client.discovery(
+        new URL(issuerUrl),
+        process.env.REPL_ID!
+      );
+      
+      console.log("OIDC discovery successful");
+      return config;
+    } catch (error) {
+      console.error("OIDC discovery failed:", error);
+      throw error;
+    }
   },
   { maxAge: 3600 * 1000 }
 );
