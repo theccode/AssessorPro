@@ -36,10 +36,11 @@ export function SectionNavigation({
 
   const getSectionIcon = (sectionId: string, index: number) => {
     const status = getSectionStatus(sectionId, index);
+    console.log(`Section ${sectionId} icon status:`, status);
     
     switch (status) {
       case "completed":
-        return <Check className="h-4 w-4" />;
+        return <Check className="h-4 w-4 text-green-600" />;
       case "current":
         return <Clock className="h-4 w-4" />;
       default:
