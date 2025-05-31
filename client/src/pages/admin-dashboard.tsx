@@ -357,6 +357,24 @@ export default function AdminDashboard() {
                           Expires: {new Date(invite.expiresAt).toLocaleDateString()}
                         </p>
                       </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResendInvitation(invite.id, invite.email)}
+                          disabled={resendInvitationMutation.isPending}
+                        >
+                          {resendInvitationMutation.isPending ? "Resending..." : "Resend"}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleCancelInvitation(invite.id)}
+                          disabled={cancelInvitationMutation.isPending}
+                        >
+                          {cancelInvitationMutation.isPending ? "Canceling..." : "Cancel"}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
