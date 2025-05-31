@@ -260,7 +260,7 @@ export default function Dashboard() {
               variant="default"
             >
               <Plus className="h-4 w-4 mr-2" />
-              New GREDA-GBC Assessment
+              New Assessment
             </Button>
           )}
           <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
