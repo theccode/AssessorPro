@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building, Calendar, Edit, FileText, User, Search, Filter } from "lucide-react";
+import { Building, Calendar, Edit, FileText, User, Search, Filter, ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface Assessment {
@@ -28,13 +29,14 @@ export default function Drafts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [progressFilter, setProgressFilter] = useState("all");
   const [sortBy, setSortBy] = useState("updated");
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
   });
 
-  // Filter and search draft assessments
-  const filteredDraftAssessments = useMemo(() => {
+  // Filter and search draft assessments, then group by client
+  const clientFolders = useMemo(() => {
     let filtered = assessments.filter((a: Assessment) => a.status === "draft");
 
     // Apply search filter
@@ -59,19 +61,54 @@ export default function Drafts() {
       );
     }
 
-    // Apply sorting
+    // Apply sorting to individual assessments
     if (sortBy === "updated") {
       filtered = filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     } else if (sortBy === "progress") {
       filtered = filtered.sort((a, b) => (b.completedSections || 0) - (a.completedSections || 0));
-    } else if (sortBy === "client") {
-      filtered = filtered.sort((a, b) => (a.publisherName || "").localeCompare(b.publisherName || ""));
     } else if (sortBy === "building") {
       filtered = filtered.sort((a, b) => (a.buildingName || "").localeCompare(b.buildingName || ""));
     }
 
-    return filtered;
+    // Group by client
+    const groups = filtered.reduce((acc: Record<string, Assessment[]>, assessment: Assessment) => {
+      const clientKey = assessment.publisherName || "Unknown Client";
+      if (!acc[clientKey]) {
+        acc[clientKey] = [];
+      }
+      acc[clientKey].push(assessment);
+      return acc;
+    }, {});
+
+    // Convert to array and sort clients if needed
+    const clientFolders = Object.entries(groups).map(([clientName, assessments]) => ({
+      clientName,
+      assessments,
+      totalDrafts: assessments.length,
+      lastUpdated: Math.max(...assessments.map(a => new Date(a.updatedAt).getTime()))
+    }));
+
+    // Sort client folders
+    if (sortBy === "client") {
+      clientFolders.sort((a, b) => a.clientName.localeCompare(b.clientName));
+    } else {
+      clientFolders.sort((a, b) => b.lastUpdated - a.lastUpdated);
+    }
+
+    return clientFolders;
   }, [assessments, searchTerm, progressFilter, sortBy]);
+
+  const totalDrafts = clientFolders.reduce((sum, folder) => sum + folder.totalDrafts, 0);
+
+  const toggleFolder = (clientName: string) => {
+    const newOpenFolders = new Set(openFolders);
+    if (newOpenFolders.has(clientName)) {
+      newOpenFolders.delete(clientName);
+    } else {
+      newOpenFolders.add(clientName);
+    }
+    setOpenFolders(newOpenFolders);
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -166,7 +203,7 @@ export default function Drafts() {
           {/* Results Summary */}
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Found {filteredDraftAssessments.length} draft{filteredDraftAssessments.length !== 1 ? 's' : ''}
+              Found {totalDrafts} draft{totalDrafts !== 1 ? 's' : ''} across {clientFolders.length} client{clientFolders.length !== 1 ? 's' : ''}
               {searchTerm && ` matching "${searchTerm}"`}
             </p>
             {(searchTerm || progressFilter !== "all") && (
@@ -184,8 +221,8 @@ export default function Drafts() {
           </div>
         </div>
 
-        {/* Draft Assessments Grouped by Client */}
-        {filteredDraftAssessments.length === 0 ? (
+        {/* Client Folders */}
+        {clientFolders.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -202,92 +239,115 @@ export default function Drafts() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
-            {/* Group assessments by client */}
-            {Object.entries(
-              filteredDraftAssessments.reduce((groups: Record<string, Assessment[]>, assessment: Assessment) => {
-                const clientKey = `${assessment.publisherName || "Unknown Client"}`;
-                if (!groups[clientKey]) {
-                  groups[clientKey] = [];
-                }
-                groups[clientKey].push(assessment);
-                return groups;
-              }, {})
-            ).map(([clientName, clientAssessments]) => (
-              <div key={clientName} className="space-y-4">
-                {/* Client Header */}
-                <div className="flex items-center gap-3 pb-3 border-b border-border">
-                  <User className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">{clientName}</h2>
-                  <Badge variant="outline">{clientAssessments.length} draft{clientAssessments.length > 1 ? 's' : ''}</Badge>
-                </div>
-
-                {/* Assessments for this client */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {clientAssessments.map((assessment: Assessment) => (
-                    <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg mb-2">
-                              {assessment.buildingName || "Untitled Building"}
-                            </CardTitle>
-                            {assessment.buildingLocation && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <Building className="w-4 h-4 text-muted-foreground" />
-                                <CardDescription>{assessment.buildingLocation}</CardDescription>
+          <div className="space-y-4">
+            {clientFolders.map((folder) => (
+              <Collapsible 
+                key={folder.clientName} 
+                open={openFolders.has(folder.clientName)}
+                onOpenChange={() => toggleFolder(folder.clientName)}
+              >
+                <Card className="overflow-hidden">
+                  <CollapsibleTrigger className="w-full">
+                    <CardHeader className="hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {openFolders.has(folder.clientName) ? (
+                            <FolderOpen className="w-5 h-5 text-primary" />
+                          ) : (
+                            <Folder className="w-5 h-5 text-muted-foreground" />
+                          )}
+                          <div className="text-left">
+                            <CardTitle className="text-lg">{folder.clientName}</CardTitle>
+                            <CardDescription>
+                              {folder.totalDrafts} draft assessment{folder.totalDrafts > 1 ? 's' : ''} • 
+                              Last updated {new Date(folder.lastUpdated).toLocaleDateString()}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">
+                            {folder.totalDrafts} draft{folder.totalDrafts > 1 ? 's' : ''}
+                          </Badge>
+                          {openFolders.has(folder.clientName) ? (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                        {folder.assessments.map((assessment: Assessment) => (
+                          <Card key={assessment.id} className="hover:shadow-md transition-shadow border-l-4 border-l-primary/20">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-base mb-2">
+                                    {assessment.buildingName || "Untitled Building"}
+                                  </CardTitle>
+                                  {assessment.buildingLocation && (
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Building className="w-3 h-3 text-muted-foreground" />
+                                      <CardDescription className="text-xs">{assessment.buildingLocation}</CardDescription>
+                                    </div>
+                                  )}
+                                </div>
+                                <Badge variant="secondary" className="text-xs">Draft</Badge>
                               </div>
-                            )}
-                          </div>
-                          <Badge variant="secondary">Draft</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {/* Progress */}
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Progress</span>
-                              <span>{assessment.completedSections || 0}/{assessment.totalSections || 8}</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full transition-all" 
-                                style={{ 
-                                  width: `${((assessment.completedSections || 0) / (assessment.totalSections || 8)) * 100}%` 
-                                }}
-                              ></div>
-                            </div>
-                          </div>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="space-y-3">
+                                {/* Progress */}
+                                <div>
+                                  <div className="flex justify-between text-xs mb-1">
+                                    <span>Progress</span>
+                                    <span>{assessment.completedSections || 0}/{assessment.totalSections || 8}</span>
+                                  </div>
+                                  <div className="w-full bg-muted rounded-full h-1.5">
+                                    <div 
+                                      className="bg-primary h-1.5 rounded-full transition-all" 
+                                      style={{ 
+                                        width: `${((assessment.completedSections || 0) / (assessment.totalSections || 8)) * 100}%` 
+                                      }}
+                                    ></div>
+                                  </div>
+                                </div>
 
-                          {/* Last Updated */}
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              Updated {new Date(assessment.updatedAt).toLocaleDateString()}
-                            </span>
-                          </div>
+                                {/* Last Updated */}
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Calendar className="w-3 h-3" />
+                                  <span>
+                                    {new Date(assessment.updatedAt).toLocaleDateString()}
+                                  </span>
+                                </div>
 
-                          {/* Actions */}
-                          <div className="flex gap-2 pt-2">
-                            <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
-                              <Button className="w-full" size="sm">
-                                <Edit className="w-4 h-4 mr-2" />
-                                Continue
-                              </Button>
-                            </Link>
-                            <Link href={`/assessments/${assessment.id}/preview`}>
-                              <Button variant="outline" size="sm">
-                                <FileText className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                                {/* Actions */}
+                                <div className="flex gap-2 pt-2">
+                                  <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
+                                    <Button className="w-full" size="sm">
+                                      <Edit className="w-3 h-3 mr-2" />
+                                      Continue
+                                    </Button>
+                                  </Link>
+                                  <Link href={`/assessments/${assessment.id}/preview`}>
+                                    <Button variant="outline" size="sm">
+                                      <FileText className="w-3 h-3" />
+                                    </Button>
+                                  </Link>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
             ))}
           </div>
         )}
