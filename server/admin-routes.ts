@@ -306,12 +306,21 @@ export function registerAdminRoutes(app: Express) {
         status: "pending"
       });
       
-      // Send invitation email
+      // Generate invitation link  
+      const domain = req.get('host');
+      const protocol = req.secure ? 'https' : 'http';
+      const invitationLink = `${protocol}://${domain}/invitations/${newToken}/accept`;
+
+      // Send invitation email with correct parameter order
+      const inviterName = `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim() || dbUser.email || 'Admin';
+      
       await emailService.sendInvitationEmail(
         existingInvitation.email,
+        inviterName,
         existingInvitation.role,
+        existingInvitation.organizationName,
         newToken,
-        `${dbUser.firstName} ${dbUser.lastName}` || dbUser.email || "Admin"
+        invitationLink
       );
       
       res.json({ message: "Invitation resent successfully", invitation: newInvitation });
