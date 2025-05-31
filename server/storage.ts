@@ -38,8 +38,10 @@ export interface IStorage {
   createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation>;
   getInvitation(token: string): Promise<UserInvitation | undefined>;
   getInvitationById(id: number): Promise<UserInvitation | undefined>;
+  getInvitationByEmail(email: string, status?: "pending" | "accepted" | "expired"): Promise<UserInvitation | undefined>;
   getInvitationsByInviter(inviterId: string): Promise<UserInvitation[]>;
   updateInvitationStatus(token: string, status: "accepted" | "expired"): Promise<UserInvitation>;
+  deleteInvitation(id: number): Promise<void>;
   cleanupExpiredInvitations(): Promise<void>;
   
   // Audit logging
@@ -347,6 +349,20 @@ export class DatabaseStorage implements IStorage {
       .set({ status })
       .where(eq(userInvitations.token, token))
       .returning();
+    return invitation;
+  }
+
+  async deleteInvitation(id: number): Promise<void> {
+    await db
+      .delete(userInvitations)
+      .where(eq(userInvitations.id, id));
+  }
+
+  async getInvitationByEmail(email: string, status: "pending" | "accepted" | "expired" = "pending"): Promise<UserInvitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(userInvitations)
+      .where(and(eq(userInvitations.email, email), eq(userInvitations.status, status)));
     return invitation;
   }
 

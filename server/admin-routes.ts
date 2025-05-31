@@ -98,6 +98,12 @@ export function registerAdminRoutes(app: Express) {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       
+      // Check for existing pending invitation with same email
+      const existingInvitation = await storage.getInvitationByEmail(req.body.email, "pending");
+      if (existingInvitation) {
+        return res.status(400).json({ message: "An invitation is already pending for this email address" });
+      }
+
       // Create invitation data with generated fields
       const invitationData = insertUserInvitationSchema.parse({
         ...req.body,
@@ -259,8 +265,8 @@ export function registerAdminRoutes(app: Express) {
         return res.status(404).json({ message: "Invitation not found" });
       }
       
-      // Update invitation status to expired (soft delete)
-      await storage.updateInvitationStatus(invitation.token, "expired");
+      // Delete invitation completely
+      await storage.deleteInvitation(parseInt(id));
       
       res.json({ message: "Invitation canceled successfully" });
     } catch (error) {
