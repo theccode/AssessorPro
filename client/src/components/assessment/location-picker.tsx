@@ -29,13 +29,22 @@ export function LocationPicker({ value, onChange, placeholder = "Search for a lo
         return;
       }
 
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => setIsLoaded(true);
-      script.onerror = () => console.error('Failed to load Google Maps API');
-      document.head.appendChild(script);
+      // Fetch API key from server
+      fetch('/api/config/google-maps-key')
+        .then(res => res.text())
+        .then(apiKey => {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+          script.async = true;
+          script.defer = true;
+          script.onload = () => setIsLoaded(true);
+          script.onerror = () => console.error('Failed to load Google Maps API');
+          document.head.appendChild(script);
+        })
+        .catch(err => {
+          console.error('Failed to fetch Google Maps API key:', err);
+          setIsLoaded(false);
+        });
     };
 
     loadGoogleMaps();

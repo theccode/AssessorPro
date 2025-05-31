@@ -54,6 +54,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Config routes
+  app.get('/api/config/google-maps-key', (req, res) => {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Google Maps API key not configured" });
+    }
+    res.send(apiKey);
+  });
+
   // Test endpoint to demonstrate role-based access
   app.get('/api/test/auth-demo', async (req, res) => {
     try {
