@@ -21,6 +21,13 @@ export function SectionNavigation({
   completedSections 
 }: SectionNavigationProps) {
   const getSectionStatus = (sectionId: string, index: number) => {
+    console.log(`Checking section ${sectionId} (index ${index}):`, {
+      isCompleted: completedSections.includes(sectionId),
+      isCurrent: index === currentSection,
+      isPastCurrent: index < currentSection,
+      completedSections
+    });
+    
     if (completedSections.includes(sectionId)) return "completed";
     if (index === currentSection) return "current";
     if (index < currentSection) return "current";
