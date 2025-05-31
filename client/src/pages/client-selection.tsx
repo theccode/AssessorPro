@@ -25,11 +25,12 @@ export default function ClientSelection() {
 
   const createAssessmentMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      return await apiRequest("POST", "/api/assessments", {
+      const response = await apiRequest("POST", "/api/assessments", {
         clientId,
         buildingName: "New Assessment",
         status: "draft"
       });
+      return await response.json();
     },
     onSuccess: (assessment) => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
