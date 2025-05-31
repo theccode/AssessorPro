@@ -37,7 +37,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
-    queryKey: ["/api/assessments", assessmentId],
+    queryKey: [`/api/assessments/${assessmentId}`],
     enabled: !!assessmentId,
   });
 
