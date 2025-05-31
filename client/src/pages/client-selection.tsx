@@ -13,6 +13,7 @@ interface Client {
   firstName: string;
   lastName: string;
   organizationName?: string;
+  buildingName?: string;
 }
 
 export default function ClientSelection() {
@@ -24,10 +25,11 @@ export default function ClientSelection() {
   });
 
   const createAssessmentMutation = useMutation({
-    mutationFn: async (clientId: string) => {
+    mutationFn: async (clientData: { id: string; buildingName?: string; firstName: string; lastName: string }) => {
       const response = await apiRequest("POST", "/api/assessments", {
-        clientId,
-        buildingName: "New Assessment",
+        clientId: clientData.id,
+        buildingName: clientData.buildingName || "Building Assessment",
+        publisherName: `${clientData.firstName} ${clientData.lastName}`,
         status: "draft"
       });
       return await response.json();
@@ -45,8 +47,13 @@ export default function ClientSelection() {
     },
   });
 
-  const handleClientSelect = (clientId: string) => {
-    createAssessmentMutation.mutate(clientId);
+  const handleClientSelect = (client: Client) => {
+    createAssessmentMutation.mutate({
+      id: client.id,
+      buildingName: client.buildingName,
+      firstName: client.firstName,
+      lastName: client.lastName
+    });
   };
 
   return (
@@ -117,7 +124,7 @@ export default function ClientSelection() {
                 <Card 
                   key={client.id} 
                   className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-2 hover:border-primary"
-                  onClick={() => handleClientSelect(client.id)}
+                  onClick={() => handleClientSelect(client)}
                 >
                   <CardHeader>
                     <div className="flex items-center gap-3">
@@ -137,12 +144,20 @@ export default function ClientSelection() {
                         </CardDescription>
                       </div>
                     </div>
-                    {client.organizationName && (
-                      <div className="mt-3 p-2 bg-muted rounded-md">
-                        <p className="text-sm font-medium text-muted-foreground">Organization</p>
-                        <p className="text-sm truncate">{client.organizationName}</p>
-                      </div>
-                    )}
+                    <div className="mt-3 space-y-2">
+                      {client.buildingName && (
+                        <div className="p-2 bg-primary/10 rounded-md">
+                          <p className="text-sm font-medium text-primary">Building</p>
+                          <p className="text-sm truncate font-semibold">{client.buildingName}</p>
+                        </div>
+                      )}
+                      {client.organizationName && (
+                        <div className="p-2 bg-muted rounded-md">
+                          <p className="text-sm font-medium text-muted-foreground">Organization</p>
+                          <p className="text-sm truncate">{client.organizationName}</p>
+                        </div>
+                      )}
+                    </div>
                   </CardHeader>
                 </Card>
               ))}
