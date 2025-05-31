@@ -204,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment section routes
-  app.post('/api/assessments/:id/sections', isDemoAuthenticated, async (req: any, res) => {
+  app.post('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
@@ -237,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id/sections', isDemoAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
       const sections = await storage.getAssessmentSections(assessmentId);
