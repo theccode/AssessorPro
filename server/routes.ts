@@ -31,14 +31,13 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  setupDemoAuth(app);
   await setupAuth(app);
 
   // Register admin routes
   registerAdminRoutes(app);
 
   // Auth routes with enterprise authentication
-  app.get('/api/auth/user', isDemoAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const dbUser = await storage.getUser(userId);
