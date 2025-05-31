@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin, auditLog } from "./middleware";
 import { insertUserInvitationSchema, updateUserSchema } from "@shared/schema";
+import { emailService } from "./email-service";
 import crypto from "crypto";
 
 export function registerAdminRoutes(app: Express) {
