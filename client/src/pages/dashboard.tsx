@@ -33,14 +33,13 @@ export default function Dashboard() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/logout", { method: "GET" });
-      return response;
+      // Direct redirect to logout endpoint
+      window.location.href = "/api/logout";
+      return Promise.resolve();
     },
     onSuccess: () => {
       // Clear all cached data
       queryClient.clear();
-      // Redirect to landing page
-      setLocation("/");
     },
   });
 
