@@ -163,6 +163,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   };
 
   const handleLocationChange = (variableId: string, location: { lat: number; lng: number; address: string } | null) => {
+    console.log("Location changed for", variableId, ":", location);
     setLocationData(prev => ({
       ...prev,
       [currentSection.id]: {
