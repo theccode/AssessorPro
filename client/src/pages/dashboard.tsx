@@ -80,9 +80,14 @@ export default function Dashboard() {
                 Dashboard
               </Link>
               {(user?.role === "admin" || user?.role === "assessor") && (
-                <Link href="/assessments" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
-                  Assessments
-                </Link>
+                <>
+                  <Link href="/assessments/select-client" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                    New Assessment
+                  </Link>
+                  <Link href="/drafts" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                    Drafts
+                  </Link>
+                </>
               )}
               <Link href="/reports" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                 {user?.role === "client" ? "My Reports" : "Reports"}
