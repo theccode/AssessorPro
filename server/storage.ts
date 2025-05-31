@@ -53,6 +53,8 @@ export interface IStorage {
   getAssessment(id: number): Promise<Assessment | undefined>;
   getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getUserAssessments(userId: string): Promise<Assessment[]>;
+  getAllAssessments(): Promise<Assessment[]>;
+  getClientAssessments(clientId: string): Promise<Assessment[]>;
   updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment>;
   deleteAssessment(id: number): Promise<void>;
 
@@ -455,10 +457,26 @@ export class DatabaseStorage implements IStorage {
 
   async getUserAssessments(userId: string): Promise<Assessment[]> {
     const { db } = await import("./db");
-    const { eq } = await import("drizzle-orm");
+    const { eq, desc } = await import("drizzle-orm");
     const { assessments } = await import("@shared/schema");
     
-    return await db.select().from(assessments).where(eq(assessments.userId, userId));
+    return await db.select().from(assessments).where(eq(assessments.userId, userId)).orderBy(desc(assessments.createdAt));
+  }
+
+  async getAllAssessments(): Promise<Assessment[]> {
+    const { db } = await import("./db");
+    const { desc } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    return await db.select().from(assessments).orderBy(desc(assessments.createdAt));
+  }
+
+  async getClientAssessments(clientId: string): Promise<Assessment[]> {
+    const { db } = await import("./db");
+    const { eq, desc } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    return await db.select().from(assessments).where(eq(assessments.clientId, clientId)).orderBy(desc(assessments.createdAt));
   }
 
   async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment> {

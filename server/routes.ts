@@ -80,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get available clients for assessment creation
+  // Get available clients for assessment creation (Admin/Assessor only)
   app.get('/api/clients', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const clients = await storage.getUsersByRole("client");
@@ -121,10 +121,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments', isAuthenticated, requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const assessments = await storage.getUserAssessments(userId);
+      const dbUser = (req as any).dbUser;
+      
+      let assessments;
+      
+      if (dbUser.role === 'admin') {
+        // Admin can see all assessments
+        assessments = await storage.getAllAssessments();
+      } else if (dbUser.role === 'assessor') {
+        // Assessor can see their own assessments
+        assessments = await storage.getUserAssessments(dbUser.id);
+      } else if (dbUser.role === 'client') {
+        // Client can only see assessments where they are the client
+        assessments = await storage.getClientAssessments(dbUser.id);
+      } else {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       res.json(assessments);
     } catch (error) {
       console.error("Error fetching assessments:", error);
@@ -305,8 +320,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Report generation and download routes for clients
+  app.get('/api/assessments/:id/report', isAuthenticated, requireAuth, requireAssessmentAccess, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const dbUser = (req as any).dbUser;
+      const assessment = await storage.getAssessmentWithSections(id);
+      
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check access permissions
+      if (dbUser.role === 'client' && assessment.clientId !== dbUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      if (dbUser.role === 'assessor' && assessment.userId !== dbUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Generate report data
+      const reportData = {
+        assessment,
+        generatedAt: new Date(),
+        generatedBy: dbUser.id,
+        reportType: "comprehensive"
+      };
+
+      res.json(reportData);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      res.status(500).json({ message: "Failed to generate report" });
+    }
+  });
+
+  // Download assessment data (CSV/PDF export)
+  app.get('/api/assessments/:id/export', isAuthenticated, requireAuth, requireAssessmentAccess, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const format = req.query.format as string || 'json';
+      const dbUser = (req as any).dbUser;
+      const assessment = await storage.getAssessmentWithSections(id);
+      
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check access permissions
+      if (dbUser.role === 'client' && assessment.clientId !== dbUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      if (format === 'csv') {
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="assessment-${id}.csv"`);
+        
+        // Generate CSV data
+        const csvData = `Assessment ID,Building Name,Status,Score,Max Score,Completion Date\n${assessment.id},"${assessment.buildingName}","${assessment.status}",${assessment.overallScore},${assessment.maxPossibleScore},"${assessment.createdAt}"`;
+        res.send(csvData);
+      } else {
+        res.json(assessment);
+      }
+    } catch (error) {
+      console.error("Error exporting assessment:", error);
+      res.status(500).json({ message: "Failed to export assessment" });
+    }
+  });
+
+  // Get user dashboard data based on role
+  app.get('/api/dashboard', isAuthenticated, requireAuth, async (req: any, res) => {
+    try {
+      const dbUser = (req as any).dbUser;
+      let dashboardData: any = {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          firstName: dbUser.firstName,
+          lastName: dbUser.lastName,
+          role: dbUser.role
+        }
+      };
+
+      if (dbUser.role === 'admin') {
+        // Admin sees system-wide statistics
+        const users = await storage.getAllUsers();
+        const assessments = await storage.getAllAssessments();
+        dashboardData.stats = {
+          totalUsers: users.length,
+          totalAssessments: assessments.length,
+          activeUsers: users.filter(u => u.status === 'active').length,
+          completedAssessments: assessments.filter(a => a.status === 'completed').length
+        };
+      } else if (dbUser.role === 'assessor') {
+        // Assessor sees their assessment statistics
+        const userAssessments = await storage.getUserAssessments(dbUser.id);
+        dashboardData.stats = {
+          totalAssessments: userAssessments.length,
+          completedAssessments: userAssessments.filter(a => a.status === 'completed').length,
+          inProgressAssessments: userAssessments.filter(a => a.status === 'draft').length
+        };
+      } else if (dbUser.role === 'client') {
+        // Client sees their building assessments
+        const clientAssessments = await storage.getClientAssessments(dbUser.id);
+        dashboardData.stats = {
+          totalAssessments: clientAssessments.length,
+          completedAssessments: clientAssessments.filter(a => a.status === 'completed').length,
+          avgScore: clientAssessments.length > 0 ? 
+            clientAssessments.reduce((sum, a) => sum + (a.overallScore || 0), 0) / clientAssessments.length : 0
+        };
+      }
+
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
+    }
+  });
+
   // Serve uploaded files
-  app.get('/api/media/:id',  async (req: any, res) => {
+  app.get('/api/media/:id', isAuthenticated, requireAuth, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       const media = await storage.getAssessmentMedia(0); // This would need adjustment
