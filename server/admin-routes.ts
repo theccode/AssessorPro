@@ -254,13 +254,13 @@ export function registerAdminRoutes(app: Express) {
       const dbUser = (req as any).dbUser;
       
       // Get invitation to verify ownership
-      const invitation = await storage.getInvitation(id);
-      if (!invitation || invitation.inviterId !== dbUser.id) {
+      const invitation = await storage.getInvitationById(parseInt(id));
+      if (!invitation || invitation.invitedBy !== dbUser.id) {
         return res.status(404).json({ message: "Invitation not found" });
       }
       
       // Update invitation status to expired (soft delete)
-      await storage.updateInvitationStatus(id, "expired");
+      await storage.updateInvitationStatus(invitation.token, "expired");
       
       res.json({ message: "Invitation canceled successfully" });
     } catch (error) {
@@ -276,13 +276,13 @@ export function registerAdminRoutes(app: Express) {
       const dbUser = (req as any).dbUser;
       
       // Get existing invitation to verify ownership
-      const existingInvitation = await storage.getInvitation(id);
-      if (!existingInvitation || existingInvitation.inviterId !== dbUser.id) {
+      const existingInvitation = await storage.getInvitationById(parseInt(id));
+      if (!existingInvitation || existingInvitation.invitedBy !== dbUser.id) {
         return res.status(404).json({ message: "Invitation not found" });
       }
       
       // Cancel the old invitation
-      await storage.updateInvitationStatus(id, "expired");
+      await storage.updateInvitationStatus(existingInvitation.token, "expired");
       
       // Create a new invitation with fresh token and expiry
       const newToken = crypto.randomUUID();
@@ -294,7 +294,7 @@ export function registerAdminRoutes(app: Express) {
         role: existingInvitation.role,
         subscriptionTier: existingInvitation.subscriptionTier,
         organizationName: existingInvitation.organizationName,
-        inviterId: dbUser.id,
+        invitedBy: dbUser.id,
         token: newToken,
         expiresAt,
         status: "pending"

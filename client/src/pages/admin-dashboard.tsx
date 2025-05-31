@@ -107,16 +107,21 @@ export default function AdminDashboard() {
     }
   });
 
+  // Track loading states per invitation
+  const [loadingStates, setLoadingStates] = useState<Record<number, { canceling?: boolean; resending?: boolean }>>({});
+
   // Cancel invitation mutation
   const cancelInvitationMutation = useMutation({
     mutationFn: (invitationId: number) => 
       apiRequest(`/api/admin/invitations/${invitationId}`, "DELETE", {}),
-    onSuccess: () => {
+    onSuccess: (_, invitationId) => {
       toast({ title: "Invitation canceled successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
+      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: false } }));
     },
-    onError: () => {
+    onError: (_, invitationId) => {
       toast({ title: "Failed to cancel invitation", variant: "destructive" });
+      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: false } }));
     }
   });
 
@@ -124,21 +129,25 @@ export default function AdminDashboard() {
   const resendInvitationMutation = useMutation({
     mutationFn: ({ invitationId, email }: { invitationId: number; email: string }) => 
       apiRequest(`/api/admin/invitations/${invitationId}/resend`, "POST", {}),
-    onSuccess: () => {
+    onSuccess: (_, { invitationId }) => {
       toast({ title: "Invitation resent successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
+      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: false } }));
     },
-    onError: () => {
+    onError: (_, { invitationId }) => {
       toast({ title: "Failed to resend invitation", variant: "destructive" });
+      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: false } }));
     }
   });
 
   // Handler functions
   const handleCancelInvitation = (invitationId: number) => {
+    setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: true } }));
     cancelInvitationMutation.mutate(invitationId);
   };
 
   const handleResendInvitation = (invitationId: number, email: string) => {
+    setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: true } }));
     resendInvitationMutation.mutate({ invitationId, email });
   };
 
@@ -397,17 +406,17 @@ export default function AdminDashboard() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleResendInvitation(invite.id, invite.email)}
-                          disabled={resendInvitationMutation.isPending}
+                          disabled={loadingStates[invite.id]?.resending}
                         >
-                          {resendInvitationMutation.isPending ? "Resending..." : "Resend"}
+                          {loadingStates[invite.id]?.resending ? "Resending..." : "Resend"}
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handleCancelInvitation(invite.id)}
-                          disabled={cancelInvitationMutation.isPending}
+                          disabled={loadingStates[invite.id]?.canceling}
                         >
-                          {cancelInvitationMutation.isPending ? "Canceling..." : "Cancel"}
+                          {loadingStates[invite.id]?.canceling ? "Canceling..." : "Cancel"}
                         </Button>
                       </div>
                     </div>

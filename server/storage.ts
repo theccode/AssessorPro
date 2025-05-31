@@ -37,6 +37,7 @@ export interface IStorage {
   // User invitation operations
   createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation>;
   getInvitation(token: string): Promise<UserInvitation | undefined>;
+  getInvitationById(id: number): Promise<UserInvitation | undefined>;
   getInvitationsByInviter(inviterId: string): Promise<UserInvitation[]>;
   updateInvitationStatus(token: string, status: "accepted" | "expired"): Promise<UserInvitation>;
   cleanupExpiredInvitations(): Promise<void>;
@@ -321,6 +322,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(userInvitations)
       .where(eq(userInvitations.token, token));
+    return invitation;
+  }
+
+  async getInvitationById(id: number): Promise<UserInvitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(userInvitations)
+      .where(eq(userInvitations.id, id));
     return invitation;
   }
 
