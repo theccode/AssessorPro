@@ -26,7 +26,7 @@ export default function ClientSelection() {
 
   const createAssessmentMutation = useMutation({
     mutationFn: async (clientData: { id: string; buildingName?: string; firstName: string; lastName: string }) => {
-      const response = await apiRequest("POST", "/api/assessments", {
+      const response = await apiRequest("/api/assessments", "POST", {
         clientId: clientData.id,
         buildingName: clientData.buildingName || "Building Assessment",
         publisherName: `${clientData.firstName} ${clientData.lastName}`,
