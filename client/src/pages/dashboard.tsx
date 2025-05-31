@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -65,9 +66,11 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
+              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                 Dashboard
@@ -87,31 +90,89 @@ export default function Dashboard() {
                 </Link>
               )}
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground capitalize bg-secondary px-2 py-1 rounded">{user?.role}</span>
+            
+            {/* Mobile and Desktop Actions */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground capitalize bg-secondary px-2 py-1 rounded">{user?.role}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
+                className="p-2"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+              
+              {/* Mobile menu button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden p-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            <div className="px-4 py-3 space-y-2">
+              <Link 
+                href="/" 
+                className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              {(user?.role === "admin" || user?.role === "assessor") && (
+                <Link 
+                  href="/assessments" 
+                  className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Assessments
+                </Link>
+              )}
+              <Link 
+                href="/reports" 
+                className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {user?.role === "client" ? "My Reports" : "Reports"}
+              </Link>
+              {user?.role === "admin" && (
+                <Link 
+                  href="/admin" 
+                  className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+              <div className="pt-2 border-t border-border">
+                <span className="block text-xs text-muted-foreground capitalize bg-secondary px-2 py-1 rounded w-fit">
+                  {user?.role}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">
             {user?.role === "client" 
               ? "GREDA Green Building Reports Dashboard" 
               : "GREDA Green Building Assessment Dashboard"
             }
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {user?.role === "client" 
               ? "Access your building sustainability reports and certification tracking with comprehensive GREDA-GBC performance analytics"
               : "Manage sustainable building evaluations with comprehensive GREDA-GBC certification tracking and environmental performance reporting"
@@ -120,7 +181,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
           {/* Quick Stats Card */}
           <Card>
             <CardHeader>
