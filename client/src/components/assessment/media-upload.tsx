@@ -114,6 +114,12 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
   };
 
   const handleFiles = (files: File[]) => {
+    // Check if there's already an uploaded image
+    if (existingMedia.length > 0) {
+      console.warn('Only one image is allowed per field');
+      return;
+    }
+    
     const validFiles = files.filter(file => {
       // For landscaping and cycling variables, only allow images
       const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
@@ -127,7 +133,9 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
       return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
     });
 
-    setUploadedFiles(prev => [...prev, ...validFiles]);
+    // Only allow one file
+    const singleFile = validFiles.slice(0, 1);
+    setUploadedFiles(singleFile);
   };
 
   const removeFile = (index: number) => {
@@ -149,18 +157,20 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
 
   return (
     <div className={cn("space-y-4", className)}>
-      <Card
-        className={cn(
-          "border-2 border-dashed transition-colors cursor-pointer",
-          dragActive ? "border-primary bg-primary/5" : "border-gray-300",
-          "hover:border-primary hover:bg-primary/5"
-        )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
+      {/* Only show upload interface if no existing media */}
+      {existingMedia.length === 0 && (
+        <Card
+          className={cn(
+            "border-2 border-dashed transition-colors cursor-pointer",
+            dragActive ? "border-primary bg-primary/5" : "border-gray-300",
+            "hover:border-primary hover:bg-primary/5"
+          )}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
         <CardContent className="p-6 text-center">
           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           {(() => {
@@ -196,6 +206,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
           />
         </CardContent>
       </Card>
+      )}
 
       {/* Uploaded Files Preview */}
       {uploadedFiles.length > 0 && (
