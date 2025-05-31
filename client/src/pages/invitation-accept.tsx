@@ -202,7 +202,7 @@ export default function InvitationAccept() {
             
             {invitation.organizationName && (
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Organization:</span>
+                <span className="text-sm font-medium text-muted-foreground">Building Name:</span>
                 <span className="text-sm">{invitation.organizationName}</span>
               </div>
             )}

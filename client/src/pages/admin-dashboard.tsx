@@ -202,10 +202,10 @@ export default function AdminDashboard() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="organization">Organization (Optional)</Label>
+                <Label htmlFor="organization">Building Name (Optional)</Label>
                 <Input
                   id="organization"
-                  placeholder="Company Name"
+                  placeholder="Building Name"
                   value={inviteForm.organizationName}
                   onChange={(e) => setInviteForm({ ...inviteForm, organizationName: e.target.value })}
                 />
