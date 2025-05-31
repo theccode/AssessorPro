@@ -345,16 +345,18 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         className="mt-2"
                       />
                       
-                      {/* Media Upload Section */}
-                      <div className="mt-4">
-                        <Label className="text-sm font-medium">Supporting Evidence</Label>
-                        <MediaUpload
-                          assessmentId={assessmentId}
-                          sectionType={currentSection.id}
-                          fieldName={variable.id}
-                          className="mt-2"
-                        />
-                      </div>
+                      {/* Media Upload Section - Only for specific variables */}
+                      {(variable.id === 'landscapingPlanters' || variable.id === 'cyclingWalking') && (
+                        <div className="mt-4">
+                          <Label className="text-sm font-medium">Supporting Evidence (Images Required)</Label>
+                          <MediaUpload
+                            assessmentId={assessmentId}
+                            sectionType={currentSection.id}
+                            fieldName={variable.id}
+                            className="mt-2"
+                          />
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex flex-col justify-between">
