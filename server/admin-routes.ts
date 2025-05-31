@@ -90,7 +90,6 @@ export function registerAdminRoutes(app: Express) {
   app.post('/api/admin/invitations', requireAuth, requireAdmin, auditLog("user_invited"), async (req: any, res) => {
     try {
       const dbUser = req.dbUser;
-      const invitationData = insertUserInvitationSchema.parse(req.body);
       
       // Generate unique token
       const token = crypto.randomBytes(32).toString('hex');
@@ -99,12 +98,15 @@ export function registerAdminRoutes(app: Express) {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       
-      const invitation = await storage.createInvitation({
-        ...invitationData,
+      // Create invitation data with generated fields
+      const invitationData = insertUserInvitationSchema.parse({
+        ...req.body,
         invitedBy: dbUser.id,
         token,
         expiresAt,
       });
+      
+      const invitation = await storage.createInvitation(invitationData);
 
       // Generate invitation link
       const domain = req.get('host');
