@@ -49,30 +49,45 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       formData.append('sectionType', sectionType);
       formData.append('fieldName', fieldName);
 
-      // Simulate progress for better user experience
-      setUploadProgress(10);
+      // Simulate smooth progress for better user experience
+      setUploadProgress(0);
       
-      const response = await fetch(`/api/assessments/${assessmentId}/media`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      // Start progress simulation
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev < 90) {
+            return prev + Math.random() * 10 + 5; // Increment by 5-15%
+          }
+          return prev;
+        });
+      }, 200);
+      
+      try {
+        const response = await fetch(`/api/assessments/${assessmentId}/media`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
 
-      setUploadProgress(80);
+        clearInterval(progressInterval);
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        const result = await response.json();
+        setUploadProgress(100);
+        
+        return result;
+      } catch (error) {
+        clearInterval(progressInterval);
+        throw error;
       }
-
-      const result = await response.json();
-      setUploadProgress(100);
-      
-      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
       setUploadedFiles([]);
-      setTimeout(() => setUploadProgress(0), 1000); // Reset progress after 1 second
+      setTimeout(() => setUploadProgress(0), 1500); // Reset progress after 1.5 seconds
     },
     onError: () => {
       setUploadProgress(0); // Reset progress on error
