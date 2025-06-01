@@ -20,9 +20,13 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
   "water-efficiency": [
     { id: "waterQuality", name: "Water Quality", maxScore: 15 },
     { id: "highEfficiencyFixtures", name: "High Efficiency Water Fixtures", maxScore: 1 },
-    { id: "surfaceWaterManagement", name: "Surface Water Management", maxScore: 2 },
+    { id: "rainWaterManagement", name: "Rain Water Management", maxScore: 3 },
+    { id: "outdoorWaterUseReduction", name: "Outdoor Water Use Reduction", maxScore: 2 },
+    { id: "surfaceWaterManagement", name: "Surface Water Run Off/Stormwater Mgt.", maxScore: 2 },
     { id: "waterRecycling", name: "Water Recycling", maxScore: 5 },
-    { id: "meteringLeakDetection", name: "Metering/Leak Detection", maxScore: 6 },
+    { id: "meteringLeakDetection", name: "Metering & Leakage Detection System", maxScore: 6 },
+    { id: "waterEfficientIrrigation", name: "Water Efficient Irrigation", maxScore: 3 },
+    { id: "waterConservationPlan", name: "Water Conservation & Management Plan", maxScore: 4 },
   ],
   "energy-efficiency": [
     { id: "renewableEnergy", name: "Renewable Energy Use", maxScore: 9 },
