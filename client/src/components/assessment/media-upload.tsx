@@ -274,7 +274,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-green-700">Uploading...</span>
-                <span className="text-green-600">{uploadProgress}%</span>
+                <span className="text-green-600">{uploadProgress.toFixed(2)}%</span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
             </div>
