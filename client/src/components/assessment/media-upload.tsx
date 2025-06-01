@@ -258,7 +258,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {existingMedia.map((media: any) => (
               <div key={media.id} className="relative group">
-                {media.fileType?.startsWith('video/') ? (
+                {(media.fileType?.startsWith('video/') || media.fileType === 'video' || media.mimeType?.startsWith('video/')) ? (
                   <video
                     src={`/api/media/serve/${media.id}`}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
@@ -319,7 +319,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             Full size preview of uploaded assessment media
           </DialogDescription>
           {previewMedia && (
-            previewMedia.type.startsWith('video/') ? (
+            (previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
               <video
                 src={previewMedia.url}
                 controls
