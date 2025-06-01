@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { Upload, X, FileText, Image, Video, Music, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -19,6 +20,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: string } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -47,21 +49,33 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       formData.append('sectionType', sectionType);
       formData.append('fieldName', fieldName);
 
+      // Simulate progress for better user experience
+      setUploadProgress(10);
+      
       const response = await fetch(`/api/assessments/${assessmentId}/media`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
 
+      setUploadProgress(80);
+
       if (!response.ok) {
         throw new Error('Upload failed');
       }
 
-      return response.json();
+      const result = await response.json();
+      setUploadProgress(100);
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName] });
       setUploadedFiles([]);
+      setTimeout(() => setUploadProgress(0), 1000); // Reset progress after 1 second
+    },
+    onError: () => {
+      setUploadProgress(0); // Reset progress on error
     },
   });
 
@@ -241,6 +255,15 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
               </Button>
             </div>
           ))}
+          {uploadMutation.isPending && uploadProgress > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-green-700">Uploading...</span>
+                <span className="text-green-600">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          )}
           <Button 
             onClick={uploadFiles} 
             disabled={uploadMutation.isPending || !assessmentId}
