@@ -224,11 +224,11 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Files to upload:</h4>
           {uploadedFiles.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center space-x-2">
                 {getFileIcon(file)}
-                <span className="text-sm truncate">{file.name}</span>
-                <span className="text-xs text-gray-500">
+                <span className="text-sm truncate text-green-800">{file.name}</span>
+                <span className="text-xs text-green-600">
                   ({Math.round(file.size / 1024)} KB)
                 </span>
               </div>
