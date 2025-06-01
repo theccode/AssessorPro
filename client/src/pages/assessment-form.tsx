@@ -383,7 +383,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         className="mt-2"
                       />
                       
-                      {/* Media Upload Section - Only for specific variables */}
+                      {/* Media Upload Section - For variables that require images or videos */}
                       {variable.requiresImages && (
                         <div className="mt-4">
                           <Label className="text-sm font-medium">Supporting Evidence (Images Required)</Label>
@@ -391,6 +391,20 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                             assessmentId={assessmentId}
                             sectionType={currentSection.id}
                             fieldName={variable.id}
+                            mediaType="images"
+                            className="mt-2"
+                          />
+                        </div>
+                      )}
+                      
+                      {variable.requiresVideos && (
+                        <div className="mt-4">
+                          <Label className="text-sm font-medium">Supporting Evidence (Videos Required)</Label>
+                          <MediaUpload
+                            assessmentId={assessmentId}
+                            sectionType={currentSection.id}
+                            fieldName={variable.id}
+                            mediaType="videos"
                             className="mt-2"
                           />
                         </div>

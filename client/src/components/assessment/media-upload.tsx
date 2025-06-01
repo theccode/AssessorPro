@@ -12,9 +12,10 @@ interface MediaUploadProps {
   sectionType: string;
   fieldName: string;
   className?: string;
+  mediaType?: 'images' | 'videos' | 'all';
 }
 
-export function MediaUpload({ assessmentId, sectionType, fieldName, className }: MediaUploadProps) {
+export function MediaUpload({ assessmentId, sectionType, fieldName, className, mediaType = 'all' }: MediaUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -114,23 +115,26 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className }:
   };
 
   const handleFiles = (files: File[]) => {
-    // Check if there's already an uploaded image
+    // Check if there's already an uploaded file
     if (existingMedia.length > 0) {
-      console.warn('Only one image is allowed per field');
+      console.warn('Only one file is allowed per field');
       return;
     }
     
     const validFiles = files.filter(file => {
-      // For landscaping and cycling variables, only allow images
-      const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
-      if (imageOnlyFields.includes(fieldName)) {
-        const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        return imageTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
-      }
+      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const videoTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi'];
       
-      // For other fields, allow all file types
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'audio/mp3', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
+      // Filter based on media type requirement
+      if (mediaType === 'images') {
+        return imageTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
+      } else if (mediaType === 'videos') {
+        return videoTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit for videos
+      } else {
+        // Allow all supported types
+        const allValidTypes = [...imageTypes, ...videoTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        return allValidTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit
+      }
     });
 
     // Only allow one file

@@ -9,7 +9,7 @@ export const assessmentSections = [
   { id: "innovation", name: "Innovation" },
 ];
 
-export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number; requiresImages?: boolean; requiresLocation?: boolean }>> = {
+export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number; requiresImages?: boolean; requiresVideos?: boolean; requiresLocation?: boolean }>> = {
   "site-transport": [
     { id: "protectRestoreHabitat", name: "Protect or Restore Habitat", maxScore: 6 },
     { id: "heatIslandReduction", name: "Heat Island Reduction", maxScore: 4 },
@@ -18,15 +18,15 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "cyclingWalking", name: "Facilities for Cycling or Walking", maxScore: 3, requiresImages: true },
   ],
   "water-efficiency": [
-    { id: "waterQuality", name: "Water Quality", maxScore: 15 },
-    { id: "highEfficiencyFixtures", name: "High Efficiency Water Fixtures", maxScore: 1 },
-    { id: "rainWaterManagement", name: "Rain Water Management", maxScore: 3 },
-    { id: "outdoorWaterUseReduction", name: "Outdoor Water Use Reduction", maxScore: 2 },
-    { id: "surfaceWaterManagement", name: "Surface Water Run Off/Stormwater Mgt.", maxScore: 2 },
-    { id: "waterRecycling", name: "Water Recycling", maxScore: 5 },
-    { id: "meteringLeakDetection", name: "Metering & Leakage Detection System", maxScore: 6 },
-    { id: "waterEfficientIrrigation", name: "Water Efficient Irrigation", maxScore: 3 },
-    { id: "waterConservationPlan", name: "Water Conservation & Management Plan", maxScore: 4 },
+    { id: "waterQuality", name: "Water Quality", maxScore: 1, requiresImages: true },
+    { id: "highEfficiencyFixtures", name: "High Efficiency Water Fixtures", maxScore: 3, requiresVideos: true },
+    { id: "rainWaterManagement", name: "Rain Water Management", maxScore: 2, requiresImages: true },
+    { id: "outdoorWaterUseReduction", name: "Outdoor Water Use Reduction", maxScore: 2, requiresImages: true },
+    { id: "surfaceWaterManagement", name: "Surface Water Run Off/Stormwater Mgt.", maxScore: 1, requiresVideos: true },
+    { id: "waterRecycling", name: "Water Recycling", maxScore: 2, requiresVideos: true },
+    { id: "meteringLeakDetection", name: "Metering & Leakage Detection System", maxScore: 2, requiresImages: true },
+    { id: "waterEfficientIrrigation", name: "Water Efficient Irrigation", maxScore: 2, requiresVideos: true },
+    { id: "waterConservationPlan", name: "Water Conservation & Management Plan", maxScore: 1, requiresImages: true },
   ],
   "energy-efficiency": [
     { id: "renewableEnergy", name: "Renewable Energy Use", maxScore: 9 },
