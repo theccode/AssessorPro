@@ -18,7 +18,7 @@ interface MediaUploadProps {
 export function MediaUpload({ assessmentId, sectionType, fieldName, className, mediaType = 'all' }: MediaUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; type: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -254,16 +254,26 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       {/* Existing Uploaded Media with Thumbnails */}
       {existingMedia.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium">Uploaded Images:</h4>
+          <h4 className="text-sm font-medium">Uploaded Files:</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {existingMedia.map((media: any) => (
               <div key={media.id} className="relative group">
-                <img
-                  src={`/api/media/serve/${media.id}`}
-                  alt={media.fileName}
-                  className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
-                  onClick={() => setPreviewImage(`/api/media/serve/${media.id}`)}
-                />
+                {media.fileType?.startsWith('video/') ? (
+                  <video
+                    src={`/api/media/serve/${media.id}`}
+                    className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'video/mp4' })}
+                    muted
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    src={`/api/media/serve/${media.id}`}
+                    alt={media.fileName}
+                    className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'image/jpeg' })}
+                  />
+                )}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
                   <Button
                     variant="ghost"
@@ -271,7 +281,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                     className="opacity-0 group-hover:opacity-100 transition-opacity bg-green-600 hover:bg-green-700 text-white border border-green-500 shadow-lg"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setPreviewImage(`/api/media/serve/${media.id}`);
+                      setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'image/jpeg' });
                     }}
                   >
                     <Eye className="h-4 w-4" />
@@ -301,19 +311,29 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         </div>
       )}
 
-      {/* Image Preview Modal */}
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+      {/* Media Preview Modal */}
+      <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
         <DialogContent className="max-w-3xl">
-          <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          <DialogTitle className="sr-only">Media Preview</DialogTitle>
           <DialogDescription className="sr-only">
-            Full size preview of uploaded assessment image
+            Full size preview of uploaded assessment media
           </DialogDescription>
-          {previewImage && (
-            <img
-              src={previewImage}
-              alt="Preview"
-              className="w-full h-auto max-h-[80vh] object-contain"
-            />
+          {previewMedia && (
+            previewMedia.type.startsWith('video/') ? (
+              <video
+                src={previewMedia.url}
+                controls
+                className="w-full h-auto max-h-[80vh] object-contain"
+              >
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img
+                src={previewMedia.url}
+                alt="Preview"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            )
           )}
         </DialogContent>
       </Dialog>
