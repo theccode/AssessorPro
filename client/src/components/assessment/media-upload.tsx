@@ -178,19 +178,25 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         <CardContent className="p-6 text-center">
           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           {(() => {
-            const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
-            if (imageOnlyFields.includes(fieldName)) {
+            if (mediaType === 'images') {
               return (
                 <>
                   <p className="text-sm text-gray-600 mb-1">Upload images only</p>
                   <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
                 </>
               );
+            } else if (mediaType === 'videos') {
+              return (
+                <>
+                  <p className="text-sm text-gray-600 mb-1">Upload videos only</p>
+                  <p className="text-xs text-gray-500">MP4, WEBM, MOV, AVI up to 50MB</p>
+                </>
+              );
             }
             return (
               <>
                 <p className="text-sm text-gray-600 mb-1">Upload images, videos, or documents</p>
-                <p className="text-xs text-gray-500">PNG, JPG, MP4, MP3, PDF up to 10MB</p>
+                <p className="text-xs text-gray-500">PNG, JPG, MP4, WEBM, PDF up to 50MB</p>
               </>
             );
           })()}
@@ -199,11 +205,12 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             type="file"
             multiple
             accept={(() => {
-              const imageOnlyFields = ['landscapingPlanters', 'cyclingWalking'];
-              if (imageOnlyFields.includes(fieldName)) {
+              if (mediaType === 'images') {
                 return ".jpg,.jpeg,.png,.gif,.webp";
+              } else if (mediaType === 'videos') {
+                return ".mp4,.webm,.mov,.avi";
               }
-              return ".jpg,.jpeg,.png,.gif,.mp4,.mp3,.pdf,.doc,.docx";
+              return ".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.avi,.pdf,.doc,.docx";
             })()}
             onChange={handleChange}
             className="hidden"
