@@ -244,7 +244,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
           <Button 
             onClick={uploadFiles} 
             disabled={uploadMutation.isPending || !assessmentId}
-            className="w-full"
+            className="w-full bg-green-600 hover:bg-green-700 text-white border-green-500"
           >
             {uploadMutation.isPending ? "Uploading..." : `Upload ${uploadedFiles.length} file(s)`}
           </Button>
