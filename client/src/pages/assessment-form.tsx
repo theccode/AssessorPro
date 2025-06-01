@@ -457,8 +457,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-lg font-medium text-gray-900">{currentSection.name} Section Total</h4>
-                        <p className="text-sm text-gray-600">
+                        <h4 className="text-lg font-medium text-green-800 dark:text-green-200">{currentSection.name} Section Total</h4>
+                        <p className="text-sm text-green-600 dark:text-green-300">
                           {sectionVariables[currentSection.id]?.length || 0} variables
                         </p>
                       </div>
