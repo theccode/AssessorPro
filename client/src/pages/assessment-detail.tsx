@@ -181,16 +181,26 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
               </div>
               <div className="text-center">
                 <div className="flex items-center mb-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-5 w-5 ${
-                        i < Math.floor(((assessment as any).overallScore || 0) / 26)
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
+                  {[...Array(5)].map((_, i) => {
+                    const score = (assessment as any).overallScore || 0;
+                    let stars = 0;
+                    if (score >= 106) stars = 5; // Diamond/5★ (106-130)
+                    else if (score >= 80) stars = 4; // 4★ (80-105)
+                    else if (score >= 60) stars = 3; // 3★ (60-79)
+                    else if (score >= 45) stars = 2; // 2★ (45-59)
+                    else if (score >= 1) stars = 1; // 1★ (1-44)
+                    
+                    return (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < stars
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
                 <div className="text-sm text-muted-foreground">GREDA Rating</div>
               </div>
