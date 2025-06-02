@@ -23,6 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +53,28 @@ export default function Login() {
     onSuccess: (data: any) => {
       // Check if the server wants us to redirect to a different domain
       if (data.redirect) {
-        window.location.href = data.redirect;
+        // Extract domain from redirect URL for user feedback
+        const url = new URL(data.redirect);
+        const targetDomain = url.hostname;
+        
+        // Determine role based on domain
+        let roleText = "dashboard";
+        if (targetDomain.includes("assessor.portal")) {
+          roleText = "assessor portal";
+        } else if (targetDomain.includes("client.portal")) {
+          roleText = "client portal";
+        } else if (targetDomain.includes("www.")) {
+          roleText = "admin portal";
+        }
+        
+        // Show user feedback before redirecting
+        setIsRedirecting(true);
+        setError(`Authentication successful! Redirecting you to the ${roleText}...`);
+        
+        // Delay redirect slightly so user can see the message
+        setTimeout(() => {
+          window.location.href = data.redirect;
+        }, 1500);
         return;
       }
       
@@ -61,12 +83,14 @@ export default function Login() {
       window.location.reload(); // Refresh to update auth state
     },
     onError: (error: any) => {
+      setIsRedirecting(false);
       setError(error.message || "Login failed. Please check your credentials.");
     },
   });
 
   const onSubmit = (data: LoginForm) => {
     setError("");
+    setIsRedirecting(false);
     loginMutation.mutate(data);
   };
 
@@ -189,8 +213,8 @@ export default function Login() {
                 </div>
 
                 {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
+                  <Alert variant={isRedirecting ? "default" : "destructive"} className={isRedirecting ? "border-green-200 bg-green-50 text-green-800" : ""}>
+                    <AlertDescription className={isRedirecting ? "text-green-800" : ""}>{error}</AlertDescription>
                   </Alert>
                 )}
 
