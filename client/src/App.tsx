@@ -13,6 +13,7 @@ import AssessmentDetail from "@/pages/assessment-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ClientSelection from "@/pages/client-selection";
 import Drafts from "@/pages/drafts";
+import Reports from "@/pages/reports";
 import InvitationAccept from "@/pages/invitation-accept";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
           <Route path="/assessments/:id/edit" component={AssessmentForm} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
           <Route path="/drafts" component={Drafts} />
+          <Route path="/reports" component={Reports} />
           {user?.role === "admin" && (
             <Route path="/admin" component={AdminDashboard} />
           )}
