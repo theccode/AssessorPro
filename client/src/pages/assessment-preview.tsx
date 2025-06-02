@@ -25,8 +25,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   const submitAssessmentMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest(`/api/assessments/${publicId}`, "PATCH", { 
-        status: "completed",
-        conductedAt: new Date().toISOString()
+        status: "completed"
       });
       return response.json();
     },

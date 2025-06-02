@@ -507,9 +507,15 @@ export class DatabaseStorage implements IStorage {
     const { eq } = await import("drizzle-orm");
     const { assessments } = await import("@shared/schema");
     
+    // If status is being changed to completed, set the conductedAt timestamp
+    const updateData = { ...data, updatedAt: new Date() };
+    if (data.status === 'completed' && !data.conductedAt) {
+      updateData.conductedAt = new Date();
+    }
+    
     const [updated] = await db
       .update(assessments)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(assessments.id, id))
       .returning();
     return updated;
