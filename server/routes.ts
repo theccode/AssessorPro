@@ -728,18 +728,13 @@ For security reasons, we recommend using a strong, unique password and not shari
   });
 
   // Serve uploaded files with proper authentication
-  app.get('/api/media/serve/:id', async (req: any, res) => {
+  app.get('/api/media/serve/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       
-      // Check if user is authenticated
-      if (!req.isAuthenticated()) {
-        console.log(`Unauthenticated access attempt for media ${mediaId}`);
-        // Redirect to login page instead of showing JSON error
-        return res.redirect('/api/login');
-      }
+      console.log(`Serving media ${mediaId} for authenticated user`);
       
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       console.log(`Serving media ${mediaId} for user ${userId}`);
       
       // Get assessments where user is either the assessor (userId) or the client (clientId)
