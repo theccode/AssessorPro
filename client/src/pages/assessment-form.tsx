@@ -409,6 +409,19 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                           />
                         </div>
                       )}
+                      
+                      {variable.requiresAudio && (
+                        <div className="mt-4">
+                          <Label className="text-sm font-medium">Supporting Evidence (Audio Required)</Label>
+                          <MediaUpload
+                            assessmentId={assessmentId}
+                            sectionType={currentSection.id}
+                            fieldName={variable.id}
+                            mediaType="audio"
+                            className="mt-2"
+                          />
+                        </div>
+                      )}
 
                       {/* Location Picker Section - Only for variables that require location */}
                       {variable.requiresLocation && (

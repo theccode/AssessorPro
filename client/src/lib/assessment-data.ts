@@ -9,7 +9,7 @@ export const assessmentSections = [
   { id: "innovation", name: "Innovation" },
 ];
 
-export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number; requiresImages?: boolean; requiresVideos?: boolean; requiresLocation?: boolean }>> = {
+export const sectionVariables: Record<string, Array<{ id: string; name: string; maxScore: number; requiresImages?: boolean; requiresVideos?: boolean; requiresAudio?: boolean; requiresLocation?: boolean }>> = {
   "site-transport": [
     { id: "protectRestoreHabitat", name: "Protect or Restore Habitat", maxScore: 6 },
     { id: "heatIslandReduction", name: "Heat Island Reduction", maxScore: 4 },
@@ -41,10 +41,15 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "ecoFriendlyRefrigerants", name: "Eco-friendly Refrigerants", maxScore: 2, requiresImages: true },
   ],
   "indoor-quality": [
-    { id: "daylighting", name: "Daylighting", maxScore: 2 },
-    { id: "indoorAirQuality", name: "Indoor Air Quality", maxScore: 1 },
-    { id: "naturalLightingSources", name: "Natural Lighting Sources", maxScore: 2 },
-    { id: "acousticPerformance", name: "Acoustic Performance", maxScore: 1 },
+    { id: "lowEmittingToxicMaterials", name: "Low Emitting Toxic Materials", maxScore: 3 },
+    { id: "optimumInteriorLighting", name: "Optimum Interior Lighting", maxScore: 2, requiresImages: true },
+    { id: "daylighting", name: "Daylighting", maxScore: 2, requiresImages: true },
+    { id: "qualityViews", name: "Quality Views", maxScore: 2, requiresImages: true },
+    { id: "acousticPerformance", name: "Acoustic Performance", maxScore: 2, requiresAudio: true },
+    { id: "indoorAirQuality", name: "Indoor Air Quality", maxScore: 2 },
+    { id: "noiseAttenuation", name: "Noise Attenuation", maxScore: 2, requiresAudio: true },
+    { id: "indoorPlanters", name: "Indoor Planters", maxScore: 2, requiresImages: true },
+    { id: "roomsWithin10mNaturalLightingSource", name: "Rooms Within 10m Natural Lighting Source", maxScore: 2, requiresImages: true },
   ],
   "materials-resources": [
     { id: "recycledContentMaterials", name: "Recycled Content Materials", maxScore: 4 },

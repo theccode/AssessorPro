@@ -13,7 +13,7 @@ interface MediaUploadProps {
   sectionType: string;
   fieldName: string;
   className?: string;
-  mediaType?: 'images' | 'videos' | 'all';
+  mediaType?: 'images' | 'videos' | 'audio' | 'all';
 }
 
 export function MediaUpload({ assessmentId, sectionType, fieldName, className, mediaType = 'all' }: MediaUploadProps) {
@@ -153,15 +153,18 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
     const validFiles = files.filter(file => {
       const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       const videoTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi'];
+      const audioTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/ogg'];
       
       // Filter based on media type requirement
       if (mediaType === 'images') {
         return imageTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
       } else if (mediaType === 'videos') {
         return videoTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit for videos
+      } else if (mediaType === 'audio') {
+        return audioTypes.includes(file.type) && file.size <= 20 * 1024 * 1024; // 20MB limit for audio
       } else {
         // Allow all supported types
-        const allValidTypes = [...imageTypes, ...videoTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const allValidTypes = [...imageTypes, ...videoTypes, ...audioTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         return allValidTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit
       }
     });
@@ -219,6 +222,13 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                 <>
                   <p className="text-sm text-gray-600 mb-1">Upload videos only</p>
                   <p className="text-xs text-gray-500">MP4, WEBM, MOV, AVI up to 50MB</p>
+                </>
+              );
+            } else if (mediaType === 'audio') {
+              return (
+                <>
+                  <p className="text-sm text-gray-600 mb-1">Upload audio only</p>
+                  <p className="text-xs text-gray-500">MP3, WAV, M4A, AAC, OGG up to 20MB</p>
                 </>
               );
             }
