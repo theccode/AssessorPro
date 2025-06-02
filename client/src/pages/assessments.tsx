@@ -41,9 +41,7 @@ export default function Assessments() {
   // Lock/unlock mutations for admins
   const lockMutation = useMutation({
     mutationFn: async (assessmentId: number) => {
-      return await apiRequest(`/api/assessments/${assessmentId}/lock`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/assessments/${assessmentId}/lock`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
@@ -52,9 +50,7 @@ export default function Assessments() {
 
   const unlockMutation = useMutation({
     mutationFn: async (assessmentId: number) => {
-      return await apiRequest(`/api/assessments/${assessmentId}/unlock`, {
-        method: "POST",
-      });
+      return await apiRequest(`/api/assessments/${assessmentId}/unlock`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
@@ -793,6 +789,54 @@ export default function Assessments() {
                         </Button>
                       )}
                     </div>
+                    
+                    {/* Admin Lock Controls */}
+                    {user?.role === "admin" && (
+                      <div className="flex space-x-2">
+                        {assessment.isLocked ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1" 
+                            onClick={() => unlockMutation.mutate(assessment.id)}
+                            disabled={unlockMutation.isPending}
+                          >
+                            {unlockMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Unlocking...
+                              </>
+                            ) : (
+                              <>
+                                <Unlock className="h-3 w-3 mr-1" />
+                                Unlock
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1" 
+                            onClick={() => lockMutation.mutate(assessment.id)}
+                            disabled={lockMutation.isPending}
+                          >
+                            {lockMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Locking...
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-3 w-3 mr-1" />
+                                Lock
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
                     {/* Download Buttons */}
                     <div className="flex space-x-2">
                       <Button 
