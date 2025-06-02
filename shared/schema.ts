@@ -50,6 +50,7 @@ export const users = pgTable("users", {
 // Building assessments
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
+  publicId: varchar("public_id").$defaultFn(() => crypto.randomUUID()),
   userId: varchar("user_id").notNull().references(() => users.id), // assessor who created it
   clientId: varchar("client_id").notNull().references(() => users.id), // client who owns the assessment
   status: varchar("status").notNull().default("draft"), // draft, completed, submitted
@@ -74,7 +75,7 @@ export const assessments = pgTable("assessments", {
 // Assessment sections with scores
 export const assessmentSections = pgTable("assessment_sections", {
   id: serial("id").primaryKey(),
-  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  assessmentId: varchar("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
   sectionType: varchar("section_type").notNull(), // site-transport, water-efficiency, etc.
   sectionName: varchar("section_name").notNull(),
   score: real("score").default(0),
@@ -91,7 +92,7 @@ export const assessmentSections = pgTable("assessment_sections", {
 // Media files associated with assessment fields
 export const assessmentMedia = pgTable("assessment_media", {
   id: serial("id").primaryKey(),
-  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  assessmentId: varchar("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
   sectionType: varchar("section_type").notNull(),
   fieldName: varchar("field_name").notNull(),
   fileName: text("file_name").notNull(),

@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const assessment = await storage.getAssessmentWithSections(id);
       
       if (!assessment) {
@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const userId = req.user.claims.sub;
       
       // Verify ownership
