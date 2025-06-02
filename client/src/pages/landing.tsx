@@ -6,9 +6,26 @@ import { Building, Leaf, Zap, Droplets, Recycle, BarChart3, FileText, Award, Tre
 import heroImage from "@assets/image_1748623363109.png";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+interface PlatformStats {
+  totalAssessments: number;
+  completedAssessments: number;
+  totalUsers: number;
+  assessorCount: number;
+  averageScore: number;
+  averageEnergySavings: number;
+  uptime: number;
+  supportHours: string;
+}
 
 export default function Landing() {
   const [isRacing, setIsRacing] = useState(false);
+
+  const { data: stats, isLoading: statsLoading } = useQuery<PlatformStats>({
+    queryKey: ['/api/public/stats'],
+    retry: false,
+  });
 
   const handlePhaseChange = (phase: "revealing" | "racing" | "settling" | "waiting") => {
     setIsRacing(phase === "racing");
@@ -179,54 +196,78 @@ export default function Landing() {
             <div className="carousel-track scroll-right-to-left">
               <div className="flex gap-16 min-w-max">
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.completedAssessments || 0}
+                  </div>
                   <div className="text-muted-foreground">Buildings Certified</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">85%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : `${stats?.averageEnergySavings || 0}%`}
+                  </div>
                   <div className="text-muted-foreground">Energy Savings Average</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">50+</div>
-                  <div className="text-muted-foreground">Sustainability Metrics</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.totalAssessments || 0}
+                  </div>
+                  <div className="text-muted-foreground">Total Assessments</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : `${stats?.uptime || 99.9}%`}
+                  </div>
                   <div className="text-muted-foreground">Platform Uptime</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">150+</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.assessorCount || 0}
+                  </div>
                   <div className="text-muted-foreground">Certified Assessors</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.supportHours || "24/7"}
+                  </div>
                   <div className="text-muted-foreground">Support</div>
                 </div>
               </div>
               {/* Duplicate set for seamless looping */}
               <div className="flex gap-16 min-w-max">
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">2,500+</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.completedAssessments || 0}
+                  </div>
                   <div className="text-muted-foreground">Buildings Certified</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">85%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : `${stats?.averageEnergySavings || 0}%`}
+                  </div>
                   <div className="text-muted-foreground">Energy Savings Average</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">50+</div>
-                  <div className="text-muted-foreground">Sustainability Metrics</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.totalAssessments || 0}
+                  </div>
+                  <div className="text-muted-foreground">Total Assessments</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">99.9%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : `${stats?.uptime || 99.9}%`}
+                  </div>
                   <div className="text-muted-foreground">Platform Uptime</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">150+</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.assessorCount || 0}
+                  </div>
                   <div className="text-muted-foreground">Certified Assessors</div>
                 </div>
                 <div className="text-center min-w-[200px]">
-                  <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    {statsLoading ? "..." : stats?.supportHours || "24/7"}
+                  </div>
                   <div className="text-muted-foreground">Support</div>
                 </div>
               </div>
