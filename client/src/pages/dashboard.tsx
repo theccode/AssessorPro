@@ -323,7 +323,7 @@ export default function Dashboard() {
             {assessments.length > 0 ? (
               <div className="space-y-4">
                 {assessments.map((assessment: Assessment) => (
-                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
                     <div>
                       <h3 className="font-medium text-foreground">
                         {assessment.buildingName || "Untitled Assessment"}
