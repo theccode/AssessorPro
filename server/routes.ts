@@ -128,6 +128,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public gallery endpoint - shows completed assessments for showcase
+  app.get('/api/public/gallery', async (req, res) => {
+    try {
+      const allAssessments = await db.select().from(assessments);
+      const completedAssessments = allAssessments.filter(assessment => assessment.status === 'completed');
+      
+      // Get assessment sections to calculate scores
+      const galleryItems = await Promise.all(
+        completedAssessments.slice(0, 6).map(async (assessment) => {
+          const sections = await storage.getAssessmentSections(assessment.id);
+          const totalScore = sections.reduce((sum, section) => sum + (section.score || 0), 0);
+          const maxScore = sections.reduce((sum, section) => sum + (section.maxScore || 0), 0);
+          
+          return {
+            id: assessment.id,
+            buildingName: assessment.buildingName || 'Unnamed Building',
+            location: assessment.buildingLocation || 'Location Not Specified',
+            score: totalScore,
+            maxScore: maxScore || 100,
+            certificationLevel: assessment.status === 'completed' ? 'Certified' : 'Pending',
+            energySavings: maxScore > 0 ? Math.round((totalScore / maxScore) * 85) : 0, // Estimated energy savings
+            completedAt: assessment.updatedAt
+          };
+        })
+      );
+
+      res.json(galleryItems);
+    } catch (error) {
+      console.error("Error fetching gallery assessments:", error);
+      res.status(500).json({ message: "Failed to fetch gallery data" });
+    }
+  });
+
   // Test endpoint to demonstrate role-based access
   app.get('/api/test/auth-demo', async (req, res) => {
     try {
