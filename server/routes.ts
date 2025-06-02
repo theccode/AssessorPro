@@ -356,6 +356,9 @@ For security reasons, we recommend using a strong, unique password and not shari
         index === self.findIndex(a => a.id === assessment.id)
       );
       
+      // Debug: Log assessment statuses
+      console.log("All assessments with statuses:", uniqueAssessments.map(a => ({ id: a.id, status: a.status, buildingName: a.buildingName })));
+      
       res.json(uniqueAssessments);
     } catch (error) {
       console.error("Error fetching assessments:", error);
