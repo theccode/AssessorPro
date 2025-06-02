@@ -56,7 +56,8 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev < 90) {
-            return prev + Math.random() * 10 + 5; // Increment by 5-15%
+            const increment = Math.random() * 10 + 5; // Increment by 5-15%
+            return Math.min(prev + increment, 90); // Cap at 90% during simulation
           }
           return prev;
         });
