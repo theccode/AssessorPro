@@ -446,39 +446,62 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             
             if (section.variables) {
               try {
-                const variables = JSON.parse(section.variables);
+                // Handle both string and object formats
+                let variables;
+                if (typeof section.variables === 'string') {
+                  variables = JSON.parse(section.variables);
+                } else {
+                  variables = section.variables;
+                }
+                
                 const sectionVars = sectionVariables[section.sectionType] || [];
                 
-                sectionVars.forEach(variable => {
-                  const score = variables[variable.id] || 0;
-                  const maxScore = variable.maxScore;
-                  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+                if (sectionVars.length > 0) {
+                  sectionVars.forEach(variable => {
+                    const score = variables[variable.id] || 0;
+                    const maxScore = variable.maxScore;
+                    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
-                  variablesData.push([
-                    sectionName,
-                    formatVariableName(variable.name),
-                    score,
-                    maxScore,
-                    `${percentage}%`
-                  ]);
-                });
+                    variablesData.push([
+                      sectionName,
+                      formatVariableName(variable.name),
+                      score,
+                      maxScore,
+                      `${percentage}%`
+                    ]);
+                  });
+                } else {
+                  // If no predefined variables, try to extract from the variables object itself
+                  Object.keys(variables).forEach(variableKey => {
+                    const score = variables[variableKey] || 0;
+                    variablesData.push([
+                      sectionName,
+                      formatVariableName(variableKey),
+                      score,
+                      'N/A', // Max score not available in this case
+                      'N/A'
+                    ]);
+                  });
+                }
               } catch (parseError) {
-                console.warn('Could not parse variables for section:', section.sectionType);
+                console.warn('Could not parse variables for section:', section.sectionType, parseError);
+                // Still add the section but with no variable breakdown
                 variablesData.push([
                   sectionName,
-                  'Error parsing variables',
-                  '',
-                  '',
-                  ''
+                  'Data parsing error',
+                  section.score || 0,
+                  section.maxScore || 0,
+                  section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
                 ]);
               }
             } else {
+              // No variables data, just show section totals
               variablesData.push([
                 sectionName,
-                'No variables data',
-                '',
-                '',
-                ''
+                'Section Total Only',
+                section.score || 0,
+                section.maxScore || 0,
+                section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
               ]);
             }
           });
@@ -502,15 +525,36 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         const mediaFilesData = [
           ['Media Files'],
           [''],
-          ['Section', 'Variable', 'File Name', 'File Type', 'File Size', 'Upload Date']
+          ['Section', 'Variable', 'File Name', 'File Type', 'File Size', 'Upload Date', 'File Access URL']
         ];
 
         if (mediaData && mediaData.length > 0) {
-          mediaData.forEach((media: any) => {
+          // Process each media file
+          for (const media of mediaData) {
             const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
             const variableName = formatVariableName(media.fieldName || 'File');
             const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
             const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
+            
+            // Try to fetch the actual file for embedding
+            let fileContent = 'File not accessible';
+            let fileUrl = 'N/A';
+            
+            if (media.filePath) {
+              fileUrl = `/uploads/${media.filePath}`;
+              
+              // For images, we could embed them, but Excel has limitations
+              // Instead, provide the full file path and detailed info
+              if (media.fileType && media.fileType.startsWith('image/')) {
+                fileContent = `Image file - View at: ${window.location.origin}${fileUrl}`;
+              } else if (media.fileType && media.fileType.startsWith('video/')) {
+                fileContent = `Video file - Download from: ${window.location.origin}${fileUrl}`;
+              } else if (media.fileType && media.fileType.startsWith('audio/')) {
+                fileContent = `Audio file - Download from: ${window.location.origin}${fileUrl}`;
+              } else {
+                fileContent = `File available at: ${window.location.origin}${fileUrl}`;
+              }
+            }
 
             mediaFilesData.push([
               sectionName,
@@ -518,15 +562,16 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               media.fileName || 'Unknown',
               media.fileType || 'Unknown',
               fileSize,
-              uploadDate
+              uploadDate,
+              fileContent
             ]);
-          });
+          }
         } else {
-          mediaFilesData.push(['No media files found', '', '', '', '', '']);
+          mediaFilesData.push(['No media files found', '', '', '', '', '', '']);
         }
 
         const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
-        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }];
+        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 50 }];
         XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
       } catch (error) {
         console.warn('Could not load media for Excel export:', error);
