@@ -19,6 +19,9 @@ interface Client {
 export default function ClientSelection() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Debug logging
+  console.log("ClientSelection component is rendering");
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["/api/clients"],

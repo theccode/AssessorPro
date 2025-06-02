@@ -28,6 +28,9 @@ import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
   const assessmentId = parseInt(params.id);
+  
+  // Debug logging
+  console.log("AssessmentDetail component is rendering with ID:", assessmentId);
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", assessmentId],
