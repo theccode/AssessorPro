@@ -323,7 +323,7 @@ export default function Dashboard() {
             {assessments.length > 0 ? (
               <div className="space-y-4">
                 {assessments.map((assessment: Assessment) => (
-                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
+                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                     <div>
                       <h3 className="font-medium text-foreground">
                         {assessment.buildingName || "Untitled Assessment"}
@@ -384,7 +384,7 @@ export default function Dashboard() {
                             />
                           );
                         })}
-                        <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">GREDA Rating</span>
+                        <span className="ml-2 text-sm text-muted-foreground">GREDA Rating</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
@@ -392,7 +392,7 @@ export default function Dashboard() {
                         <div className="text-lg font-semibold text-primary">
                           {Math.round(assessment.overallScore || 0)}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-muted-foreground">
                           /{Math.round(assessment.maxPossibleScore || 100)}
                         </div>
                       </div>
@@ -409,11 +409,11 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   {user?.role === "client" ? "No reports available" : "No assessments yet"}
                 </h3>
-                <p className="text-gray-500 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {user?.role === "client" 
                     ? "Assessment reports will appear here once they are completed and shared with you" 
                     : "Get started by creating your first building assessment"
