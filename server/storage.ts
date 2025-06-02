@@ -54,6 +54,7 @@ export interface IStorage {
   // Assessment operations
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   getAssessment(id: number): Promise<Assessment | undefined>;
+  getAssessmentByPublicId(publicId: string): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getUserAssessments(userId: string): Promise<Assessment[]>;
   updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment>;
@@ -467,6 +468,20 @@ export class DatabaseStorage implements IStorage {
     
     const [assessment] = await db.select().from(assessments).where(eq(assessments.id, id));
     return assessment;
+  }
+
+  async getAssessmentByPublicId(publicId: string): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    const [assessment] = await db.select().from(assessments).where(eq(assessments.publicId, publicId));
+    if (!assessment) return undefined;
+
+    const sections = await this.getAssessmentSections(assessment.id);
+    const media = await this.getAssessmentMedia(assessment.id);
+
+    return { ...assessment, sections, media };
   }
 
   async getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined> {

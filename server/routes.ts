@@ -145,8 +145,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const id = req.params.id;
-      const assessment = await storage.getAssessmentWithSections(id);
+      const publicId = req.params.id;
+      const assessment = await storage.getAssessmentByPublicId(publicId);
       
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
