@@ -5,7 +5,9 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupDemoAuth, isDemoAuthenticated } from "./demo-auth";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
-import { insertAssessmentSchema, insertAssessmentSectionSchema } from "@shared/schema";
+import { insertAssessmentSchema, insertAssessmentSectionSchema, assessmentMedia, assessments } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -340,54 +342,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files with public access
+  // Serve uploaded files with proper authentication
   app.get('/api/media/serve/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       
-      console.log(`Serving media ${mediaId}`);
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        console.log(`Unauthenticated access attempt for media ${mediaId}`);
+        // Redirect to login page instead of showing JSON error
+        return res.redirect('/api/login');
+      }
       
-      // Find the media across all assessments without user restriction
-      // This allows Excel export links to work for anyone with the URL
+      const userId = req.user.claims.sub;
+      console.log(`Serving media ${mediaId} for user ${userId}`);
+      
+      // Get all user assessments to find the media
+      const allAssessments = await storage.getUserAssessments(userId);
       let targetMedia = null;
-      let ownerAssessment = null;
       
-      // Get all assessments to find the media (less secure but necessary for Excel exports)
-      try {
-        const result = await db.select({
-          media: assessmentMedia,
-          assessment: assessments
-        })
-        .from(assessmentMedia)
-        .innerJoin(assessments, eq(assessmentMedia.assessmentId, assessments.id))
-        .where(eq(assessmentMedia.id, mediaId));
-        
-        if (result.length > 0) {
-          targetMedia = result[0].media;
-          ownerAssessment = result[0].assessment;
+      console.log(`Found ${allAssessments.length} assessments for user`);
+      
+      for (const assessment of allAssessments) {
+        const media = await storage.getAssessmentMedia(assessment.id);
+        console.log(`Assessment ${assessment.id} has ${media.length} media files`);
+        targetMedia = media.find(m => m.id === mediaId);
+        if (targetMedia) {
           console.log(`Found target media:`, targetMedia);
-        }
-      } catch (dbError) {
-        console.log("Database query failed, falling back to storage method");
-        // Fallback to the original method if direct DB query fails
-        const allUsers = await storage.getAllUsers();
-        for (const user of allUsers) {
-          const userAssessments = await storage.getUserAssessments(user.id);
-          for (const assessment of userAssessments) {
-            const media = await storage.getAssessmentMedia(assessment.id);
-            targetMedia = media.find(m => m.id === mediaId);
-            if (targetMedia) {
-              ownerAssessment = assessment;
-              break;
-            }
-          }
-          if (targetMedia) break;
+          break;
         }
       }
       
       if (!targetMedia) {
-        console.log(`Media ${mediaId} not found`);
-        return res.status(404).json({ message: "Media not found" });
+        console.log(`Media ${mediaId} not found for user ${userId}`);
+        // Redirect to home page with error message instead of JSON
+        return res.redirect('/?error=file_not_found');
       }
 
       // Serve the file
@@ -397,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if file exists
       if (!fs.existsSync(filePath)) {
         console.log(`File not found on disk: ${filePath}`);
-        return res.status(404).json({ message: "File not found on disk" });
+        return res.redirect('/?error=file_missing');
       }
 
       // Set appropriate headers
@@ -409,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileStream.pipe(res);
     } catch (error) {
       console.error("Error serving media:", error);
-      res.status(500).json({ message: "Failed to serve media" });
+      res.redirect('/?error=server_error');
     }
   });
 
