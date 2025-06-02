@@ -134,12 +134,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allAssessments = await db.select().from(assessments);
       const completedAssessments = allAssessments.filter(assessment => assessment.status === 'completed');
       
-      // Get assessment sections to calculate scores
+      // Get assessment sections and media to provide comprehensive data
       const galleryItems = await Promise.all(
         completedAssessments.slice(0, 6).map(async (assessment) => {
           const sections = await storage.getAssessmentSections(assessment.id);
+          const media = await storage.getAssessmentMedia(assessment.id);
+          
           const totalScore = sections.reduce((sum, section) => sum + (section.score || 0), 0);
           const maxScore = sections.reduce((sum, section) => sum + (section.maxScore || 0), 0);
+          const scorePercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+          
+          // Get the first image for display
+          const imageFiles = media.filter(m => m.mimeType && m.mimeType.startsWith('image/'));
+          const featuredImage = imageFiles.length > 0 ? `/api/media/${imageFiles[0].id}` : null;
+          
+          // Calculate star rating based on actual score
+          const starRating = Math.max(1, Math.min(5, Math.round(scorePercentage / 20)));
           
           return {
             id: assessment.id,
@@ -147,9 +157,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             location: assessment.buildingLocation || 'Location Not Specified',
             score: totalScore,
             maxScore: maxScore || 100,
-            certificationLevel: assessment.status === 'completed' ? 'Certified' : 'Pending',
-            energySavings: maxScore > 0 ? Math.round((totalScore / maxScore) * 85) : 0, // Estimated energy savings
-            completedAt: assessment.updatedAt
+            scorePercentage: Math.round(scorePercentage),
+            starRating,
+            certificationLevel: `${starRating}-Star Certified`,
+            energySavings: Math.round(scorePercentage * 0.85), // Energy savings based on actual performance
+            completedAt: assessment.updatedAt,
+            featuredImage,
+            sectionCount: sections.length,
+            mediaCount: media.length
           };
         })
       );

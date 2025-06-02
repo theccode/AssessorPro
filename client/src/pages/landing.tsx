@@ -401,13 +401,25 @@ export default function Landing() {
               ))
             ) : galleryAssessments && galleryAssessments.length > 0 ? (
               galleryAssessments.slice(0, 6).map((assessment: any) => {
-                const scorePercentage = assessment.maxScore > 0 ? (assessment.score / assessment.maxScore) * 100 : 0;
-                const starRating = Math.max(1, Math.min(5, Math.round(scorePercentage / 20)));
-                
                 return (
                   <div key={assessment.id} className="bg-card rounded-lg overflow-hidden shadow-lg border border-border transition-all duration-300 hover:shadow-xl hover:scale-105">
-                    <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                      <Building className="h-16 w-16 text-primary" />
+                    <div className="h-48 relative overflow-hidden">
+                      {assessment.featuredImage ? (
+                        <img 
+                          src={assessment.featuredImage} 
+                          alt={assessment.buildingName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center ${assessment.featuredImage ? 'hidden' : ''}`}>
+                        <Building className="h-16 w-16 text-primary" />
+                      </div>
                     </div>
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-2">
@@ -416,21 +428,21 @@ export default function Landing() {
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star 
                               key={i} 
-                              className={`h-4 w-4 ${i < starRating ? 'text-primary fill-current' : 'text-muted-foreground'}`} 
+                              className={`h-4 w-4 ${i < assessment.starRating ? 'text-primary fill-current' : 'text-muted-foreground'}`} 
                             />
                           ))}
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">
-                        {assessment.location} • {assessment.score || 0} Credits
+                        {assessment.location} • {assessment.score} Credits ({assessment.scorePercentage}%)
                       </p>
                       <p className="text-sm text-foreground mb-4">
-                        Building assessment completed with {scorePercentage.toFixed(0)}% sustainability score.
-                        {assessment.energySavings > 0 && ` Achieving ${assessment.energySavings}% energy savings.`}
+                        Comprehensive assessment across {assessment.sectionCount} categories with {assessment.mediaCount} supporting documents.
+                        {assessment.energySavings > 0 && ` Achieving ${assessment.energySavings}% efficiency rating.`}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                          {assessment.certificationLevel || `${starRating}-Star Certified`}
+                          {assessment.certificationLevel}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {assessment.completedAt ? new Date(assessment.completedAt).getFullYear() : 'Recent'}
