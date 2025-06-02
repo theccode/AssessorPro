@@ -184,10 +184,17 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           setTimeout(() => {
             setShowSavedState(true);
           }, 500);
-        } else if (currentSectionIndex === 0 && formData.buildingName && formData.clientName) {
-          // For new assessments, create the assessment when building info is provided
+        } else if (currentSectionIndex === 0 && formData.buildingName) {
+          // For new assessments without ID, create the assessment when building info is provided
           console.log("Creating new assessment with auto-save:", formData);
-          const newAssessment = await createAssessmentMutation.mutateAsync(formData);
+          
+          // Use client name from form or from existing assessment
+          const clientName = formData.clientName || assessment?.clientName || "";
+          
+          const newAssessment = await createAssessmentMutation.mutateAsync({
+            ...formData,
+            clientName
+          });
           
           // After creating assessment, save the building information section as completed
           if (newAssessment && newAssessment.id) {
@@ -196,7 +203,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               sectionName: "Building Information", 
               score: 0,
               maxScore: 0,
-              variables: formData,
+              variables: { ...formData, clientName },
               locationData: {},
               isCompleted: true,
             };
