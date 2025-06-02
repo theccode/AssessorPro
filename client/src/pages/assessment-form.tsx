@@ -412,7 +412,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Client</p>
-                  <p className="text-lg font-semibold">{assessment.publisherName || "Client"}</p>
+                  <p className="text-lg font-semibold">{assessment.clientName || "Client"}</p>
                 </div>
               </div>
             </CardContent>

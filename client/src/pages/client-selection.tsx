@@ -31,7 +31,7 @@ export default function ClientSelection() {
       const response = await apiRequest("/api/assessments", "POST", {
         clientId: clientData.id,
         buildingName: clientData.buildingName || "Building Assessment",
-        publisherName: `${clientData.firstName} ${clientData.lastName}`,
+        clientName: `${clientData.firstName} ${clientData.lastName}`,
         status: "draft"
       });
       return await response.json();
