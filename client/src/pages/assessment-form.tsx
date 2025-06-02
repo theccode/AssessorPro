@@ -353,20 +353,20 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center min-w-0">
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto flex-shrink-0" />
+              <span className="ml-2 sm:ml-3 text-sm sm:text-lg md:text-xl font-medium text-foreground truncate">GREDA-GBC Assessor Pro</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                 Section {currentSectionIndex + 1} of {assessmentSections.length}
               </span>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Back to Dashboard</span>
                 </Link>
               </Button>
               <div className="flex items-center text-sm text-muted-foreground">
@@ -389,30 +389,30 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">GREDA Green Building Assessment Form</h1>
-          <p className="text-gray-600">Complete all sections to generate comprehensive GREDA-GBC sustainability evaluation</p>
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-4 px-2">GREDA Green Building Assessment Form</h1>
+          <p className="text-sm sm:text-base text-gray-600 px-2">Complete all sections to generate comprehensive GREDA-GBC sustainability evaluation</p>
         </div>
 
         {/* Client and Building Information */}
         {assessment && (
-          <Card className="mb-8 border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-primary">
-                <Building className="w-6 h-6" />
+          <Card className="mb-6 sm:mb-8 border-primary/20 bg-primary/5">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-lg sm:text-xl">
+                <Building className="w-5 h-5 sm:w-6 sm:h-6" />
                 Assessment Information
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Building Name</p>
-                  <p className="text-lg font-semibold">{assessment.buildingName || "Building Assessment"}</p>
+                  <p className="text-base sm:text-lg font-semibold break-words">{assessment.buildingName || "Building Assessment"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Client</p>
-                  <p className="text-lg font-semibold">{assessment.clientName || "Client"}</p>
+                  <p className="text-base sm:text-lg font-semibold break-words">{assessment.clientName || "Client"}</p>
                 </div>
               </div>
             </CardContent>
@@ -759,23 +759,25 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
               <Button
                 variant="outline"
                 onClick={() => setCurrentSectionIndex(Math.max(0, currentSectionIndex - 1))}
                 disabled={currentSectionIndex === 0}
+                className="w-full sm:w-auto"
               >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Previous Section
+                <ChevronLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Previous Section</span>
               </Button>
-              <div className="flex space-x-3">
-                <Button variant="outline" onClick={handleSaveDraft}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Draft
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:space-x-3">
+                <Button variant="outline" onClick={handleSaveDraft} className="w-full sm:w-auto">
+                  <Save className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Save Draft</span>
                 </Button>
-                <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit}>
-                  {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit} className="w-full sm:w-auto">
+                  <span className="hidden sm:inline">{currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}</span>
+                  <span className="sm:hidden">{currentSectionIndex === assessmentSections.length - 1 ? "Complete" : "Next"}</span>
+                  <ChevronRight className="h-4 w-4 sm:ml-2" />
                 </Button>
               </div>
             </div>
