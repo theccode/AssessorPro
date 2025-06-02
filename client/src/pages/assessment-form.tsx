@@ -487,6 +487,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         if (dataLoaded) debouncedSave();
                       }}
                       placeholder="Enter building name"
+                      disabled={isAssessmentLocked}
                     />
                   </div>
                   <div>
@@ -496,6 +497,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       value={formData.clientName || ""}
                       onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
                       placeholder="Enter client's name"
+                      disabled={isAssessmentLocked}
                     />
                   </div>
                   <div>
@@ -505,6 +507,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       value={formData.buildingLocation || ""}
                       onChange={(e) => setFormData(prev => ({ ...prev, buildingLocation: e.target.value }))}
                       placeholder="Enter building location"
+                      disabled={isAssessmentLocked}
                     />
                   </div>
                   <div>
@@ -516,6 +519,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       placeholder="e.g. GA-543-0125"
                       pattern="[A-Z]{2}-\d{3}-\d{4}"
                       title="Format: Two letters, hyphen, 3 digits, hyphen, 4 digits (e.g. GA-543-0125)"
+                      disabled={isAssessmentLocked}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Format: Two letters, hyphen, 3 digits, hyphen, 4 digits
@@ -529,6 +533,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       value={formData.phoneNumber || ""}
                       onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                       placeholder="Enter phone number"
+                      disabled={isAssessmentLocked}
                     />
                   </div>
                 </div>
@@ -674,6 +679,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         maxValue={variable.maxScore}
                         onChange={(value) => handleVariableChange(variable.id, value)}
                         className="mt-2"
+                        disabled={isAssessmentLocked}
                       />
                       
                       {/* Media Upload Section - For variables that require images or videos */}

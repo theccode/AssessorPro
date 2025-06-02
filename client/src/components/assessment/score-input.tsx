@@ -9,7 +9,7 @@ interface ScoreInputProps {
   disabled?: boolean;
 }
 
-export function ScoreInput({ value, maxValue, onChange, className }: ScoreInputProps) {
+export function ScoreInput({ value, maxValue, onChange, className, disabled = false }: ScoreInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseInt(e.target.value) || 0;
     const clampedValue = Math.max(0, Math.min(maxValue, newValue));
@@ -26,6 +26,7 @@ export function ScoreInput({ value, maxValue, onChange, className }: ScoreInputP
         onChange={handleChange}
         placeholder={`Enter score (0-${maxValue})`}
         className="text-center text-lg font-semibold"
+        disabled={disabled}
       />
       <div className="text-xs text-gray-500 text-center">
         Maximum score: {maxValue}
