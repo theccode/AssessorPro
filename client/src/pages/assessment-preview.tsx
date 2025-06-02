@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Edit, Download, Check, ArrowLeft } from "lucide-react";
+import { Building, Edit, Download, Check, ArrowLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
@@ -19,6 +20,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   const publicId = params.id; // Now using UUID instead of integer
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", publicId],
@@ -50,6 +52,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       return;
     }
 
+    setIsGeneratingPDF(true);
     try {
       // Get assessment data safely
       const assessmentData = Array.isArray(assessment) ? assessment[0] : assessment;
@@ -261,6 +264,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -468,9 +473,18 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               Edit Assessment
             </Link>
           </Button>
-          <Button variant="outline" onClick={handleDownloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
+          <Button variant="outline" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+            {isGeneratingPDF ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </>
+            )}
           </Button>
           {assessmentData.status !== 'completed' && (
             <Button 
