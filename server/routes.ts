@@ -262,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user has access to this assessment
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       const user = await storage.getUser(userId);
       
       if (assessment.userId !== userId && user?.role !== 'admin') {
@@ -315,7 +315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment section routes
-  app.post('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
+  app.post('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
       const userId = req.user.claims.sub;
@@ -350,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
       const userId = req.user.claims.sub;
@@ -513,7 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete media file
-  app.delete('/api/media/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/media/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
