@@ -684,6 +684,49 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Direct media access endpoint
+  app.get('/api/media/:id', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const mediaId = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      
+      // Get the media file details
+      const assessments = await storage.getUserAssessments(userId);
+      const clientAssessments = await storage.getClientAssessments(userId);
+      const allAccessibleAssessments = [...assessments, ...clientAssessments];
+      
+      let targetMedia = null;
+      
+      for (const assessment of allAccessibleAssessments) {
+        const media = await storage.getAssessmentMedia(assessment.id);
+        targetMedia = media.find(m => m.id === mediaId);
+        if (targetMedia) break;
+      }
+      
+      if (!targetMedia) {
+        return res.status(404).json({ message: "Media not found" });
+      }
+
+      // Check if file exists
+      const filePath = path.resolve(targetMedia.filePath);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "File not found on disk" });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', targetMedia.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${targetMedia.fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error("Error serving media:", error);
+      res.status(500).json({ message: "Failed to serve media" });
+    }
+  });
+
   // Serve uploaded files with proper authentication
   app.get('/api/media/serve/:id', async (req: any, res) => {
     try {
