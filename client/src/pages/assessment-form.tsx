@@ -37,8 +37,6 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [formData, setFormData] = useState<any>({});
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
   const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveProgress, setSaveProgress] = useState(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch assessment if editing
@@ -98,26 +96,15 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       clearTimeout(saveTimeoutRef.current);
     }
     
-    console.log('Starting auto-save...');
-    setIsSaving(true);
-    setSaveProgress(0);
-    
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (assessmentId) {
-          console.log('Setting progress to 20%');
-          setSaveProgress(20);
-          
           // Auto-save current assessment data
-          console.log('Saving assessment data...');
           await updateAssessmentMutation.mutateAsync(formData);
-          console.log('Assessment saved, setting progress to 60%');
-          setSaveProgress(60);
           
           // Auto-save current section if we have section data
           const currentSectionType = assessmentSections[currentSectionIndex].id;
           if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
-            console.log('Saving section data...');
             const sectionToSave = {
               sectionType: currentSectionType,
               sectionName: assessmentSections[currentSectionIndex].name,
@@ -125,24 +112,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               locationData: locationData[currentSectionType] || {},
             };
             await saveSectionMutation.mutateAsync(sectionToSave);
-            console.log('Section saved');
           }
-          
-          // Complete the progress
-          console.log('Setting progress to 100%');
-          setSaveProgress(100);
-          
-          // Reset after showing 100% briefly
-          setTimeout(() => {
-            console.log('Resetting save state');
-            setIsSaving(false);
-            setSaveProgress(0);
-          }, 800);
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
-        setIsSaving(false);
-        setSaveProgress(0);
       }
     }, 1000); // Save after 1 second of no changes
   }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation]);
@@ -347,15 +320,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                 </Link>
               </Button>
               <div className="flex items-center text-sm text-muted-foreground">
-                {isSaving ? (
+                {(updateAssessmentMutation.isPending || saveSectionMutation.isPending) ? (
                   <div className="flex items-center">
                     <div className="w-20 h-2 bg-secondary rounded-full mr-2 overflow-hidden">
-                      <div 
-                        className="h-full bg-primary transition-all duration-300 ease-out"
-                        style={{ width: `${saveProgress}%` }}
-                      ></div>
+                      <div className="h-full bg-primary animate-pulse"></div>
                     </div>
-                    <span>Saving... {Math.round(saveProgress)}%</span>
+                    <span>Saving...</span>
                   </div>
                 ) : (
                   <>
