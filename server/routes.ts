@@ -167,6 +167,27 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Audit logging endpoint
+  app.post('/api/audit/log', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const { action, details } = req.body;
+
+      await storage.createAuditLog({
+        userId,
+        action,
+        details,
+        ipAddress: req.ip,
+        userAgent: req.get("User-Agent") || "",
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Audit log error:", error);
+      res.status(500).json({ message: "Failed to create audit log" });
+    }
+  });
+
   // Config routes
   app.get('/api/config/domains', (req, res) => {
     res.json(getDomainConfig());

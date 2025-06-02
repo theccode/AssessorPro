@@ -39,6 +39,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showSavedState, setShowSavedState] = useState(true);
+  const [hasLoggedView, setHasLoggedView] = useState(false);
+  const [hasLoggedEdit, setHasLoggedEdit] = useState(false);
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
@@ -127,6 +129,26 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (assessmentId) {
+          // Log edit if user didn't create the assessment and hasn't been logged yet
+          if (user && assessment && assessment.userId !== user.id && !hasLoggedEdit) {
+            const userName = user.firstName && user.lastName 
+              ? `${user.firstName} ${user.lastName}` 
+              : user.email || user.id;
+            
+            apiRequest("/api/audit/log", "POST", {
+              action: `edited assessment "${assessment.buildingName || 'Untitled'}"`,
+              details: {
+                assessmentId: assessment.id,
+                buildingName: assessment.buildingName,
+                originalCreator: assessment.userId,
+                editorName: userName,
+                editorRole: user.role
+              }
+            }).catch(error => console.error("Failed to log assessment edit:", error));
+            
+            setHasLoggedEdit(true);
+          }
+
           // Auto-save current assessment data
           await updateAssessmentMutation.mutateAsync(formData);
           
@@ -212,6 +234,26 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         phoneNumber: assessment.phoneNumber || "",
         additionalNotes: assessment.additionalNotes || "",
       });
+
+      // Log assessment view if user didn't create it
+      if (user && assessment.userId !== user.id && !hasLoggedView) {
+        const userName = user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user.email || user.id;
+        
+        apiRequest("/api/audit/log", "POST", {
+          action: `viewed assessment "${assessment.buildingName || 'Untitled'}"`,
+          details: {
+            assessmentId: assessment.id,
+            buildingName: assessment.buildingName,
+            originalCreator: assessment.userId,
+            viewerName: userName,
+            viewerRole: user.role
+          }
+        }).catch(error => console.error("Failed to log assessment view:", error));
+        
+        setHasLoggedView(true);
+      }
     } else if (!assessmentId) {
       // For new assessments, initialize with empty form
       setFormData({
@@ -224,7 +266,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         additionalNotes: "",
       });
     }
-  }, [assessment, assessmentId]);
+  }, [assessment, assessmentId, user, hasLoggedView]);
 
   useEffect(() => {
     // Initialize section data from fetched sections

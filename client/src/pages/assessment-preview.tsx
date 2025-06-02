@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -23,10 +23,33 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   const queryClient = useQueryClient();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
+  const [hasLoggedView, setHasLoggedView] = useState(false);
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", publicId],
   });
+
+  // Log assessment view if user didn't create it
+  useEffect(() => {
+    if (assessment && user && assessment.userId !== user.id && !hasLoggedView) {
+      const userName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : user.email || user.id;
+      
+      apiRequest("/api/audit/log", "POST", {
+        action: `viewed assessment preview "${assessment.buildingName || 'Untitled'}"`,
+        details: {
+          assessmentId: assessment.id,
+          buildingName: assessment.buildingName,
+          originalCreator: assessment.userId,
+          viewerName: userName,
+          viewerRole: user.role
+        }
+      }).catch(error => console.error("Failed to log assessment preview view:", error));
+      
+      setHasLoggedView(true);
+    }
+  }, [assessment, user, hasLoggedView]);
 
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
