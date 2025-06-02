@@ -12,7 +12,7 @@ import { SectionNavigation } from "@/components/assessment/section-navigation";
 import { ScoreInput } from "@/components/assessment/score-input";
 import { MediaUpload } from "@/components/assessment/media-upload";
 import { LocationPicker } from "@/components/assessment/location-picker";
-import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft, LockIcon } from "lucide-react";
+import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft, Lock } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
@@ -111,10 +111,15 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     },
   });
 
-  // Debounced auto-save function
+  // Debounced auto-save function (disabled when locked)
   const debouncedSave = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Don't auto-save if assessment is locked
+    if (isAssessmentLocked) {
+      return;
     }
     
     setShowSavedState(false); // Hide saved state when starting to save
@@ -147,7 +152,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         setShowSavedState(true);
       }
     }, 2000); // Save after 2 seconds of no changes
-  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation]);
+  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -403,7 +408,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           <Card className="mb-4 border-amber-200 bg-amber-50">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3 text-amber-800">
-                <LockIcon className="w-5 h-5" />
+                <Lock className="w-5 h-5" />
                 <div>
                   <p className="font-medium">Assessment Locked</p>
                   <p className="text-sm">This assessment has been submitted and is locked for editing. Contact an administrator to unlock it.</p>
@@ -420,7 +425,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-lg sm:text-xl">
                 <Building className="w-5 h-5 sm:w-6 sm:h-6" />
                 Assessment Information
-                {isAssessmentLocked && <LockIcon className="w-4 h-4 text-amber-600" />}
+                {isAssessmentLocked && <Lock className="w-4 h-4 text-amber-600" />}
               </CardTitle>
             </CardHeader>
             <CardContent>

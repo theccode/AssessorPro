@@ -6,6 +6,7 @@ interface ScoreInputProps {
   maxValue: number;
   onChange: (value: number) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export function ScoreInput({ value, maxValue, onChange, className }: ScoreInputProps) {
