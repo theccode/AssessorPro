@@ -728,11 +728,17 @@ For security reasons, we recommend using a strong, unique password and not shari
   });
 
   // Serve uploaded files with proper authentication
-  app.get('/api/media/serve/:id', isCustomAuthenticated, async (req: any, res) => {
+  app.get('/api/media/serve/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       
-      console.log(`Serving media ${mediaId} for authenticated user`);
+      console.log(`Media serve request for ${mediaId}, session:`, req.session);
+      
+      // Check if user is authenticated
+      if (!req.session?.customUserId) {
+        console.log(`Unauthenticated request for media ${mediaId}`);
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       const userId = req.session.customUserId;
       console.log(`Serving media ${mediaId} for user ${userId}`);
