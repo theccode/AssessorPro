@@ -16,10 +16,10 @@ export default function Reports() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p>Loading reports...</p>
           </div>
         </div>
@@ -38,22 +38,22 @@ export default function Reports() {
   const completedAssessments = filteredAssessments.filter((a: any) => a.status === "completed");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg">
+      <div className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <img src={gredaLogo} alt="GREDA-GBC" className="h-12 w-auto" />
               <div>
-                <h1 className="text-2xl font-bold text-white">Assessment Reports</h1>
-                <p className="text-sm text-green-100">
+                <h1 className="text-2xl font-bold text-foreground">Assessment Reports</h1>
+                <p className="text-sm text-muted-foreground">
                   {user?.role === "client" ? "Your building assessment reports" : "All assessment reports"}
                 </p>
               </div>
             </div>
             <Link to="/">
-              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+              <Button variant="outline">
                 Back to Dashboard
               </Button>
             </Link>
@@ -64,23 +64,23 @@ export default function Reports() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-none">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-100">Total Reports</CardTitle>
-              <FileText className="h-4 w-4 text-green-200" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Reports</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{completedAssessments.length}</div>
+              <div className="text-2xl font-bold text-foreground">{completedAssessments.length}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 text-white border-none">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-100">Average Score</CardTitle>
-              <Star className="h-4 w-4 text-emerald-200" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-foreground">
                 {completedAssessments.length > 0
                   ? Math.round(
                       completedAssessments.reduce((sum: number, a: any) => sum + (a.overallScore || 0), 0) /
@@ -91,13 +91,13 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white border-none">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-100">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-green-200" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-foreground">
                 {completedAssessments.filter((a: any) => {
                   const assessmentDate = new Date(a.conductedAt || a.createdAt);
                   const now = new Date();
@@ -120,11 +120,11 @@ export default function Reports() {
           <CardContent>
             {completedAssessments.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   No completed reports
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-muted-foreground">
                   {user?.role === "client" 
                     ? "You don't have any completed assessment reports yet."
                     : "No completed assessment reports available."}
@@ -135,21 +135,21 @@ export default function Reports() {
                 {completedAssessments.map((assessment: any) => (
                   <div
                     key={assessment.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <Building className="h-5 w-5 text-green-600" />
+                        <Building className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
+                          <h3 className="font-semibold text-foreground">
                             {assessment.buildingName || "Unnamed Building"}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-sm text-muted-foreground">
                             {assessment.buildingLocation || "No location specified"}
                           </p>
                         </div>
                       </div>
-                      <div className="mt-2 flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="mt-2 flex items-center space-x-4 text-sm text-muted-foreground">
                         <span>Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 130}</span>
                         <span>
                           {assessment.maxPossibleScore > 0
