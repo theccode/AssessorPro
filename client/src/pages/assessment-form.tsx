@@ -38,6 +38,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
   const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showSavedState, setShowSavedState] = useState(true);
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
@@ -96,6 +97,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       clearTimeout(saveTimeoutRef.current);
     }
     
+    setShowSavedState(false); // Hide saved state when starting to save
+    
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (assessmentId) {
@@ -113,11 +116,17 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
             };
             await saveSectionMutation.mutateAsync(sectionToSave);
           }
+          
+          // Show saved state after a brief delay
+          setTimeout(() => {
+            setShowSavedState(true);
+          }, 500);
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
+        setShowSavedState(true);
       }
-    }, 1000); // Save after 1 second of no changes
+    }, 2000); // Save after 2 seconds of no changes
   }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation]);
 
   // Cleanup timeout on unmount
@@ -327,12 +336,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     </div>
                     <span>Saving...</span>
                   </div>
-                ) : (
+                ) : showSavedState ? (
                   <>
                     <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
                     Auto-saved
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
