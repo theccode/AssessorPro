@@ -38,6 +38,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   const { user } = useAuth();
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<any>(null);
   
   // Don't render if ID is not a valid number
   if (isNaN(assessmentId) || !params.id) {
@@ -500,7 +501,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                                 <div className="space-y-1 flex-1 min-w-0">
                                   <p className="font-medium text-sm truncate">{file.fileName}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    Variable: {file.variableName || 'General'}
+                                    Variable: {file.fieldName || file.variableName || 'Document Upload'}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
                                     Type: {file.fileType}
@@ -522,7 +523,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                                     src={`/api/media/${file.id}`}
                                     alt={file.fileName}
                                     className="w-full h-full object-cover cursor-pointer"
-                                    onClick={() => window.open(`/api/media/${file.id}`, '_blank')}
+                                    onClick={() => setPreviewMedia(file)}
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       target.style.display = 'none';
@@ -607,6 +608,81 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Media Preview Modal */}
+      {previewMedia && (
+        <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>{previewMedia.fileName}</span>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(`/api/media/${previewMedia.id}`, '_blank')}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Open in New Tab
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = `/api/media/${previewMedia.id}`;
+                      link.download = previewMedia.fileName;
+                      link.click();
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col space-y-2">
+              <div className="text-sm text-muted-foreground">
+                Variable: {previewMedia.fieldName || previewMedia.variableName || 'Document Upload'} | 
+                Type: {previewMedia.fileType} | 
+                Uploaded: {new Date(previewMedia.createdAt).toLocaleDateString()}
+              </div>
+              <div className="relative bg-muted rounded-lg overflow-hidden max-h-[70vh] flex items-center justify-center">
+                {previewMedia.fileType === "image" ? (
+                  <img 
+                    src={`/api/media/${previewMedia.id}`}
+                    alt={previewMedia.fileName}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : previewMedia.fileType === "video" ? (
+                  <video 
+                    controls 
+                    className="max-w-full max-h-full"
+                    autoPlay
+                  >
+                    <source src={`/api/media/${previewMedia.id}`} />
+                    Your browser does not support video playback.
+                  </video>
+                ) : previewMedia.fileType === "audio" ? (
+                  <div className="p-8 flex flex-col items-center space-y-4">
+                    <Music className="h-16 w-16 text-muted-foreground" />
+                    <audio controls className="w-full max-w-md">
+                      <source src={`/api/media/${previewMedia.id}`} />
+                      Your browser does not support audio playback.
+                    </audio>
+                  </div>
+                ) : (
+                  <div className="p-8 flex flex-col items-center space-y-4">
+                    <FileDown className="h-16 w-16 text-muted-foreground" />
+                    <span className="text-lg font-medium">{previewMedia.fileName}</span>
+                    <span className="text-muted-foreground">Document file - click Download to view</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
