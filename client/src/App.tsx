@@ -49,13 +49,7 @@ function Router() {
       <Route path="/login" component={Login} />
       
       {isLoading || !isAuthenticated ? (
-        <>
-          {isAdminDomain ? (
-            <Route path="/" component={Login} />
-          ) : (
-            <Route path="/" component={Landing} />
-          )}
-        </>
+        <Route path="/" component={Landing} />
       ) : (
         <>
           {/* In development, show role-specific dashboards based on user role */}
