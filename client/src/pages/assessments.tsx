@@ -119,8 +119,8 @@ export default function Assessments() {
   const handleDownloadExcel = async (assessment: Assessment) => {
     setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch full assessment data with sections
-      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
+      // Fetch full assessment data with sections using the integer ID
+      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.id}`);
       const assessmentData = await fullAssessmentResponse.json();
       
       // Create a new workbook
@@ -290,7 +290,7 @@ export default function Assessments() {
 
       // Sheet 4: Media Files
       try {
-        const mediaResponse = await apiRequest(`/api/assessments/${assessment.publicId}/media`);
+        const mediaResponse = await apiRequest(`/api/assessments/${assessment.id}/media`);
         const mediaData = await mediaResponse.json();
 
         const mediaFilesData = [
