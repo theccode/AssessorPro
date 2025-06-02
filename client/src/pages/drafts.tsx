@@ -327,7 +327,7 @@ export default function Drafts() {
 
                                 {/* Actions */}
                                 <div className="flex gap-2 pt-2">
-                                  <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
+                                  <Link href={`/assessments/new?id=${assessment.publicId}`} className="flex-1">
                                     <Button className="w-full" size="sm">
                                       <Edit className="w-3 h-3 mr-2" />
                                       Continue

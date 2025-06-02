@@ -208,27 +208,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Assessment section routes
   app.post('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
+      const publicId = req.params.id;
       const userId = req.user.claims.sub;
       
-      // Verify ownership
-      const assessment = await storage.getAssessment(assessmentId);
+      // Verify ownership using public ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment || assessment.userId !== userId) {
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      const data = insertAssessmentSectionSchema.parse({ ...req.body, assessmentId });
+      const data = insertAssessmentSectionSchema.parse({ ...req.body, assessmentId: assessment.id });
       console.log("Parsed section data:", JSON.stringify(data, null, 2));
       const section = await storage.upsertAssessmentSection(data);
       console.log("Saved section with isCompleted:", section.isCompleted);
       
       // Update assessment completion status
-      const sections = await storage.getAssessmentSections(assessmentId);
+      const sections = await storage.getAssessmentSections(assessment.id);
       const completedCount = sections.filter(s => s.isCompleted).length;
       const totalScore = sections.reduce((sum, s) => sum + (s.score || 0), 0);
       const maxPossible = sections.reduce((sum, s) => sum + (s.maxScore || 0), 0);
       
-      await storage.updateAssessment(assessmentId, {
+      await storage.updateAssessment(assessment.id, {
         completedSections: completedCount,
         overallScore: totalScore,
         maxPossibleScore: maxPossible,
@@ -243,8 +243,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/assessments/:id/sections', isAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
-      const sections = await storage.getAssessmentSections(assessmentId);
+      const publicId = req.params.id;
+      const userId = req.user.claims.sub;
+      
+      // Get assessment by public ID to verify ownership
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment || assessment.userId !== userId) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      const sections = await storage.getAssessmentSections(assessment.id);
       res.json(sections);
     } catch (error) {
       console.error("Error fetching sections:", error);
