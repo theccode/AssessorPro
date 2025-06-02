@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +13,23 @@ import {
   MapPin,
   TrendingUp,
   FileText,
-  Table
+  Table,
+  Loader2
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import * as XLSX from 'xlsx';
+import { apiRequest } from "@/lib/queryClient";
+import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 
 export default function Assessments() {
   const { user } = useAuth();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<{ [key: number]: boolean }>({});
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState<{ [key: number]: boolean }>({});
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -30,6 +39,137 @@ export default function Assessments() {
   const assessments = allAssessments.filter((assessment: Assessment) => 
     assessment.status === "completed"
   );
+
+  // Helper function to format camelCase to readable text
+  const formatVariableName = (camelCase: string) => {
+    return camelCase
+      .replace(/([A-Z])/g, ' $1') // Add space before capitals
+      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+      .trim();
+  };
+
+  // PDF Download functionality
+  const handleDownloadPDF = async (assessment: Assessment) => {
+    setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: true }));
+    try {
+      // Fetch assessment sections
+      const sectionsResponse = await apiRequest(`/api/assessments/${assessment.id}/sections`);
+      const sections = await sectionsResponse.json();
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      let yPosition = 20;
+
+      // Add GREDA logo and header
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('GREDA-GBC Assessment Report', pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 15;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Building: ${assessment.buildingName || 'N/A'}`, 20, yPosition);
+      yPosition += 8;
+      pdf.text(`Location: ${assessment.buildingLocation || 'N/A'}`, 20, yPosition);
+      yPosition += 8;
+      pdf.text(`Overall Score: ${Math.round(assessment.overallScore || 0)}/130`, 20, yPosition);
+      yPosition += 8;
+      pdf.text(`Status: ${assessment.status}`, 20, yPosition);
+      yPosition += 15;
+
+      // Add sections data
+      sections.forEach((section: any) => {
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(section.sectionType.replace(/-/g, ' ').toUpperCase(), 20, yPosition);
+        yPosition += 10;
+
+        pdf.setFont('helvetica', 'normal');
+        if (section.data) {
+          const sectionData = typeof section.data === 'string' ? JSON.parse(section.data) : section.data;
+          Object.entries(sectionData).forEach(([key, value]) => {
+            if (yPosition > 280) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text(`${formatVariableName(key)}: ${value}`, 25, yPosition);
+            yPosition += 6;
+          });
+        }
+        yPosition += 10;
+      });
+
+      // Generate and download the PDF file
+      const fileName = `GREDA_Assessment_${assessment.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF file. Please try again.');
+    } finally {
+      setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: false }));
+    }
+  };
+
+  // Excel Download functionality
+  const handleDownloadExcel = async (assessment: Assessment) => {
+    setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
+    try {
+      // Fetch assessment sections
+      const sectionsResponse = await apiRequest(`/api/assessments/${assessment.id}/sections`);
+      const sections = await sectionsResponse.json();
+
+      const workbook = XLSX.utils.book_new();
+
+      // Create overview sheet
+      const overviewData = [
+        ['GREDA-GBC Assessment Report'],
+        [''],
+        ['Building Name', assessment.buildingName || 'N/A'],
+        ['Location', assessment.buildingLocation || 'N/A'],
+        ['Overall Score', `${Math.round(assessment.overallScore || 0)}/130`],
+        ['Status', assessment.status],
+        ['Created Date', new Date(assessment.createdAt || '').toLocaleDateString()],
+        [''],
+      ];
+
+      const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData);
+      XLSX.utils.book_append_sheet(workbook, overviewSheet, 'Overview');
+
+      // Create sheets for each section
+      sections.forEach((section: any) => {
+        const sectionData = typeof section.data === 'string' ? JSON.parse(section.data) : section.data;
+        const sheetData = [
+          [section.sectionType.replace(/-/g, ' ').toUpperCase()],
+          [''],
+        ];
+
+        if (sectionData) {
+          Object.entries(sectionData).forEach(([key, value]) => {
+            sheetData.push([formatVariableName(key), value]);
+          });
+        }
+
+        const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+        const sheetName = section.sectionType.replace(/-/g, ' ').substring(0, 31); // Excel sheet name limit
+        XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+      });
+
+      // Generate and download the Excel file
+      const fileName = `GREDA_Assessment_${assessment.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      alert('Error generating Excel file. Please try again.');
+    } finally {
+      setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: false }));
+    }
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading assessments...</div>;
@@ -185,17 +325,43 @@ export default function Assessments() {
                     </div>
                     {/* Download Buttons */}
                     <div className="flex space-x-2">
-                      <Button variant="secondary" size="sm" className="flex-1" asChild>
-                        <a href={`/api/assessments/${assessment.id}/export/excel`} download>
-                          <Table className="h-3 w-3 mr-1" />
-                          Excel
-                        </a>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="flex-1" 
+                        onClick={() => handleDownloadExcel(assessment)}
+                        disabled={isGeneratingExcel[assessment.id]}
+                      >
+                        {isGeneratingExcel[assessment.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Table className="h-3 w-3 mr-1" />
+                            Excel
+                          </>
+                        )}
                       </Button>
-                      <Button variant="secondary" size="sm" className="flex-1" asChild>
-                        <a href={`/api/assessments/${assessment.id}/export/pdf`} download>
-                          <FileText className="h-3 w-3 mr-1" />
-                          PDF
-                        </a>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="flex-1" 
+                        onClick={() => handleDownloadPDF(assessment)}
+                        disabled={isGeneratingPDF[assessment.id]}
+                      >
+                        {isGeneratingPDF[assessment.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-3 w-3 mr-1" />
+                            PDF
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
