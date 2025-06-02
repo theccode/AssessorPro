@@ -132,7 +132,23 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           
           // Auto-save current section if we have section data
           const currentSectionType = assessmentSections[currentSectionIndex].id;
-          if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
+          
+          // For building information section, check if it should be marked complete
+          if (currentSectionIndex === 0) {
+            const hasRequiredFields = formData.buildingName && formData.clientName && formData.buildingLocation;
+            if (hasRequiredFields) {
+              const buildingInfoSection = {
+                sectionType: "building-information",
+                sectionName: "Building Information",
+                score: 0,
+                maxScore: 0,
+                variables: formData,
+                locationData: {},
+                isCompleted: true,
+              };
+              await saveSectionMutation.mutateAsync(buildingInfoSection);
+            }
+          } else if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
             const sectionToSave = {
               sectionType: currentSectionType,
               sectionName: assessmentSections[currentSectionIndex].name,
