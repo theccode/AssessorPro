@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
 import { setupDemoAuth, isDemoAuthenticated } from "./demo-auth";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
@@ -43,6 +44,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Continue without auth for now
   }
 
+  // Domain routing middleware (after auth but before routes)
+  app.use(domainRoleMiddleware);
+  app.use(validateDomainAccess);
+
   // Register admin routes
   registerAdminRoutes(app);
 
@@ -59,6 +64,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Config routes
+  app.get('/api/config/domains', (req, res) => {
+    res.json(getDomainConfig());
+  });
+
   app.get('/api/config/google-maps-key', (req, res) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
