@@ -52,15 +52,15 @@ function formatVariableName(name: string): string {
     .replace(/\s+/g, ' ') // Remove extra spaces
     .trim();
   
-  // Handle common technical terms
+  // Handle common technical terms - all start with capital letters
   const mappings: Record<string, string> = {
     'Building Info': 'Building Information',
     'General Info': 'General Information',
     'Water Conservation': 'Water Conservation',
     'Energy Efficiency': 'Energy Efficiency',
     'Indoor Environmental Quality': 'Indoor Environmental Quality',
-    'Site And Transport': 'Site and Transportation',
-    'Materials Resources': 'Materials and Resources',
+    'Site And Transport': 'Site And Transportation',
+    'Materials Resources': 'Materials And Resources',
     'Waste Management': 'Waste Management',
     'Innovation Points': 'Innovation Points',
     'Building Performance': 'Building Performance',
@@ -75,10 +75,13 @@ function formatVariableName(name: string): string {
     'Window Type': 'Window Systems',
     'Floor Plan': 'Building Floor Plan',
     'Elevation View': 'Building Elevation',
-    'Site Plan': 'Site Layout Plan'
+    'Site Plan': 'Site Layout Plan',
+    'General': 'General Documentation'
   };
   
-  return mappings[readable] || readable;
+  // Ensure result starts with capital letter
+  const result = mappings[readable] || readable;
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 // Helper function to format section names
@@ -91,13 +94,14 @@ function formatSectionName(sectionType: string): string {
     'waterConservation': 'Water Conservation',
     'energyEfficiency': 'Energy Efficiency',
     'indoorEnvironmentalQuality': 'Indoor Environmental Quality',
-    'siteAndTransport': 'Site and Transportation',
-    'materialsResources': 'Materials and Resources',
+    'siteAndTransport': 'Site And Transportation',
+    'materialsResources': 'Materials And Resources',
     'wasteManagement': 'Waste Management',
     'innovationPoints': 'Innovation Points'
   };
   
-  return mappings[sectionType] || formatVariableName(sectionType);
+  const result = mappings[sectionType] || formatVariableName(sectionType);
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
