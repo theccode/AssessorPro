@@ -68,6 +68,7 @@ function Router() {
               <Route path="/assessments/:id" component={AssessmentDetail} />
               <Route path="/drafts" component={Drafts} />
               <Route path="/reports" component={Reports} />
+              <Route path="/profile" component={Profile} />
               {user?.role === "admin" && (
                 <Route path="/admin" component={AdminDashboard} />
               )}
