@@ -197,111 +197,103 @@ export default function Assessments() {
         }
       }
 
-      // Media section - organized by section
+      // Media Files section - with clickable links
       try {
         const mediaResponse = await fetch(`/api/assessments/${assessment.id}/media`);
         const mediaData = await mediaResponse.json();
 
         if (mediaData && mediaData.length > 0) {
-          pdf.addPage();
-          yPosition = 20;
+          if (yPosition > pageHeight - 80) {
+            pdf.addPage();
+            yPosition = 20;
+          }
           
           pdf.setFontSize(16);
           pdf.setTextColor(0, 102, 51);
-          pdf.text('Assessment Images', 20, yPosition);
+          pdf.text('Assessment Media Files', 20, yPosition);
           yPosition += 15;
 
-          // Display all images in a simple organized format
-          for (const media of mediaData) {
-            if (media.fileType === 'image') {
-              try {
-                // Check if we need a new page (leave space for image + text)
-                if (yPosition > pageHeight - 120) {
-                  pdf.addPage();
-                  yPosition = 20;
-                }
-
-                // Load and add image
-                const imgResponse = await fetch(`/api/media/serve/${media.id}`);
-                const imgBlob = await imgResponse.blob();
-                const imgUrl = URL.createObjectURL(imgBlob);
-                
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                
-                await new Promise((resolve) => {
-                  img.onload = () => {
-                    // Calculate image dimensions - maintain aspect ratio
-                    const maxWidth = 120;
-                    const maxHeight = 80;
-                    let imgWidth = maxWidth;
-                    let imgHeight = (img.height / img.width) * imgWidth;
-                    
-                    // If image is too tall, scale by height instead
-                    if (imgHeight > maxHeight) {
-                      imgHeight = maxHeight;
-                      imgWidth = (img.width / img.height) * imgHeight;
-                    }
-
-                    // Ensure we have enough space for this image
-                    if (yPosition + imgHeight + 20 > pageHeight - 20) {
-                      pdf.addPage();
-                      yPosition = 20;
-                    }
-                    
-                    // Add section and variable information
-                    const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
-                    const variableName = formatVariableName(media.fieldName || 'Image');
-                    
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(0, 102, 51);
-                    pdf.text(`${sectionName} > ${variableName}`, 30, yPosition);
-                    yPosition += 8;
-                    
-                    // Add shortened filename
-                    pdf.setFontSize(8);
-                    pdf.setTextColor(100, 100, 100);
-                    const shortName = media.fileName.length > 50 ? 
-                      media.fileName.substring(0, 47) + '...' : media.fileName;
-                    pdf.text(shortName, 30, yPosition);
-                    yPosition += 8;
-                    
-                    // Add image with subtle border
-                    pdf.setDrawColor(220, 220, 220);
-                    pdf.setLineWidth(0.5);
-                    pdf.rect(29, yPosition - 1, imgWidth + 2, imgHeight + 2);
-                    pdf.addImage(img, 'JPEG', 30, yPosition, imgWidth, imgHeight);
-                    
-                    // Move to next position with proper spacing
-                    yPosition += imgHeight + 15;
-                    
-                    URL.revokeObjectURL(imgUrl);
-                    resolve(true);
-                  };
-                  img.onerror = () => {
-                    console.warn('Could not load image:', media.fileName);
-                    // Add placeholder text for failed image
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(150, 150, 150);
-                    pdf.text(`[Image failed to load: ${media.fileName}]`, 30, yPosition);
-                    yPosition += 15;
-                    resolve(true);
-                  };
-                  img.src = imgUrl;
-                });
-              } catch (error) {
-                console.error('Error adding image to PDF:', error);
-                // Add error note and continue
-                pdf.setFontSize(9);
-                pdf.setTextColor(150, 150, 150);
-                pdf.text(`[Error loading image: ${media.fileName}]`, 30, yPosition);
-                yPosition += 15;
-              }
+          // Display media files as clickable links organized by section
+          const mediaBySection = {};
+          mediaData.forEach((media: any) => {
+            const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+            if (!mediaBySection[sectionName]) {
+              mediaBySection[sectionName] = [];
             }
+            mediaBySection[sectionName].push(media);
+          });
+
+          Object.entries(mediaBySection).forEach(([sectionName, files]: [string, any[]]) => {
+            // Check if we need a new page
+            if (yPosition > pageHeight - 60) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+
+            // Section header
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 102, 51);
+            pdf.text(`${sectionName}:`, 25, yPosition);
+            yPosition += 10;
+
+            files.forEach((media: any) => {
+              if (yPosition > pageHeight - 25) {
+                pdf.addPage();
+                yPosition = 20;
+              }
+
+              const variableName = formatVariableName(media.fieldName || 'File');
+              const fileName = media.fileName || 'Unknown file';
+              const fileType = media.fileType || 'Unknown';
+              const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'Unknown size';
+              
+              // Create clickable link
+              const authenticatedFileUrl = `${window.location.origin}/api/media/serve/${media.id}`;
+              
+              pdf.setFontSize(10);
+              pdf.setTextColor(0, 0, 255); // Blue color for links
+              pdf.textWithLink(`📎 ${variableName} - ${fileName}`, 30, yPosition, { url: authenticatedFileUrl });
+              
+              pdf.setFontSize(8);
+              pdf.setTextColor(100, 100, 100);
+              pdf.text(`   Type: ${fileType} | Size: ${fileSize}`, 30, yPosition + 5);
+              
+              yPosition += 12;
+            });
+
+            yPosition += 5;
+          });
+        } else {
+          if (yPosition > pageHeight - 40) {
+            pdf.addPage();
+            yPosition = 20;
           }
+          
+          pdf.setFontSize(16);
+          pdf.setTextColor(0, 102, 51);
+          pdf.text('Assessment Media Files', 20, yPosition);
+          yPosition += 15;
+          
+          pdf.setFontSize(12);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text('No media files uploaded for this assessment.', 20, yPosition);
         }
       } catch (error) {
         console.warn('Could not load media for PDF:', error);
+        
+        if (yPosition > pageHeight - 40) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.setFontSize(16);
+        pdf.setTextColor(0, 102, 51);
+        pdf.text('Assessment Media Files', 20, yPosition);
+        yPosition += 15;
+        
+        pdf.setFontSize(12);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text('Error loading media files.', 20, yPosition);
       }
 
       // Footer
