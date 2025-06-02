@@ -187,25 +187,34 @@ export default function Assessments() {
         ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
       ];
 
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        assessmentData.sections.forEach((section: any) => {
-          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-          const score = section.score || 0;
-          const maxScore = section.maxScore || 0;
-          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
+      // Get sections data from API call
+      try {
+        const sectionsResponse = await fetch(`/api/assessments/${assessment.id}`);
+        const fullAssessmentData = await sectionsResponse.json();
+        
+        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
+          fullAssessmentData.sections.forEach((section: any) => {
+            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+            const score = section.score || 0;
+            const maxScore = section.maxScore || 0;
+            const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+            const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
 
-          sectionsData.push([
-            sectionName,
-            score,
-            maxScore,
-            `${percentage}%`,
-            status
-          ]);
-        });
-      } else {
-        sectionsData.push(['No section data available', '', '', '', '']);
+            sectionsData.push([
+              sectionName,
+              score,
+              maxScore,
+              `${percentage}%`,
+              status
+            ]);
+          });
+        } else {
+          sectionsData.push(['No section data available', '', '', '', '']);
+        }
+      } catch (error) {
+        console.warn('Could not load sections for Excel export:', error);
+        sectionsData.push(['Error loading sections', '', '', '', '']);
       }
 
       const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
@@ -219,69 +228,83 @@ export default function Assessments() {
         ['Section', 'Variable Name', 'Score', 'Max Score', 'Percentage']
       ];
 
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        assessmentData.sections.forEach((section: any) => {
-          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-          
-          if (section.variables) {
-            try {
-              let variables;
-              if (typeof section.variables === 'string') {
-                variables = JSON.parse(section.variables);
-              } else {
-                variables = section.variables;
-              }
-              
-              const sectionVars = sectionVariables[section.sectionType] || [];
-              
-              if (sectionVars.length > 0) {
-                sectionVars.forEach(variable => {
-                  const score = variables[variable.id] || 0;
-                  const maxScore = variable.maxScore;
-                  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+      // Use the same full assessment data from the previous API call
+      try {
+        const sectionsResponse = await fetch(`/api/assessments/${assessment.id}`);
+        const fullAssessmentData = await sectionsResponse.json();
+        
+        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
+          fullAssessmentData.sections.forEach((section: any) => {
+            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+            
+            if (section.variables) {
+              try {
+                // Handle both string and object formats
+                let variables;
+                if (typeof section.variables === 'string') {
+                  variables = JSON.parse(section.variables);
+                } else {
+                  variables = section.variables;
+                }
+                
+                const sectionVars = sectionVariables[section.sectionType] || [];
+                
+                if (sectionVars.length > 0) {
+                  sectionVars.forEach(variable => {
+                    const score = variables[variable.id] || 0;
+                    const maxScore = variable.maxScore;
+                    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
-                  variablesData.push([
-                    sectionName,
-                    formatVariableName(variable.name),
-                    score,
-                    maxScore,
-                    `${percentage}%`
-                  ]);
-                });
-              } else {
-                Object.keys(variables).forEach(variableKey => {
-                  const score = variables[variableKey] || 0;
-                  variablesData.push([
-                    sectionName,
-                    formatVariableName(variableKey),
-                    score,
-                    'N/A',
-                    'N/A'
-                  ]);
-                });
+                    variablesData.push([
+                      sectionName,
+                      formatVariableName(variable.name),
+                      score,
+                      maxScore,
+                      `${percentage}%`
+                    ]);
+                  });
+                } else {
+                  // If no predefined variables, try to extract from the variables object itself
+                  Object.keys(variables).forEach(variableKey => {
+                    const score = variables[variableKey] || 0;
+                    variablesData.push([
+                      sectionName,
+                      formatVariableName(variableKey),
+                      score,
+                      'N/A', // Max score not available in this case
+                      'N/A'
+                    ]);
+                  });
+                }
+              } catch (parseError) {
+                console.warn('Could not parse variables for section:', section.sectionType, parseError);
+                // Still add the section but with no variable breakdown
+                variablesData.push([
+                  sectionName,
+                  'Data parsing error',
+                  section.score || 0,
+                  section.maxScore || 0,
+                  section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
+                ]);
               }
-            } catch (parseError) {
+            } else {
+              // No variables data, just show section totals
               variablesData.push([
                 sectionName,
-                'Data parsing error',
+                'Section Total Only',
                 section.score || 0,
                 section.maxScore || 0,
                 section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
               ]);
             }
-          } else {
-            variablesData.push([
-              sectionName,
-              'Section Total Only',
-              section.score || 0,
-              section.maxScore || 0,
-              section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
-            ]);
-          }
-        });
-      } else {
-        variablesData.push(['No variable data available', '', '', '', '']);
+          });
+        } else {
+          variablesData.push(['No variable data available', '', '', '', '']);
+        }
+      } catch (error) {
+        console.warn('Could not load variables for Excel export:', error);
+        variablesData.push(['Error loading variables', '', '', '', '']);
       }
 
       const variablesSheet = XLSX.utils.aoa_to_sheet(variablesData);
@@ -290,37 +313,77 @@ export default function Assessments() {
 
       // Sheet 4: Media Files
       try {
-        const mediaResponse = await apiRequest(`/api/assessments/${assessment.id}/media`);
+        const mediaResponse = await fetch(`/api/assessments/${assessment.id}/media`);
         const mediaData = await mediaResponse.json();
 
         const mediaFilesData = [
           ['Media Files'],
           [''],
-          ['Section Type', 'File Name', 'File Type', 'Size (KB)', 'Upload Date']
+          ['Section', 'Variable', 'File Name', 'File Type', 'File Size', 'Upload Date', 'File Access URL']
         ];
 
         if (mediaData && mediaData.length > 0) {
-          mediaData.forEach((media: any) => {
-            const sectionConfig = assessmentSections.find(s => s.id === media.sectionType);
-            const sectionName = sectionConfig?.name || formatVariableName(media.sectionType || 'Unknown');
+          // Process each media file
+          for (const media of mediaData) {
+            const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+            const variableName = formatVariableName(media.fieldName || 'File');
+            const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+            const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
             
+            // Just add the variable name for now, we'll add hyperlinks after sheet creation
+            const linkText = media.filePath ? variableName : 'File not available';
+
             mediaFilesData.push([
               sectionName,
+              variableName,
               media.fileName || 'Unknown',
               media.fileType || 'Unknown',
-              media.fileSize ? Math.round(media.fileSize / 1024) : 'Unknown',
-              media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'Unknown'
+              fileSize,
+              uploadDate,
+              linkText
             ]);
-          });
+          }
         } else {
-          mediaFilesData.push(['No media files available', '', '', '', '']);
+          mediaFilesData.push(['No media files found', '', '', '', '', '', '']);
         }
 
         const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
-        mediaSheet['!cols'] = [{ width: 25 }, { width: 30 }, { width: 15 }, { width: 12 }, { width: 15 }];
+        
+        // Add hyperlinks to the File Access URL column (column G)
+        if (mediaData && mediaData.length > 0) {
+          mediaData.forEach((media: any, index: number) => {
+            if (media.filePath && media.id) {
+              const rowIndex = index + 3; // Account for headers (starts at row 3)
+              const cellAddress = `G${rowIndex}`;
+              const authenticatedFileUrl = `${window.location.origin}/api/media/serve/${media.id}`;
+              const linkDisplayText = `🔗 Open ${media.fileName}`;
+              
+              // Set the cell as a hyperlink with proper styling
+              mediaSheet[cellAddress] = {
+                t: 's',
+                v: linkDisplayText,
+                l: { Target: authenticatedFileUrl, Tooltip: `Click to download ${media.fileName}` },
+                s: {
+                  font: { color: { rgb: "0000FF" }, underline: true },
+                  alignment: { horizontal: "left" }
+                }
+              };
+            }
+          });
+        }
+        
+        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 30 }];
         XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
       } catch (error) {
-        console.warn('Could not load media files for Excel export:', error);
+        console.warn('Could not load media for Excel export:', error);
+        // Add empty media sheet
+        const emptyMediaData = [
+          ['Media Files'],
+          [''],
+          ['No media data available']
+        ];
+        const emptyMediaSheet = XLSX.utils.aoa_to_sheet(emptyMediaData);
+        XLSX.utils.book_append_sheet(workbook, emptyMediaSheet, 'Media Files');
       }
 
       // Generate and download the Excel file
