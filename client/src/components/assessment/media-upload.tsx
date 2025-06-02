@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Upload, X, FileText, Image, Video, Music, Eye } from "lucide-react";
+import { Upload, X, FileText, Image, Video, Music, Eye, Camera, VideoIcon, Mic, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -22,7 +22,18 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: string } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showCameraDialog, setShowCameraDialog] = useState(false);
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
+  const [showAudioDialog, setShowAudioDialog] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const queryClient = useQueryClient();
 
   // Fetch existing media for this field
@@ -143,6 +154,153 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
     if (e.target.files && e.target.files[0]) {
       handleFiles(Array.from(e.target.files));
     }
+  };
+
+  // Camera and recording functions
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' }, 
+        audio: false 
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setShowCameraDialog(true);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Unable to access camera. Please check permissions or use file upload instead.');
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      const context = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      if (context) {
+        context.drawImage(video, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            handleFiles([file]);
+            stopCamera();
+          }
+        }, 'image/jpeg', 0.8);
+      }
+    }
+  };
+
+  const startVideoRecording = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setShowVideoDialog(true);
+    } catch (error) {
+      console.error('Error accessing camera for video:', error);
+      alert('Unable to access camera and microphone. Please check permissions or use file upload instead.');
+    }
+  };
+
+  const startRecording = () => {
+    if (stream) {
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const file = new File([blob], `video-${Date.now()}.webm`, { type: 'video/webm' });
+        handleFiles([file]);
+        stopCamera();
+      };
+      
+      setRecordedChunks(chunks);
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const startAudioRecording = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true 
+      });
+      setStream(mediaStream);
+      setShowAudioDialog(true);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      alert('Unable to access microphone. Please check permissions or use file upload instead.');
+    }
+  };
+
+  const startAudioCapture = () => {
+    if (stream) {
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        handleFiles([file]);
+        stopCamera();
+      };
+      
+      setRecordedChunks(chunks);
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+    }
+  };
+
+  const stopAudioCapture = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCameraDialog(false);
+    setShowVideoDialog(false);
+    setShowAudioDialog(false);
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setRecordedChunks([]);
   };
 
   const handleFiles = (files: File[]) => {
@@ -266,12 +424,65 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                 return ".jpg,.jpeg,.png,.gif,.webp";
               } else if (mediaType === 'videos') {
                 return ".mp4,.webm,.mov,.avi";
+              } else if (mediaType === 'audio') {
+                return ".mp3,.wav,.m4a,.aac,.ogg,.webm";
               }
-              return ".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.avi,.pdf,.doc,.docx";
+              return ".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.avi,.mp3,.wav,.m4a,.aac,.ogg,.pdf,.doc,.docx";
             })()}
             onChange={handleChange}
             className="hidden"
           />
+          
+          {/* Camera and Recording Options */}
+          <div className="mt-4 flex gap-2 justify-center flex-wrap">
+            {(mediaType === 'images' || mediaType === 'all') && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startCamera();
+                }}
+                className="flex items-center gap-1"
+              >
+                <Camera className="h-4 w-4" />
+                Take Photo
+              </Button>
+            )}
+            
+            {(mediaType === 'videos' || mediaType === 'all') && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startVideoRecording();
+                }}
+                className="flex items-center gap-1"
+              >
+                <VideoIcon className="h-4 w-4" />
+                Record Video
+              </Button>
+            )}
+            
+            {(mediaType === 'audio' || mediaType === 'all') && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startAudioRecording();
+                }}
+                className="flex items-center gap-1"
+              >
+                <Mic className="h-4 w-4" />
+                Record Audio
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
       )}
