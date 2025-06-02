@@ -329,49 +329,59 @@ export default function Dashboard() {
             {assessments.length > 0 ? (
               <div className="space-y-4">
                 {assessments.map((assessment: Assessment) => (
-                  <div key={assessment.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-foreground truncate">
-                          {assessment.buildingName || "Untitled Assessment"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground truncate">{assessment.buildingLocation}</p>
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            assessment.status === "completed" 
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : assessment.status === "draft"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                              : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          }`}>
-                            {assessment.status === "completed" ? "Report Available" : 
-                             assessment.status === "draft" ? "In Progress" : assessment.status}
-                          </span>
-                          {user?.role === "client" && assessment.overallScore && (
-                            <span className="text-sm font-medium text-primary">
-                              Score: {assessment.overallScore}%
-                            </span>
-                          )}
-                          {user?.role !== "client" && (
-                            <span className="text-sm text-muted-foreground">
-                              {assessment.completedSections}/{assessment.totalSections} sections
-                            </span>
-                          )}
-                          {assessment.assessorName && user?.role === "client" && (
-                            <span className="text-xs text-muted-foreground">
-                              Assessed by: {assessment.assessorName}
-                            </span>
-                          )}
-                          {assessment.conductedAt && (
-                            <span className="text-xs text-muted-foreground">
-                              {user?.role === "client" ? "Completed: " : ""}
-                              {new Date(assessment.conductedAt).toLocaleDateString()}
-                            </span>
-                          )}
+                  <div key={assessment.id} className="p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="space-y-3">
+                      {/* Header section with title and score */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-medium text-foreground truncate text-sm sm:text-base">
+                            {assessment.buildingName || "Untitled Assessment"}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{assessment.buildingLocation}</p>
                         </div>
-                        
-                        {/* Star Rating */}
-                        <div className="flex items-center mt-2">
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+                          <div className="text-right">
+                            <div className="text-base sm:text-lg font-semibold text-primary">
+                              {Math.round(assessment.overallScore || 0)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              /{Math.round(assessment.maxPossibleScore || 100)}
+                            </div>
+                          </div>
+                          <Progress 
+                            value={((assessment.overallScore || 0) / (assessment.maxPossibleScore || 100)) * 100} 
+                            className="w-12 sm:w-16 lg:w-20"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Status and metadata badges */}
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          assessment.status === "completed" 
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : assessment.status === "draft"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        }`}>
+                          {assessment.status === "completed" ? "Report Available" : 
+                           assessment.status === "draft" ? "In Progress" : assessment.status}
+                        </span>
+                        {user?.role !== "client" && (
+                          <span className="text-xs text-muted-foreground">
+                            {assessment.completedSections}/{assessment.totalSections} sections
+                          </span>
+                        )}
+                        {assessment.conductedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(assessment.conductedAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Bottom section with rating and action */}
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div className="flex items-center">
                           {[...Array(5)].map((_, i) => {
                             const score = assessment.overallScore || 0;
                             let stars = 0;
@@ -384,7 +394,7 @@ export default function Dashboard() {
                             return (
                               <Star
                                 key={i}
-                                className={`h-4 w-4 ${
+                                className={`h-3 w-3 sm:h-4 sm:w-4 ${
                                   i < stars 
                                     ? "fill-yellow-400 text-yellow-400" 
                                     : "text-muted-foreground"
@@ -392,25 +402,9 @@ export default function Dashboard() {
                               />
                             );
                           })}
-                          <span className="ml-2 text-sm text-muted-foreground">GREDA Rating</span>
+                          <span className="ml-2 text-xs sm:text-sm text-muted-foreground">GREDA Rating</span>
                         </div>
-                      </div>
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <div className="text-lg font-semibold text-primary">
-                              {Math.round(assessment.overallScore || 0)}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              /{Math.round(assessment.maxPossibleScore || 100)}
-                            </div>
-                          </div>
-                          <Progress 
-                            value={((assessment.overallScore || 0) / (assessment.maxPossibleScore || 100)) * 100} 
-                            className="w-20 lg:w-32"
-                          />
-                        </div>
-                        <Button variant="outline" size="sm" asChild className="w-full lg:w-auto">
+                        <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                           <Link href={`/assessment/${assessment.id}`}>View Details</Link>
                         </Button>
                       </div>
