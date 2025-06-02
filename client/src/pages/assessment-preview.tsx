@@ -393,23 +393,34 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
       ];
 
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        assessmentData.sections.forEach((section: any) => {
-          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-          const score = section.score || 0;
-          const maxScore = section.maxScore || 0;
-          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
+      // Get sections data from API call
+      try {
+        const sectionsResponse = await fetch(`/api/assessments/${publicId}`);
+        const fullAssessmentData = await sectionsResponse.json();
+        
+        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
+          fullAssessmentData.sections.forEach((section: any) => {
+            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+            const score = section.score || 0;
+            const maxScore = section.maxScore || 0;
+            const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+            const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
 
-          sectionsData.push([
-            sectionName,
-            score,
-            maxScore,
-            `${percentage}%`,
-            status
-          ]);
-        });
+            sectionsData.push([
+              sectionName,
+              score,
+              maxScore,
+              `${percentage}%`,
+              status
+            ]);
+          });
+        } else {
+          sectionsData.push(['No section data available', '', '', '', '']);
+        }
+      } catch (error) {
+        console.warn('Could not load sections for Excel export:', error);
+        sectionsData.push(['Error loading sections', '', '', '', '']);
       }
 
       const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
@@ -423,30 +434,60 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         ['Section', 'Variable Name', 'Score', 'Max Score', 'Percentage']
       ];
 
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        assessmentData.sections.forEach((section: any) => {
-          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-          
-          if (section.variables) {
-            const variables = JSON.parse(section.variables);
-            const sectionVars = sectionVariables[section.sectionType] || [];
+      // Use the same full assessment data from the previous API call
+      try {
+        const sectionsResponse = await fetch(`/api/assessments/${publicId}`);
+        const fullAssessmentData = await sectionsResponse.json();
+        
+        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
+          fullAssessmentData.sections.forEach((section: any) => {
+            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
             
-            sectionVars.forEach(variable => {
-              const score = variables[variable.id] || 0;
-              const maxScore = variable.maxScore;
-              const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+            if (section.variables) {
+              try {
+                const variables = JSON.parse(section.variables);
+                const sectionVars = sectionVariables[section.sectionType] || [];
+                
+                sectionVars.forEach(variable => {
+                  const score = variables[variable.id] || 0;
+                  const maxScore = variable.maxScore;
+                  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
+                  variablesData.push([
+                    sectionName,
+                    formatVariableName(variable.name),
+                    score,
+                    maxScore,
+                    `${percentage}%`
+                  ]);
+                });
+              } catch (parseError) {
+                console.warn('Could not parse variables for section:', section.sectionType);
+                variablesData.push([
+                  sectionName,
+                  'Error parsing variables',
+                  '',
+                  '',
+                  ''
+                ]);
+              }
+            } else {
               variablesData.push([
                 sectionName,
-                formatVariableName(variable.name),
-                score,
-                maxScore,
-                `${percentage}%`
+                'No variables data',
+                '',
+                '',
+                ''
               ]);
-            });
-          }
-        });
+            }
+          });
+        } else {
+          variablesData.push(['No variable data available', '', '', '', '']);
+        }
+      } catch (error) {
+        console.warn('Could not load variables for Excel export:', error);
+        variablesData.push(['Error loading variables', '', '', '', '']);
       }
 
       const variablesSheet = XLSX.utils.aoa_to_sheet(variablesData);
