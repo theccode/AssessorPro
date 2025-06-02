@@ -514,7 +514,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.patch('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       
       // Verify ownership using public ID
       const existing = await storage.getAssessmentByPublicId(publicId);
@@ -522,8 +522,11 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(404).json({ message: "Assessment not found" });
       }
 
+      // Get current user data to check role
+      const currentUser = await storage.getUser(userId);
+      
       // Check if assessment is locked and user is not admin
-      if (existing.isLocked && req.user.role !== 'admin') {
+      if (existing.isLocked && currentUser?.role !== 'admin') {
         return res.status(403).json({ message: "Assessment is locked and cannot be edited. Contact an administrator to unlock it." });
       }
 
@@ -546,7 +549,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.delete('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       
       // Verify ownership
       const existing = await storage.getAssessment(id);
@@ -562,11 +565,63 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Lock assessment (admin only)
+  app.post('/api/assessments/:id/lock', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      
+      // Get current user to check admin role
+      const currentUser = await storage.getUser(userId);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can lock assessments" });
+      }
+      
+      // Update assessment with lock
+      const updated = await storage.updateAssessment(id, {
+        isLocked: true,
+        lockedBy: userId,
+        lockedAt: new Date()
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error locking assessment:", error);
+      res.status(500).json({ message: "Failed to lock assessment" });
+    }
+  });
+
+  // Unlock assessment (admin only)
+  app.post('/api/assessments/:id/unlock', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      
+      // Get current user to check admin role
+      const currentUser = await storage.getUser(userId);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can unlock assessments" });
+      }
+      
+      // Update assessment to remove lock
+      const updated = await storage.updateAssessment(id, {
+        isLocked: false,
+        lockedBy: null,
+        lockedAt: null
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error unlocking assessment:", error);
+      res.status(500).json({ message: "Failed to unlock assessment" });
+    }
+  });
+
   // Assessment section routes
   app.post('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       
       // Verify ownership using public ID
       const assessment = await storage.getAssessmentByPublicId(publicId);
