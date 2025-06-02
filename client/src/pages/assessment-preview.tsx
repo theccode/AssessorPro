@@ -536,24 +536,12 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
             const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
             
-            // Try to fetch the actual file for embedding
-            let fileContent = 'File not accessible';
-            let fileUrl = 'N/A';
+            // Create direct download link
+            let fileLink = 'File not available';
             
             if (media.filePath) {
-              fileUrl = `/uploads/${media.filePath}`;
-              
-              // For images, we could embed them, but Excel has limitations
-              // Instead, provide the full file path and detailed info
-              if (media.fileType && media.fileType.startsWith('image/')) {
-                fileContent = `Image file - View at: ${window.location.origin}${fileUrl}`;
-              } else if (media.fileType && media.fileType.startsWith('video/')) {
-                fileContent = `Video file - Download from: ${window.location.origin}${fileUrl}`;
-              } else if (media.fileType && media.fileType.startsWith('audio/')) {
-                fileContent = `Audio file - Download from: ${window.location.origin}${fileUrl}`;
-              } else {
-                fileContent = `File available at: ${window.location.origin}${fileUrl}`;
-              }
+              const fullFileUrl = `${window.location.origin}/uploads/${media.filePath}`;
+              fileLink = fullFileUrl;
             }
 
             mediaFilesData.push([
@@ -563,7 +551,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               media.fileType || 'Unknown',
               fileSize,
               uploadDate,
-              fileContent
+              fileLink
             ]);
           }
         } else {
