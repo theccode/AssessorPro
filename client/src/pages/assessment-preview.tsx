@@ -558,17 +558,17 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         // Add hyperlinks to the File Access URL column (column G)
         if (mediaData && mediaData.length > 0) {
           mediaData.forEach((media: any, index: number) => {
-            if (media.filePath) {
+            if (media.filePath && media.id) {
               const rowIndex = index + 3; // Account for headers (starts at row 3)
               const cellAddress = `G${rowIndex}`;
-              const fullFileUrl = `${window.location.origin}/uploads/${media.filePath}`;
+              const authenticatedFileUrl = `${window.location.origin}/api/media/serve/${media.id}`;
               const variableName = formatVariableName(media.fieldName || 'File');
               
               // Set the cell as a hyperlink
               mediaSheet[cellAddress] = {
                 t: 's',
                 v: variableName,
-                l: { Target: fullFileUrl, Tooltip: `Download ${media.fileName}` }
+                l: { Target: authenticatedFileUrl, Tooltip: `Download ${media.fileName}` }
               };
             }
           });
