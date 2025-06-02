@@ -16,6 +16,7 @@ import {
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function Assessments() {
   const { user } = useAuth();
@@ -40,8 +41,8 @@ export default function Assessments() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Building className="h-8 w-8 mr-3 text-primary" />
-              <span className="text-xl font-semibold text-foreground">GREDA-GBC Assessor Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
+              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-semibold text-foreground">GREDA-GBC</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" asChild>
