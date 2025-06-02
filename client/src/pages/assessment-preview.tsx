@@ -27,9 +27,20 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
 
   // Get data from assessment object with proper fallbacks
   const assessmentData = assessment as any;
-  const totalScore = assessmentData.overallScore || 0;
-  const maxScore = assessmentData.maxPossibleScore || 1;
+  console.log("Assessment data:", assessmentData);
+  
+  // Calculate scores from sections if available
+  const totalScore = assessmentData.sections?.reduce((sum: number, section: any) => {
+    return sum + (section.score || 0);
+  }, 0) || assessmentData.overallScore || 0;
+  
+  const maxScore = assessmentData.sections?.reduce((sum: number, section: any) => {
+    return sum + (section.maxScore || 0);
+  }, 0) || assessmentData.maxPossibleScore || 100;
+  
   const calculatedPercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+  
+  console.log("Calculated scores:", { totalScore, maxScore, calculatedPercentage });
 
   const getStarRating = (percentage: number) => {
     if (percentage >= 91) return 5;
@@ -75,26 +86,26 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
           <CardContent className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-white mb-2">
                   {assessmentData.buildingName || "Building Assessment"}
                 </h2>
-                <p className="text-gray-600 mb-4">{assessmentData.buildingLocation || assessmentData.detailedAddress}</p>
+                <p className="text-white/80 mb-4">{assessmentData.buildingLocation || assessmentData.detailedAddress || "Location not specified"}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <div className="text-sm text-gray-500">Conducted Date</div>
-                    <div className="font-medium">
+                    <div className="text-sm text-white/70">Conducted Date</div>
+                    <div className="font-medium text-white">
                       {assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : "Not specified"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Conducted By</div>
-                    <div className="font-medium">{assessmentData.publisherName || "Assessment Team"}</div>
-                    <div className="text-xs text-gray-400">Professional Assessor</div>
+                    <div className="text-sm text-white/70">Conducted By</div>
+                    <div className="font-medium text-white">{assessmentData.publisherName || "Assessment Team"}</div>
+                    <div className="text-xs text-white/60">Professional Assessor</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500">Status</div>
-                    <div className="font-medium capitalize">{assessmentData.status || "Completed"}</div>
+                    <div className="text-sm text-white/70">Status</div>
+                    <div className="font-medium text-white capitalize">{assessmentData.status || "Completed"}</div>
                   </div>
                 </div>
               </div>
