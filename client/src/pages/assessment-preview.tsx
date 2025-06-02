@@ -798,12 +798,14 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="outline" asChild>
-            <Link href={`/assessments/${publicId}/edit`}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Assessment
-            </Link>
-          </Button>
+          {(user?.role === "admin" || user?.role === "assessor") && (
+            <Button variant="outline" asChild>
+              <Link href={`/assessments/${publicId}/edit`}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Assessment
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
             {isGeneratingPDF ? (
               <>
@@ -830,7 +832,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               </>
             )}
           </Button>
-          {assessmentData.status !== 'completed' && (
+          {assessmentData.status !== 'completed' && (user?.role === "admin" || user?.role === "assessor") && (
             <Button 
               size="lg" 
               onClick={handleSubmitAssessment}
