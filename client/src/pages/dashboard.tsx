@@ -179,13 +179,13 @@ export default function Dashboard() {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">
             {user?.role === "client" 
-              ? "GREDA Green Building Reports Dashboard" 
+              ? `Welcome ${user?.firstName || "Client"} - GREDA Reports Dashboard` 
               : "GREDA Green Building Assessment Dashboard"
             }
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             {user?.role === "client" 
-              ? "Access your building sustainability reports and certification tracking with comprehensive GREDA-GBC performance analytics"
+              ? "View your building sustainability assessments, download reports, and track certification progress with comprehensive GREDA-GBC performance analytics"
               : "Manage sustainable building evaluations with comprehensive GREDA-GBC certification tracking and environmental performance reporting"
             }
           </p>
@@ -260,7 +260,9 @@ export default function Dashboard() {
           {/* Performance Overview Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Performance Overview</CardTitle>
+              <CardTitle className="text-lg">
+                {user?.role === "client" ? "Sustainability Score" : "Performance Overview"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center">
@@ -271,7 +273,18 @@ export default function Dashboard() {
                   strokeWidth={8}
                   className="mb-4"
                 />
-                <p className="text-center text-gray-600 text-sm">Average Assessment Score</p>
+                <p className="text-center text-gray-600 text-sm">
+                  {user?.role === "client" ? "Average Building Score" : "Average Assessment Score"}
+                </p>
+                {user?.role === "client" && averageScore > 0 && (
+                  <div className="mt-2 text-center">
+                    <p className="text-xs text-gray-500">
+                      {averageScore >= 80 ? "Excellent Performance" :
+                       averageScore >= 60 ? "Good Performance" :
+                       averageScore >= 40 ? "Fair Performance" : "Needs Improvement"}
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -291,47 +304,60 @@ export default function Dashboard() {
               </Link>
             </Button>
           )}
-          <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-            <FileText className="h-4 w-4 mr-2" />
-            {user?.role === "client" ? "View Assessment Reports" : "Sustainability Reports"}
+          <Button variant="outline" size="lg" asChild className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
+            <Link href="/reports">
+              <FileText className="h-4 w-4 mr-2" />
+              {user?.role === "client" ? "View Assessment Reports" : "Sustainability Reports"}
+            </Link>
           </Button>
         </div>
 
         {/* Recent Assessments Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Assessments</CardTitle>
+            <CardTitle>
+              {user?.role === "client" ? "My Assessment Reports" : "Recent Assessments"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {assessments.length > 0 ? (
               <div className="space-y-4">
                 {assessments.map((assessment: Assessment) => (
-                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                     <div>
-                      <h3 className="font-medium text-white">
+                      <h3 className="font-medium text-foreground">
                         {assessment.buildingName || "Untitled Assessment"}
                       </h3>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{assessment.buildingLocation}</p>
+                      <p className="text-sm text-muted-foreground">{assessment.buildingLocation}</p>
                       <div className="flex items-center space-x-4 mt-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           assessment.status === "completed" 
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                             : assessment.status === "draft"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-blue-100 text-blue-800"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                         }`}>
-                          {assessment.status}
+                          {assessment.status === "completed" ? "Report Available" : 
+                           assessment.status === "draft" ? "In Progress" : assessment.status}
                         </span>
-                        <span className="text-sm text-gray-700">
-                          {assessment.completedSections}/{assessment.totalSections} sections
-                        </span>
-                        {assessment.assessorName && (
-                          <span className="text-xs text-gray-600">
-                            By {assessment.assessorName}
+                        {user?.role === "client" && assessment.overallScore && (
+                          <span className="text-sm font-medium text-primary">
+                            Score: {assessment.overallScore}%
+                          </span>
+                        )}
+                        {user?.role !== "client" && (
+                          <span className="text-sm text-muted-foreground">
+                            {assessment.completedSections}/{assessment.totalSections} sections
+                          </span>
+                        )}
+                        {assessment.assessorName && user?.role === "client" && (
+                          <span className="text-xs text-muted-foreground">
+                            Assessed by: {assessment.assessorName}
                           </span>
                         )}
                         {assessment.conductedAt && (
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
+                            {user?.role === "client" ? "Completed: " : ""}
                             {new Date(assessment.conductedAt).toLocaleDateString()}
                           </span>
                         )}
