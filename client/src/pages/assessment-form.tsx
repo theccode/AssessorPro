@@ -330,29 +330,29 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg sticky top-0 z-50">
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-white">GREDA-GBC Assessor Pro</span>
+              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-green-100">
+              <span className="text-sm text-muted-foreground">
                 Section {currentSectionIndex + 1} of {assessmentSections.length}
               </span>
-              <Button variant="outline" size="sm" asChild className="border-green-400 text-white hover:bg-green-800">
+              <Button variant="outline" size="sm" asChild>
                 <Link href="/">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Link>
               </Button>
-              <div className="flex items-center text-sm text-green-100">
+              <div className="flex items-center text-sm text-muted-foreground">
                 {isSaving ? (
                   <div className="flex items-center">
-                    <div className="w-20 h-2 bg-green-400 rounded-full mr-2 overflow-hidden">
+                    <div className="w-20 h-2 bg-secondary rounded-full mr-2 overflow-hidden">
                       <div 
-                        className="h-full bg-white transition-all duration-300 ease-out"
+                        className="h-full bg-primary transition-all duration-300 ease-out"
                         style={{ width: `${saveProgress}%` }}
                       ></div>
                     </div>
@@ -360,7 +360,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   </div>
                 ) : (
                   <>
-                    <div className="h-2 w-2 bg-green-300 rounded-full mr-2"></div>
+                    <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
                     Auto-saved
                   </>
                 )}
