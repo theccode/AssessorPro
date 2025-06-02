@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ export default function Profile() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   // Initialize form when user data loads
-  useState(() => {
+  React.useEffect(() => {
     if (user) {
       setProfileForm({
         firstName: user.firstName || "",

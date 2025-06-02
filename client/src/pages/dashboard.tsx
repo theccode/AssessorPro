@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield, Menu, X, Star } from "lucide-react";
+import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield, Menu, X, Star, User } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
