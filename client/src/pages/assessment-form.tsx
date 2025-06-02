@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -88,6 +88,23 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessmentId}/sections`] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+  });
+
+  // Submit assessment mutation
+  const submitAssessmentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}`, "PATCH", { 
+        status: "completed",
+        conductedAt: new Date().toISOString()
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessmentId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      // Navigate to preview page after successful submission
+      navigate(`/assessments/${assessmentId}/preview`);
     },
   });
 
@@ -204,6 +221,15 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;
 
+  // Check if all sections are completed
+  const allSectionsCompleted = useMemo(() => {
+    if (!sections || sections.length === 0) return false;
+    return assessmentSections.every(section => {
+      const sectionFromDb = sections.find((s: any) => s.sectionType === section.id);
+      return sectionFromDb && sectionFromDb.isCompleted;
+    });
+  }, [sections, assessmentSections]);
+
   const handleBuildingInfoSubmit = () => {
     if (!assessmentId) {
       createAssessmentMutation.mutate(formData);
@@ -294,6 +320,32 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         locationData: locationData[currentSection.id] || {},
         isCompleted: false,
       });
+    }
+  };
+
+  const handleSubmitAssessment = async () => {
+    try {
+      // First save the current section if we're not on building info
+      if (currentSectionIndex !== 0) {
+        const variables = sectionData[currentSection.id] || {};
+        const score = Object.values(variables).reduce((sum: number, val: any) => sum + (val || 0), 0);
+        const maxScore = sectionVariables[currentSection.id]?.reduce((sum, v) => sum + v.maxScore, 0) || 0;
+
+        await saveSectionMutation.mutateAsync({
+          sectionType: currentSection.id,
+          sectionName: currentSection.name,
+          score,
+          maxScore,
+          variables,
+          locationData: locationData[currentSection.id] || {},
+          isCompleted: true,
+        });
+      }
+
+      // Then submit the assessment
+      submitAssessmentMutation.mutate();
+    } catch (error) {
+      console.error('Error submitting assessment:', error);
     }
   };
 
@@ -602,10 +654,20 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   <Save className="h-4 w-4 mr-2" />
                   Save Draft
                 </Button>
-                <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit}>
-                  {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
+                {allSectionsCompleted && currentSectionIndex === assessmentSections.length - 1 ? (
+                  <Button 
+                    onClick={handleSubmitAssessment}
+                    disabled={submitAssessmentMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
+                  </Button>
+                ) : (
+                  <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit}>
+                    {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
