@@ -153,7 +153,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
     const validFiles = files.filter(file => {
       const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       const videoTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi'];
-      const audioTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/ogg'];
+      const audioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/ogg', 'audio/vorbis'];
       
       // Filter based on media type requirement
       if (mediaType === 'images') {
