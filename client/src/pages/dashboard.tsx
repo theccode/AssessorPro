@@ -66,34 +66,34 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
+      <nav className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
-              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
+              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-medium text-white">GREDA-GBC Assessor Pro</span>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+              <Link href="/" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
               {(user?.role === "admin" || user?.role === "assessor") && (
                 <>
-                  <Link href="/assessments/select-client" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                  <Link href="/assessments/select-client" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                     New Assessment
                   </Link>
-                  <Link href="/drafts" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                  <Link href="/drafts" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                     Drafts
                   </Link>
                 </>
               )}
-              <Link href="/reports" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+              <Link href="/reports" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
                 {user?.role === "client" ? "My Reports" : "Reports"}
               </Link>
               {user?.role === "admin" && (
-                <Link href="/admin" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
+                <Link href="/admin" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
                   <Shield className="h-4 w-4" />
                   Admin
                 </Link>
@@ -102,13 +102,13 @@ export default function Dashboard() {
             
             {/* Mobile and Desktop Actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground capitalize bg-secondary px-2 py-1 rounded">{user?.role}</span>
+              <span className="hidden sm:inline text-xs sm:text-sm text-green-100 capitalize bg-green-800 px-2 py-1 rounded">{user?.role}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                className="p-2"
+                className="p-2 text-green-100 hover:text-white"
               >
                 <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
