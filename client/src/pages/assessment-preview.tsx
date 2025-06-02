@@ -200,7 +200,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button variant="outline" asChild>
-            <Link href={`/assessments/${assessmentId}/form`}>
+            <Link href={`/assessments/${publicId}/form`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Assessment
             </Link>
