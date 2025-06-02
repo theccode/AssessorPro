@@ -64,36 +64,36 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg sticky top-0 z-50">
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
-              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-medium text-white">GREDA-GBC Assessor Pro</span>
+              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+              <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
               {(user?.role === "admin" || user?.role === "assessor") && (
                 <>
-                  <Link href="/assessments/select-client" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+                  <Link href="/assessments/select-client" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                     New Assessment
                   </Link>
-                  <Link href="/drafts" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+                  <Link href="/drafts" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                     Drafts
                   </Link>
                 </>
               )}
-              <Link href="/reports" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium transition-colors">
+              <Link href="/reports" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
                 {user?.role === "client" ? "My Reports" : "Reports"}
               </Link>
               {user?.role === "admin" && (
-                <Link href="/admin" className="text-green-100 hover:text-white px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
+                <Link href="/admin" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
                   <Shield className="h-4 w-4" />
                   Admin
                 </Link>
@@ -102,7 +102,7 @@ export default function Dashboard() {
             
             {/* Mobile and Desktop Actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <span className="hidden sm:inline text-xs sm:text-sm text-green-100 bg-white/20 px-2 py-1 rounded">
+              <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
                 {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || user?.role}
               </span>
               <Button 
@@ -110,7 +110,7 @@ export default function Dashboard() {
                 size="sm" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                className="p-2 text-green-100 hover:text-white hover:bg-white/20"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
@@ -194,36 +194,36 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
           {/* Quick Stats Card */}
-          <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white border-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-white">
+              <CardTitle className="text-lg">
                 {user?.role === "client" ? "My Assessments" : "Quick Stats"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-green-100">
+                <span className="text-muted-foreground">
                   {user?.role === "client" ? "Total Assessments" : "Active Assessments"}
                 </span>
-                <span className="font-semibold text-white">{assessments.length}</span>
+                <span className="font-semibold text-primary">{assessments.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-green-100">Completed This Month</span>
-                <span className="font-semibold text-white">{completedThisMonth}</span>
+                <span className="text-muted-foreground">Completed This Month</span>
+                <span className="font-semibold text-secondary">{completedThisMonth}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-green-100">
+                <span className="text-muted-foreground">
                   {user?.role === "client" ? "Pending Reviews" : "Draft Assessments"}
                 </span>
-                <span className="font-semibold text-white">{draftAssessments}</span>
+                <span className="font-semibold text-accent">{draftAssessments}</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Recent Activity Card */}
-          <Card className="bg-gradient-to-br from-emerald-600 to-green-700 text-white border-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-white">
+              <CardTitle className="text-lg">
                 {user?.role === "client" ? "Assessment History" : "Recent Activity"}
               </CardTitle>
             </CardHeader>
@@ -232,12 +232,12 @@ export default function Dashboard() {
                 recentAssessments.map((assessment: Assessment) => (
                   <div key={assessment.id} className="flex items-start space-x-3">
                     <div className={`w-2 h-2 rounded-full mt-2 ${
-                      assessment.status === "completed" ? "bg-green-200" :
-                      assessment.status === "draft" ? "bg-green-300" : "bg-green-100"
+                      assessment.status === "completed" ? "bg-secondary" :
+                      assessment.status === "draft" ? "bg-accent" : "bg-primary"
                     }`}></div>
                     <div className="flex-1">
-                      <p className="text-sm text-white">{assessment.buildingName}</p>
-                      <p className="text-xs text-green-100">
+                      <p className="text-sm text-foreground">{assessment.buildingName}</p>
+                      <p className="text-xs text-muted-foreground">
                         {user?.role === "client" && assessment.assessorName ? 
                           `Assessed by: ${assessment.assessorName}` : 
                           assessment.buildingLocation || "No location specified"
@@ -258,9 +258,9 @@ export default function Dashboard() {
           </Card>
 
           {/* Performance Overview Card */}
-          <Card className="bg-gradient-to-br from-green-700 to-emerald-800 text-white border-none">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg text-white">
+              <CardTitle className="text-lg">
                 {user?.role === "client" ? "Sustainability Score" : "Performance Overview"}
               </CardTitle>
             </CardHeader>
@@ -273,12 +273,12 @@ export default function Dashboard() {
                   strokeWidth={8}
                   className="mb-4"
                 />
-                <p className="text-center text-green-100 text-sm">
+                <p className="text-center text-muted-foreground text-sm">
                   {user?.role === "client" ? "Average Building Score" : "Average Assessment Score"}
                 </p>
                 {user?.role === "client" && averageScore > 0 && (
                   <div className="mt-2 text-center">
-                    <p className="text-xs text-green-200">
+                    <p className="text-xs text-muted-foreground">
                       {averageScore >= 80 ? "Excellent Performance" :
                        averageScore >= 60 ? "Good Performance" :
                        averageScore >= 40 ? "Fair Performance" : "Needs Improvement"}
