@@ -263,12 +263,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Media upload routes
   app.post('/api/assessments/:id/media',  upload.array('files'), async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
+      const publicId = req.params.id;
       const userId = req.user.claims.sub;
       const { sectionType, fieldName } = req.body;
       
-      // Verify ownership
-      const assessment = await storage.getAssessment(assessmentId);
+      // Verify ownership using public ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment || assessment.userId !== userId) {
         return res.status(404).json({ message: "Assessment not found" });
       }
@@ -277,8 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const uploadedMedia = [];
 
       for (const file of files) {
-        // Move file to permanent location
-        const uploadDir = path.join('uploads', 'assessments', assessmentId.toString(), sectionType);
+        // Move file to permanent location using internal assessment ID
+        const uploadDir = path.join('uploads', 'assessments', assessment.id.toString(), sectionType);
         await fs.promises.mkdir(uploadDir, { recursive: true });
         
         const fileName = `${Date.now()}-${file.originalname}`;
@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
 
         const media = await storage.createAssessmentMedia({
-          assessmentId,
+          assessmentId: assessment.id,
           sectionType,
           fieldName,
           fileName: file.originalname,
@@ -315,16 +315,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/assessments/:id/media',  async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
+      const publicId = req.params.id;
       const { sectionType, fieldName } = req.query;
+      
+      // Get assessment by public ID to get internal ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
       
       let media;
       if (sectionType && fieldName) {
         // Filter by both section and field
-        const allMedia = await storage.getAssessmentMedia(assessmentId, sectionType as string);
+        const allMedia = await storage.getAssessmentMedia(assessment.id, sectionType as string);
         media = allMedia.filter(m => m.fieldName === fieldName);
       } else {
-        media = await storage.getAssessmentMedia(assessmentId, sectionType as string);
+        media = await storage.getAssessmentMedia(assessment.id, sectionType as string);
       }
       
       res.json(media);
