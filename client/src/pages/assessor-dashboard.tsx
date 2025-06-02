@@ -55,30 +55,14 @@ export default function AssessorDashboard() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+        <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Assessor Dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Welcome back, {user?.firstName || user?.email}! Create assessments, manage reports, and view analytics.
+            Welcome back, {(user as any)?.firstName || (user as any)?.email}! Create assessments, manage reports, and view analytics.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/assessments/select-client">
-              <Plus className="w-4 h-4 mr-2" />
-              New Assessment
-            </Link>
-          </Button>
-        </div>
-      </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="assessments">Assessments</TabsTrigger>
