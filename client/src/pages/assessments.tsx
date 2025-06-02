@@ -52,64 +52,275 @@ export default function Assessments() {
   const handleDownloadPDF = async (assessment: Assessment) => {
     setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch assessment sections
-      const sectionsResponse = await apiRequest(`/api/assessments/${assessment.id}/sections`);
-      const sections = await sectionsResponse.json();
-
+      // Fetch full assessment data with sections using the integer ID
+      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.id}`);
+      const assessmentData = await fullAssessmentResponse.json();
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       let yPosition = 20;
 
-      // Add GREDA logo and header
-      pdf.setFontSize(20);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('GREDA-GBC Assessment Report', pageWidth / 2, yPosition, { align: 'center' });
+      // Add GREDA logo
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      logoImg.src = gredaLogo;
       
-      yPosition += 15;
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Building: ${assessment.buildingName || 'N/A'}`, 20, yPosition);
-      yPosition += 8;
-      pdf.text(`Location: ${assessment.buildingLocation || 'N/A'}`, 20, yPosition);
-      yPosition += 8;
-      pdf.text(`Overall Score: ${Math.round(assessment.overallScore || 0)}/130`, 20, yPosition);
-      yPosition += 8;
-      pdf.text(`Status: ${assessment.status}`, 20, yPosition);
-      yPosition += 15;
+      await new Promise((resolve) => {
+        logoImg.onload = () => {
+          pdf.addImage(logoImg, 'PNG', 20, yPosition, 40, 20);
+          resolve(true);
+        };
+        logoImg.onerror = () => {
+          console.warn('Could not load logo');
+          resolve(true);
+        };
+      });
 
-      // Add sections data
-      sections.forEach((section: any) => {
-        if (yPosition > 250) {
+      // Title
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 102, 51); // Green color
+      pdf.text('GREDA Green Building Assessment Report', 70, yPosition + 15);
+      
+      yPosition += 40;
+
+      // Building Information
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Building Information', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(12);
+      const buildingInfo = [
+        `Building Name: ${assessmentData.buildingName || 'Not specified'}`,
+        `Location: ${assessmentData.buildingLocation || assessmentData.detailedAddress || 'Not specified'}`,
+        `Publisher: ${assessmentData.publisherName || 'Not specified'}`,
+        `Phone: ${assessmentData.phoneNumber || 'Not specified'}`,
+        `Digital Address: ${assessmentData.digitalAddress || 'Not specified'}`,
+        `Status: ${assessmentData.status}`,
+        `Conducted Date: ${assessmentData.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : 'Not specified'}`,
+        `Conducted By: ${user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || 'Assessment Team'}`,
+        '',
+        'Building Specifications:',
+        `Building Footprint: ${assessmentData.buildingFootprint ? assessmentData.buildingFootprint + ' m²' : 'Not specified'}`,
+        `Room Height: ${assessmentData.roomHeight ? assessmentData.roomHeight + ' m' : 'Not specified'}`,
+        `Number of Bedrooms: ${assessmentData.numberOfBedrooms || 'Not specified'}`,
+        `Site Area: ${assessmentData.siteArea ? assessmentData.siteArea + ' m²' : 'Not specified'}`,
+        `Number of Windows: ${assessmentData.numberOfWindows || 'Not specified'}`,
+        `Number of Doors: ${assessmentData.numberOfDoors || 'Not specified'}`,
+        `Average Window Size: ${assessmentData.averageWindowSize ? assessmentData.averageWindowSize + ' m²' : 'Not specified'}`,
+        `Number of Floors: ${assessmentData.numberOfFloors || 'Not specified'}`,
+        `Total Green Area: ${assessmentData.totalGreenArea ? assessmentData.totalGreenArea + ' m²' : 'Not specified'}`
+      ];
+
+      buildingInfo.forEach(info => {
+        if (yPosition > pageHeight - 20) {
           pdf.addPage();
           yPosition = 20;
         }
-
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(section.sectionType.replace(/-/g, ' ').toUpperCase(), 20, yPosition);
-        yPosition += 10;
-
-        pdf.setFont('helvetica', 'normal');
-        if (section.data) {
-          const sectionData = typeof section.data === 'string' ? JSON.parse(section.data) : section.data;
-          Object.entries(sectionData).forEach(([key, value]) => {
-            if (yPosition > 280) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            pdf.text(`${formatVariableName(key)}: ${value}`, 25, yPosition);
-            yPosition += 6;
-          });
-        }
-        yPosition += 10;
+        pdf.text(info, 20, yPosition);
+        yPosition += 7;
       });
 
-      // Generate and download the PDF file
-      const fileName = `GREDA_Assessment_${assessment.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      yPosition += 10;
+
+      // Overall Score
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 102, 51);
+      pdf.text('Overall Assessment Score', 20, yPosition);
+      yPosition += 10;
+
+      const totalScore = assessmentData?.overallScore || 0;
+      const maxScore = assessmentData?.maxPossibleScore || 130;
+      
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Total Score: ${totalScore} / ${maxScore} points`, 20, yPosition);
+      yPosition += 7;
+      
+      const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      pdf.text(`Percentage: ${percentage}%`, 20, yPosition);
+      yPosition += 7;
+
+      // Calculate certification level
+      let certification = '';
+      if (totalScore >= 106) certification = 'Diamond/5★ (106-130 points)';
+      else if (totalScore >= 80) certification = '4★ (80-105 points)';
+      else if (totalScore >= 60) certification = '3★ (60-79 points)';
+      else if (totalScore >= 45) certification = '2★ (45-59 points)';
+      else certification = '1★ (Below 45 points)';
+
+      pdf.text(`GREDA-GBC Certification Level: ${certification}`, 20, yPosition);
+      yPosition += 15;
+
+      // Section Details
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        for (const section of assessmentData.sections) {
+          if (yPosition > pageHeight - 60) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+
+          // Section Header
+          pdf.setFontSize(14);
+          pdf.setTextColor(0, 102, 51);
+          pdf.text(`${section.sectionName} Section`, 20, yPosition);
+          yPosition += 10;
+
+          pdf.setFontSize(12);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text(`Score: ${section.score || 0} / ${section.maxScore || 0} points`, 20, yPosition);
+          yPosition += 7;
+          pdf.text(`Status: ${section.isCompleted ? 'Completed' : 'Incomplete'}`, 20, yPosition);
+          yPosition += 10;
+
+          // Variables data
+          if (section.variables) {
+            const variables = typeof section.variables === 'string' ? JSON.parse(section.variables) : section.variables;
+            const sectionConfig = sectionVariables[section.sectionType];
+            
+            if (sectionConfig) {
+              pdf.setFontSize(11);
+              pdf.text('Variable Scores:', 25, yPosition);
+              yPosition += 7;
+
+              sectionConfig.forEach(variable => {
+                const score = variables[variable.id] || 0;
+                const formattedName = formatVariableName(variable.name);
+                pdf.text(`• ${formattedName}: ${score} / ${variable.maxScore} points`, 30, yPosition);
+                yPosition += 5;
+              });
+            }
+          }
+
+          yPosition += 10;
+        }
+      }
+
+      // Media section - organized by section
+      try {
+        const mediaResponse = await fetch(`/api/assessments/${assessment.id}/media`);
+        const mediaData = await mediaResponse.json();
+
+        if (mediaData && mediaData.length > 0) {
+          pdf.addPage();
+          yPosition = 20;
+          
+          pdf.setFontSize(16);
+          pdf.setTextColor(0, 102, 51);
+          pdf.text('Assessment Images', 20, yPosition);
+          yPosition += 15;
+
+          // Display all images in a simple organized format
+          for (const media of mediaData) {
+            if (media.fileType === 'image') {
+              try {
+                // Check if we need a new page (leave space for image + text)
+                if (yPosition > pageHeight - 120) {
+                  pdf.addPage();
+                  yPosition = 20;
+                }
+
+                // Load and add image
+                const imgResponse = await fetch(`/api/media/serve/${media.id}`);
+                const imgBlob = await imgResponse.blob();
+                const imgUrl = URL.createObjectURL(imgBlob);
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve) => {
+                  img.onload = () => {
+                    // Calculate image dimensions - maintain aspect ratio
+                    const maxWidth = 120;
+                    const maxHeight = 80;
+                    let imgWidth = maxWidth;
+                    let imgHeight = (img.height / img.width) * imgWidth;
+                    
+                    // If image is too tall, scale by height instead
+                    if (imgHeight > maxHeight) {
+                      imgHeight = maxHeight;
+                      imgWidth = (img.width / img.height) * imgHeight;
+                    }
+
+                    // Ensure we have enough space for this image
+                    if (yPosition + imgHeight + 20 > pageHeight - 20) {
+                      pdf.addPage();
+                      yPosition = 20;
+                    }
+                    
+                    // Add section and variable information
+                    const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+                    const variableName = formatVariableName(media.fieldName || 'Image');
+                    
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(0, 102, 51);
+                    pdf.text(`${sectionName} > ${variableName}`, 30, yPosition);
+                    yPosition += 8;
+                    
+                    // Add shortened filename
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(100, 100, 100);
+                    const shortName = media.fileName.length > 50 ? 
+                      media.fileName.substring(0, 47) + '...' : media.fileName;
+                    pdf.text(shortName, 30, yPosition);
+                    yPosition += 8;
+                    
+                    // Add image with subtle border
+                    pdf.setDrawColor(220, 220, 220);
+                    pdf.setLineWidth(0.5);
+                    pdf.rect(29, yPosition - 1, imgWidth + 2, imgHeight + 2);
+                    pdf.addImage(img, 'JPEG', 30, yPosition, imgWidth, imgHeight);
+                    
+                    // Move to next position with proper spacing
+                    yPosition += imgHeight + 15;
+                    
+                    URL.revokeObjectURL(imgUrl);
+                    resolve(true);
+                  };
+                  img.onerror = () => {
+                    console.warn('Could not load image:', media.fileName);
+                    // Add placeholder text for failed image
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(150, 150, 150);
+                    pdf.text(`[Image failed to load: ${media.fileName}]`, 30, yPosition);
+                    yPosition += 15;
+                    resolve(true);
+                  };
+                  img.src = imgUrl;
+                });
+              } catch (error) {
+                console.error('Error adding image to PDF:', error);
+                // Add error note and continue
+                pdf.setFontSize(9);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text(`[Error loading image: ${media.fileName}]`, 30, yPosition);
+                yPosition += 15;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load media for PDF:', error);
+      }
+
+      // Footer
+      const totalPages = pdf.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
+        pdf.text('Generated by GREDA-GBC Assessment Platform', 20, pageHeight - 10);
+      }
+
+      // Save the PDF
+      const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
 
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Error generating PDF file. Please try again.');
+      alert('Error generating PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: false }));
     }
