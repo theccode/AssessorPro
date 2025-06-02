@@ -118,7 +118,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                   strokeWidth={10}
                   className="mb-4 mx-auto"
                 />
-                <div className="text-lg font-medium text-gray-900">
+                <div className="text-lg font-medium text-white">
                   {getPerformanceLevel(calculatedPercentage)}
                 </div>
                 <div className="flex justify-center mt-2">
