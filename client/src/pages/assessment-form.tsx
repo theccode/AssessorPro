@@ -511,7 +511,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
                 {/* Building Specifications Section */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Building Specifications</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Building Specifications</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="buildingFootprint">Building Footprint (m²)</Label>
