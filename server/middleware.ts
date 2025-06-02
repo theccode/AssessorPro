@@ -3,14 +3,14 @@ import { storage } from "./storage";
 
 // Middleware to ensure user is authenticated and active
 export const requireAuth: RequestHandler = async (req, res, next) => {
-  const user = req.user as any;
+  const session = req.session as any;
 
-  if (!req.isAuthenticated() || !user?.claims?.sub) {
+  if (!session?.customUserId) {
     return res.status(401).json({ message: "Authentication required" });
   }
 
   try {
-    const dbUser = await storage.getUser(user.claims.sub);
+    const dbUser = await storage.getUser(session.customUserId);
     if (!dbUser || dbUser.status !== "active") {
       return res.status(403).json({ message: "Account not active" });
     }
