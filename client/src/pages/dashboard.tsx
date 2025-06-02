@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield, Menu, X } from "lucide-react";
+import { Building, Plus, FileText, Users, BarChart3, LogOut, Shield, Menu, X, Star } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
@@ -293,7 +293,7 @@ export default function Dashboard() {
                       <h3 className="font-medium text-gray-900">
                         {assessment.buildingName || "Untitled Assessment"}
                       </h3>
-                      <p className="text-sm text-gray-500">{assessment.buildingLocation}</p>
+                      <p className="text-sm text-gray-700">{assessment.buildingLocation}</p>
                       <div className="flex items-center space-x-4 mt-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           assessment.status === "completed" 
@@ -304,19 +304,33 @@ export default function Dashboard() {
                         }`}>
                           {assessment.status}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-700">
                           {assessment.completedSections}/{assessment.totalSections} sections
                         </span>
                         {assessment.assessorName && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-600">
                             By {assessment.assessorName}
                           </span>
                         )}
                         {assessment.conductedAt && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-600">
                             {new Date(assessment.conductedAt).toLocaleDateString()}
                           </span>
                         )}
+                      </div>
+                      {/* Star Rating */}
+                      <div className="flex items-center mt-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.floor((assessment.overallScore || 0) / 26)
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                        <span className="ml-2 text-sm text-gray-600">GREDA Rating</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
