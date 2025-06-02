@@ -162,6 +162,27 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           setTimeout(() => {
             setShowSavedState(true);
           }, 500);
+        } else if (currentSectionIndex === 0 && formData.buildingName && formData.clientName) {
+          // For new assessments, create the assessment when building info is provided
+          console.log("Creating new assessment with auto-save:", formData);
+          const newAssessment = await createAssessmentMutation.mutateAsync(formData);
+          
+          // After creating assessment, save the building information section as completed
+          if (newAssessment && newAssessment.id) {
+            const buildingInfoSection = {
+              sectionType: "building-information",
+              sectionName: "Building Information", 
+              score: 0,
+              maxScore: 0,
+              variables: formData,
+              locationData: {},
+              isCompleted: true,
+            };
+            
+            // Use the new assessment ID for the section save
+            const sectionResponse = await apiRequest(`/api/assessments/${newAssessment.id}/sections`, "POST", buildingInfoSection);
+            console.log("Building info section saved for new assessment:", sectionResponse);
+          }
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
@@ -180,7 +201,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   }, []);
 
   useEffect(() => {
-    if (assessment) {
+    if (assessment && assessmentId) {
+      // Only prefill if we're editing an existing assessment
       setFormData({
         buildingName: assessment.buildingName || "",
         clientName: assessment.clientName || "",
@@ -190,8 +212,19 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         phoneNumber: assessment.phoneNumber || "",
         additionalNotes: assessment.additionalNotes || "",
       });
+    } else if (!assessmentId) {
+      // For new assessments, initialize with empty form
+      setFormData({
+        buildingName: "",
+        clientName: "",
+        publisherName: "",
+        buildingLocation: "",
+        digitalAddress: "",
+        phoneNumber: "",
+        additionalNotes: "",
+      });
     }
-  }, [assessment]);
+  }, [assessment, assessmentId]);
 
   useEffect(() => {
     // Initialize section data from fetched sections
