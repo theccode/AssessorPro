@@ -641,7 +641,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                                   <Button 
                                     variant="ghost" 
                                     size="sm"
-                                    onClick={() => window.open(`/api/media/${file.id}`, '_blank')}
+                                    onClick={() => setPreviewMedia(file)}
                                   >
                                     <Eye className="h-3 w-3 mr-1" />
                                     View
