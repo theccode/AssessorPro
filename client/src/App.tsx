@@ -8,6 +8,7 @@ import { useDomainConfig, redirectToUserDomain, getCurrentHostname, isDevelopmen
 import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
@@ -37,6 +38,7 @@ function Router() {
     <Switch>
       {/* Public invitation route - no authentication required */}
       <Route path="/invitations/:token/accept" component={InvitationAccept} />
+      <Route path="/login" component={Login} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />

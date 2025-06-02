@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupCustomAuth, isCustomAuthenticated } from "./custom-auth";
 import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
 import { setupDemoAuth, isDemoAuthenticated } from "./demo-auth";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
@@ -43,6 +44,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("Authentication setup failed:", error);
     // Continue without auth for now
   }
+
+  // Setup custom authentication
+  setupCustomAuth(app);
 
   // Domain routing middleware (after auth but before routes)
   app.use(domainRoleMiddleware);
