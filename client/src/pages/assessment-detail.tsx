@@ -47,8 +47,8 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card shadow-sm border-b border-border">
+      {/* Navigation */}
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -70,7 +70,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}

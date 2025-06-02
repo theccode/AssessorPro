@@ -21,7 +21,18 @@ export default function Dashboard() {
     queryKey: ["/api/assessments"],
   });
 
-
+  const createAssessmentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("/api/assessments", "POST", {
+        buildingName: "New Assessment",
+        status: "draft",
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+  });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -426,11 +437,9 @@ export default function Dashboard() {
                   }
                 </p>
                 {(user?.role === "admin" || user?.role === "assessor") && (
-                  <Button asChild>
-                    <Link href="/assessments/select-client">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Assessment
-                    </Link>
+                  <Button onClick={() => createAssessmentMutation.mutate()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Assessment
                   </Button>
                 )}
               </div>
