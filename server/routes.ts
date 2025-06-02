@@ -340,32 +340,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
-  app.get('/api/media/serve/:id', isAuthenticated, async (req: any, res) => {
+  // Serve uploaded files with public access
+  app.get('/api/media/serve/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
       
-      console.log(`Serving media ${mediaId} for user ${userId}`);
+      console.log(`Serving media ${mediaId}`);
       
-      // Get all user assessments to find the media
-      const allAssessments = await storage.getUserAssessments(userId);
+      // Find the media across all assessments without user restriction
+      // This allows Excel export links to work for anyone with the URL
       let targetMedia = null;
+      let ownerAssessment = null;
       
-      console.log(`Found ${allAssessments.length} assessments for user`);
-      
-      for (const assessment of allAssessments) {
-        const media = await storage.getAssessmentMedia(assessment.id);
-        console.log(`Assessment ${assessment.id} has ${media.length} media files`);
-        targetMedia = media.find(m => m.id === mediaId);
-        if (targetMedia) {
+      // Get all assessments to find the media (less secure but necessary for Excel exports)
+      try {
+        const result = await db.select({
+          media: assessmentMedia,
+          assessment: assessments
+        })
+        .from(assessmentMedia)
+        .innerJoin(assessments, eq(assessmentMedia.assessmentId, assessments.id))
+        .where(eq(assessmentMedia.id, mediaId));
+        
+        if (result.length > 0) {
+          targetMedia = result[0].media;
+          ownerAssessment = result[0].assessment;
           console.log(`Found target media:`, targetMedia);
-          break;
+        }
+      } catch (dbError) {
+        console.log("Database query failed, falling back to storage method");
+        // Fallback to the original method if direct DB query fails
+        const allUsers = await storage.getAllUsers();
+        for (const user of allUsers) {
+          const userAssessments = await storage.getUserAssessments(user.id);
+          for (const assessment of userAssessments) {
+            const media = await storage.getAssessmentMedia(assessment.id);
+            targetMedia = media.find(m => m.id === mediaId);
+            if (targetMedia) {
+              ownerAssessment = assessment;
+              break;
+            }
+          }
+          if (targetMedia) break;
         }
       }
       
       if (!targetMedia) {
-        console.log(`Media ${mediaId} not found for user ${userId}`);
+        console.log(`Media ${mediaId} not found`);
         return res.status(404).json({ message: "Media not found" });
       }
 
