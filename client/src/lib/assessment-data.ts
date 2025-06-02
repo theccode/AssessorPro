@@ -52,10 +52,13 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "roomsWithin10mNaturalLightingSource", name: "Rooms Within 10m Natural Lighting Source", maxScore: 2, requiresImages: true },
   ],
   "materials-resources": [
-    { id: "recycledContentMaterials", name: "Recycled Content Materials", maxScore: 4 },
-    { id: "lowEmbeddedEnergyMaterials", name: "Low Embedded Energy Materials", maxScore: 5 },
-    { id: "locallySourcedMaterials", name: "Locally Sourced Materials", maxScore: 7 },
-    { id: "thirdPartyCertifiedMaterials", name: "Third-Party Certified Materials", maxScore: 6 },
+    { id: "responsibleSourcing", name: "Responsible Sourcing of Raw Materials", maxScore: 2 },
+    { id: "sustainableGreenProducts", name: "Sustainable/Green Products", maxScore: 2, requiresImages: true },
+    { id: "materialsWithRecycledContent", name: "Materials With Recycled Content", maxScore: 2, requiresImages: true },
+    { id: "materialsWithLowEmbodiedEnergy", name: "Materials With Low Embodied Energy", maxScore: 2, requiresImages: true },
+    { id: "reusedMaterials", name: "Reused Materials", maxScore: 2, requiresImages: true },
+    { id: "locallySourcedMaterials", name: "Locally Sourced Materials", maxScore: 2, requiresImages: true },
+    { id: "materialsWithThirdPartyCertification", name: "Materials With Third-Party Certification/Verifications", maxScore: 2, requiresImages: true },
   ],
   "waste-pollution": [
     { id: "constructionWasteManagement", name: "Construction Waste Management", maxScore: 14 },
