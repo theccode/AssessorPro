@@ -102,7 +102,9 @@ export default function Dashboard() {
             
             {/* Mobile and Desktop Actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground capitalize bg-secondary px-2 py-1 rounded">{user?.role}</span>
+              <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground bg-secondary px-2 py-1 rounded">
+                {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || user?.role}
+              </span>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -194,11 +196,15 @@ export default function Dashboard() {
           {/* Quick Stats Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Stats</CardTitle>
+              <CardTitle className="text-lg">
+                {user?.role === "client" ? "My Assessments" : "Quick Stats"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Active Assessments</span>
+                <span className="text-gray-600">
+                  {user?.role === "client" ? "Total Assessments" : "Active Assessments"}
+                </span>
                 <span className="font-semibold text-primary">{assessments.length}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -206,7 +212,9 @@ export default function Dashboard() {
                 <span className="font-semibold text-secondary">{completedThisMonth}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Draft Assessments</span>
+                <span className="text-gray-600">
+                  {user?.role === "client" ? "Pending Reviews" : "Draft Assessments"}
+                </span>
                 <span className="font-semibold text-accent">{draftAssessments}</span>
               </div>
             </CardContent>
@@ -215,7 +223,9 @@ export default function Dashboard() {
           {/* Recent Activity Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
+              <CardTitle className="text-lg">
+                {user?.role === "client" ? "Assessment History" : "Recent Activity"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {recentAssessments.length > 0 ? (
@@ -228,13 +238,21 @@ export default function Dashboard() {
                     <div className="flex-1">
                       <p className="text-sm text-gray-900">{assessment.buildingName}</p>
                       <p className="text-xs text-gray-500">
+                        {user?.role === "client" && assessment.assessorName ? 
+                          `Assessed by: ${assessment.assessorName}` : 
+                          assessment.buildingLocation || "No location specified"
+                        }
+                      </p>
+                      <p className="text-xs text-gray-500">
                         {new Date(assessment.updatedAt || "").toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No recent activity</p>
+                <p className="text-sm text-gray-500">
+                  {user?.role === "client" ? "No assessments yet" : "No recent activity"}
+                </p>
               )}
             </CardContent>
           </Card>
