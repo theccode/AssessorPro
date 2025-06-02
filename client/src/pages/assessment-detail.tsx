@@ -397,7 +397,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                     {sections.length > 0 ? sections.map((section: any) => (
                       <div key={section.id} className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{section.sectionType || 'Section'}</span>
+                          <span className="text-sm font-medium">{formatSectionName(section.sectionType) || 'Section'}</span>
                           <span className="text-sm text-muted-foreground">
                             {section.score || 0}/20
                           </span>
