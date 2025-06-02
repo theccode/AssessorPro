@@ -194,15 +194,15 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center min-w-0 flex-1">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto flex-shrink-0" />
-              <span className="ml-3 text-lg lg:text-xl font-medium text-foreground truncate">GREDA-GBC Assessor Pro</span>
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto flex-shrink-0" />
+              <span className="ml-2 sm:ml-3 text-sm sm:text-lg lg:text-xl font-medium text-foreground truncate hidden sm:block">GREDA-GBC Assessor Pro</span>
             </div>
-            <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
               {(user?.role === "admin" || user?.role === "assessor") && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="hidden lg:flex">
                   <Link href={`/assessments/${assessmentId}/edit`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Assessment
@@ -214,40 +214,41 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                 size="sm" 
                 onClick={handleDownloadPDF}
                 disabled={isGeneratingPDF}
+                className="hidden sm:flex"
               >
                 <Download className="h-4 w-4 mr-2" />
                 {isGeneratingPDF ? "Generating..." : "Download PDF"}
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Button variant="outline" size="sm" onClick={handlePrint} className="hidden sm:flex">
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
+                <Link href="/"><ArrowLeft className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Back to Dashboard</span></Link>
               </Button>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 overflow-x-hidden">
         {/* Breadcrumb */}
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
-          <Link href="/" className="hover:text-primary">Dashboard</Link>
+        <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground mb-4 overflow-x-auto">
+          <Link href="/" className="hover:text-primary whitespace-nowrap">Dashboard</Link>
           <span>/</span>
-          <Link href="/assessments" className="hover:text-primary">Assessments</Link>
+          <Link href="/assessments" className="hover:text-primary whitespace-nowrap">Assessments</Link>
           <span>/</span>
-          <span className="text-foreground">{(assessment as any).buildingName || "Assessment Details"}</span>
+          <span className="text-foreground truncate">{(assessment as any).buildingName || "Assessment Details"}</span>
         </div>
 
         {/* Header with Score and Rating */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2 truncate">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col space-y-4">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2 break-words">
                 {(assessment as any).buildingName || "GREDA-GBC Assessment"}
               </h1>
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 <Badge variant={(assessment as any).status === "completed" ? "default" : "secondary"}>
                   {(assessment as any).status}
                 </Badge>
@@ -256,12 +257,12 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                 </span>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:space-x-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
                   {Math.round((assessment as any).overallScore || 0)}
                 </div>
-                <div className="text-sm text-muted-foreground">Overall Score</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Overall Score</div>
                 <div className="text-xs text-muted-foreground">/ 130 Credits</div>
               </div>
               <div className="text-center">
@@ -269,16 +270,16 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                   {[...Array(5)].map((_, i) => {
                     const score = (assessment as any).overallScore || 0;
                     let stars = 0;
-                    if (score >= 106) stars = 5; // Diamond/5★ (106-130)
-                    else if (score >= 80) stars = 4; // 4★ (80-105)
-                    else if (score >= 60) stars = 3; // 3★ (60-79)
-                    else if (score >= 45) stars = 2; // 2★ (45-59)
-                    else if (score >= 1) stars = 1; // 1★ (1-44)
+                    if (score >= 106) stars = 5;
+                    else if (score >= 80) stars = 4;
+                    else if (score >= 60) stars = 3;
+                    else if (score >= 45) stars = 2;
+                    else if (score >= 1) stars = 1;
                     
                     return (
                       <Star
                         key={i}
-                        className={`h-5 w-5 ${
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${
                           i < stars
                             ? "text-yellow-400 fill-current"
                             : "text-gray-300"
@@ -287,7 +288,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                     );
                   })}
                 </div>
-                <div className="text-sm text-muted-foreground">GREDA Rating</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">GREDA Rating</div>
               </div>
             </div>
           </div>
@@ -295,28 +296,32 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
         {/* Main Tabs Interface */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">
-              <Eye className="h-4 w-4 mr-2" />
-              Overview
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">
+              <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Info</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Charts</span>
             </TabsTrigger>
-            <TabsTrigger value="variables">
-              <PieChart className="h-4 w-4 mr-2" />
-              Variables & Data
+            <TabsTrigger value="variables" className="text-xs sm:text-sm">
+              <PieChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Variables & Data</span>
+              <span className="sm:hidden">Data</span>
             </TabsTrigger>
-            <TabsTrigger value="media">
-              <ImageIcon className="h-4 w-4 mr-2" />
-              Media Files
+            <TabsTrigger value="media" className="text-xs sm:text-sm">
+              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Media Files</span>
+              <span className="sm:hidden">Media</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <TabsContent value="overview" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Building Information</CardTitle>
