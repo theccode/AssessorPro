@@ -45,7 +45,15 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
 
   // PDF Download functionality
   const handleDownloadPDF = async () => {
+    if (!assessment) {
+      alert('Assessment data not loaded yet. Please wait and try again.');
+      return;
+    }
+
     try {
+      // Get assessment data safely
+      const assessmentData = Array.isArray(assessment) ? assessment[0] : assessment;
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -59,6 +67,10 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       await new Promise((resolve) => {
         logoImg.onload = () => {
           pdf.addImage(logoImg, 'PNG', 20, yPosition, 40, 20);
+          resolve(true);
+        };
+        logoImg.onerror = () => {
+          console.warn('Could not load logo');
           resolve(true);
         };
       });
@@ -104,8 +116,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       pdf.text('Overall Assessment Score', 20, yPosition);
       yPosition += 10;
 
-      const totalScore = assessmentData.sections?.reduce((sum: number, section: any) => sum + (section.score || 0), 0) || 0;
-      const maxScore = assessmentData.sections?.reduce((sum: number, section: any) => sum + (section.maxScore || 0), 0) || 0;
+      const totalScore = assessmentData?.overallScore || 0;
+      const maxScore = assessmentData?.maxPossibleScore || 130;
       
       pdf.setFontSize(14);
       pdf.setTextColor(0, 0, 0);
@@ -167,62 +179,69 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       }
 
       // Media section
-      const mediaData = await Promise.all([
-        fetch(`/api/assessments/${publicId}/media`).then(res => res.json()).catch(() => [])
-      ]);
+      try {
+        const mediaResponse = await fetch(`/api/assessments/${publicId}/media`);
+        const mediaData = await mediaResponse.json();
 
-      if (mediaData[0] && mediaData[0].length > 0) {
-        pdf.addPage();
-        yPosition = 20;
-        
-        pdf.setFontSize(16);
-        pdf.setTextColor(0, 102, 51);
-        pdf.text('Assessment Images', 20, yPosition);
-        yPosition += 15;
+        if (mediaData && mediaData.length > 0) {
+          pdf.addPage();
+          yPosition = 20;
+          
+          pdf.setFontSize(16);
+          pdf.setTextColor(0, 102, 51);
+          pdf.text('Assessment Images', 20, yPosition);
+          yPosition += 15;
 
-        for (const media of mediaData[0]) {
-          if (media.fileType === 'image') {
-            try {
-              if (yPosition > pageHeight - 80) {
-                pdf.addPage();
-                yPosition = 20;
+          for (const media of mediaData) {
+            if (media.fileType === 'image') {
+              try {
+                if (yPosition > pageHeight - 80) {
+                  pdf.addPage();
+                  yPosition = 20;
+                }
+
+                pdf.setFontSize(10);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(`${media.fieldName} - ${media.fileName}`, 20, yPosition);
+                yPosition += 7;
+
+                // Load and add image
+                const imgResponse = await fetch(`/api/media/serve/${media.id}`);
+                const imgBlob = await imgResponse.blob();
+                const imgUrl = URL.createObjectURL(imgBlob);
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve) => {
+                  img.onload = () => {
+                    const imgWidth = 80;
+                    const imgHeight = (img.height / img.width) * imgWidth;
+                    
+                    if (yPosition + imgHeight > pageHeight - 20) {
+                      pdf.addPage();
+                      yPosition = 20;
+                    }
+                    
+                    pdf.addImage(img, 'JPEG', 20, yPosition, imgWidth, imgHeight);
+                    yPosition += imgHeight + 10;
+                    URL.revokeObjectURL(imgUrl);
+                    resolve(true);
+                  };
+                  img.onerror = () => {
+                    console.warn('Could not load image:', media.fileName);
+                    resolve(true);
+                  };
+                  img.src = imgUrl;
+                });
+              } catch (error) {
+                console.error('Error adding image to PDF:', error);
               }
-
-              pdf.setFontSize(10);
-              pdf.setTextColor(0, 0, 0);
-              pdf.text(`${media.fieldName} - ${media.fileName}`, 20, yPosition);
-              yPosition += 7;
-
-              // Load and add image
-              const imgResponse = await fetch(`/api/media/serve/${media.id}`);
-              const imgBlob = await imgResponse.blob();
-              const imgUrl = URL.createObjectURL(imgBlob);
-              
-              const img = new Image();
-              img.crossOrigin = 'anonymous';
-              
-              await new Promise((resolve) => {
-                img.onload = () => {
-                  const imgWidth = 80;
-                  const imgHeight = (img.height / img.width) * imgWidth;
-                  
-                  if (yPosition + imgHeight > pageHeight - 20) {
-                    pdf.addPage();
-                    yPosition = 20;
-                  }
-                  
-                  pdf.addImage(img, 'JPEG', 20, yPosition, imgWidth, imgHeight);
-                  yPosition += imgHeight + 10;
-                  URL.revokeObjectURL(imgUrl);
-                  resolve(true);
-                };
-                img.src = imgUrl;
-              });
-            } catch (error) {
-              console.error('Error adding image to PDF:', error);
             }
           }
         }
+      } catch (error) {
+        console.warn('Could not load media for PDF:', error);
       }
 
       // Footer
