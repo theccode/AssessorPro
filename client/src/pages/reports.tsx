@@ -120,7 +120,7 @@ export default function Reports() {
 
                     <div className="flex space-x-2 pt-4">
                       <Button variant="outline" size="sm" asChild className="flex-1">
-                        <Link href={`/assessments/${assessment.id}`}>
+                        <Link href={`/assessments/${assessment.publicId}/preview`}>
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </Link>

@@ -12,11 +12,11 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
   const [, navigate] = useLocation();
-  const assessmentId = parseInt(params.id);
+  const publicId = params.id; // Now using UUID instead of integer
   const { user } = useAuth();
 
   const { data: assessment, isLoading } = useQuery({
-    queryKey: ["/api/assessments", assessmentId],
+    queryKey: ["/api/assessments", publicId],
   });
 
   if (isLoading) {

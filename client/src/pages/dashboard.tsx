@@ -333,7 +333,7 @@ export default function Dashboard() {
                         className="w-20"
                       />
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assessments/${assessment.id}`}>View</Link>
+                        <Link href={`/assessments/${assessment.publicId}/preview`}>View</Link>
                       </Button>
                     </div>
                   </div>

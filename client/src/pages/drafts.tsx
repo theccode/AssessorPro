@@ -333,7 +333,7 @@ export default function Drafts() {
                                       Continue
                                     </Button>
                                   </Link>
-                                  <Link href={`/assessments/${assessment.id}/preview`}>
+                                  <Link href={`/assessments/${assessment.publicId}/preview`}>
                                     <Button variant="outline" size="sm">
                                       <FileText className="w-3 h-3" />
                                     </Button>

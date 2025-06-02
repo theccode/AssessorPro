@@ -147,14 +147,14 @@ export default function Assessments() {
 
                     <div className="flex space-x-2 pt-4">
                       <Button variant="outline" size="sm" asChild className="flex-1">
-                        <Link href={`/assessments/${assessment.id}`}>
+                        <Link href={`/assessments/${assessment.publicId}/preview`}>
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </Link>
                       </Button>
                       {canCreateAssessments && assessment.status !== "completed" && (
                         <Button variant="outline" size="sm" asChild className="flex-1">
-                          <Link href={`/assessments/${assessment.id}/edit`}>
+                          <Link href={`/assessments/${assessment.publicId}/edit`}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Link>
