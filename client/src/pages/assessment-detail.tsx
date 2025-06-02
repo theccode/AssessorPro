@@ -31,7 +31,74 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment, AssessmentSection, AssessmentMedia } from "@shared/schema";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
+
+// Helper function to convert technical names to user-friendly names
+function formatVariableName(name: string): string {
+  if (!name || name === 'General') return 'Document Upload';
+  
+  // Convert camelCase and PascalCase to readable format
+  const readable = name
+    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+    .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .replace(/-/g, ' ') // Replace hyphens with spaces
+    .replace(/\s+/g, ' ') // Remove extra spaces
+    .trim();
+  
+  // Handle common technical terms
+  const mappings: Record<string, string> = {
+    'Building Info': 'Building Information',
+    'General Info': 'General Information',
+    'Water Conservation': 'Water Conservation',
+    'Energy Efficiency': 'Energy Efficiency',
+    'Indoor Environmental Quality': 'Indoor Environmental Quality',
+    'Site And Transport': 'Site and Transportation',
+    'Materials Resources': 'Materials and Resources',
+    'Waste Management': 'Waste Management',
+    'Innovation Points': 'Innovation Points',
+    'Building Performance': 'Building Performance',
+    'Sustainable Design': 'Sustainable Design Features',
+    'HVAC System': 'HVAC System',
+    'Lighting System': 'Lighting System',
+    'Renewable Energy': 'Renewable Energy Systems',
+    'Green Roof': 'Green Roof Features',
+    'Rain Water': 'Rainwater Harvesting',
+    'Solar Panel': 'Solar Panel Installation',
+    'Insulation Type': 'Insulation Materials',
+    'Window Type': 'Window Systems',
+    'Floor Plan': 'Building Floor Plan',
+    'Elevation View': 'Building Elevation',
+    'Site Plan': 'Site Layout Plan'
+  };
+  
+  return mappings[readable] || readable;
+}
+
+// Helper function to format section names
+function formatSectionName(sectionType: string): string {
+  if (!sectionType) return 'General';
+  
+  const mappings: Record<string, string> = {
+    'buildingInfo': 'Building Information',
+    'generalInfo': 'General Information', 
+    'waterConservation': 'Water Conservation',
+    'energyEfficiency': 'Energy Efficiency',
+    'indoorEnvironmentalQuality': 'Indoor Environmental Quality',
+    'siteAndTransport': 'Site and Transportation',
+    'materialsResources': 'Materials and Resources',
+    'wasteManagement': 'Waste Management',
+    'innovationPoints': 'Innovation Points'
+  };
+  
+  return mappings[sectionType] || formatVariableName(sectionType);
+}
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
   const assessmentId = parseInt(params.id);
@@ -444,7 +511,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                       <Card key={section.id}>
                         <CardHeader>
                           <CardTitle className="flex items-center justify-between">
-                            <span>{section.sectionType}</span>
+                            <span>{formatSectionName(section.sectionType)}</span>
                             <Badge variant="outline">
                               {section.score || 0}/20 credits
                             </Badge>
@@ -489,7 +556,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                     <Card key={section.id}>
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
-                          <span>{section.sectionType}</span>
+                          <span>{formatSectionName(section.sectionType)}</span>
                           <Badge variant="outline">{sectionMedia.length} files</Badge>
                         </CardTitle>
                       </CardHeader>
@@ -501,7 +568,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                                 <div className="space-y-1 flex-1 min-w-0">
                                   <p className="font-medium text-sm truncate">{file.fileName}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    Variable: {file.fieldName || file.variableName || 'Document Upload'}
+                                    Variable: {formatVariableName(file.fieldName || file.variableName || 'General')}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
                                     Type: {file.fileType}
@@ -643,7 +710,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
             </DialogHeader>
             <div className="flex flex-col space-y-2">
               <div className="text-sm text-muted-foreground">
-                Variable: {previewMedia.fieldName || previewMedia.variableName || 'Document Upload'} | 
+                Variable: {formatVariableName(previewMedia.fieldName || previewMedia.variableName || 'General')} | 
                 Type: {previewMedia.fileType} | 
                 Uploaded: {new Date(previewMedia.createdAt).toLocaleDateString()}
               </div>
