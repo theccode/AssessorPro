@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,9 @@ import {
   TrendingUp,
   FileText,
   Table,
-  Loader2
+  Loader2,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,16 +26,39 @@ import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import * as XLSX from 'xlsx';
-import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 
 export default function Assessments() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<{ [key: number]: boolean }>({});
   const [isGeneratingExcel, setIsGeneratingExcel] = useState<{ [key: number]: boolean }>({});
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
+  });
+
+  // Lock/unlock mutations for admins
+  const lockMutation = useMutation({
+    mutationFn: async (assessmentId: number) => {
+      return await apiRequest(`/api/assessments/${assessmentId}/lock`, {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+  });
+
+  const unlockMutation = useMutation({
+    mutationFn: async (assessmentId: number) => {
+      return await apiRequest(`/api/assessments/${assessmentId}/unlock`, {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
   });
 
   // Filter to show only completed assessments (exclude drafts)
@@ -688,9 +714,17 @@ export default function Assessments() {
                         {assessment.buildingLocation || "Location not specified"}
                       </div>
                     </div>
-                    <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
-                      {assessment.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {assessment.isLocked && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Locked
+                        </Badge>
+                      )}
+                      <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
+                        {assessment.status}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -745,10 +779,16 @@ export default function Assessments() {
                         </Link>
                       </Button>
                       {(user?.role === "admin" || user?.role === "assessor") && (
-                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1" 
+                          asChild
+                          disabled={assessment.isLocked && user?.role !== "admin"}
+                        >
                           <Link href={`/assessments/${assessment.id}/edit`}>
                             <Edit className="h-3 w-3 mr-1" />
-                            Edit
+                            {assessment.isLocked && user?.role !== "admin" ? "Locked" : "Edit"}
                           </Link>
                         </Button>
                       )}
