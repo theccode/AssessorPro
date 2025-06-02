@@ -14,9 +14,10 @@ interface MediaUploadProps {
   fieldName: string;
   className?: string;
   mediaType?: 'images' | 'videos' | 'audio' | 'all';
+  disabled?: boolean;
 }
 
-export function MediaUpload({ assessmentId, sectionType, fieldName, className, mediaType = 'all' }: MediaUploadProps) {
+export function MediaUpload({ assessmentId, sectionType, fieldName, className, mediaType = 'all', disabled = false }: MediaUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: string } | null>(null);
@@ -210,8 +211,8 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Only show upload interface if no existing media */}
-      {existingMedia.length === 0 && (
+      {/* Only show upload interface if no existing media and not disabled */}
+      {existingMedia.length === 0 && !disabled && (
         <Card
           className={cn(
             "border-2 border-dashed transition-colors cursor-pointer",
@@ -360,19 +361,21 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="absolute top-1 right-1">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteMedia(media.id);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
+                {!disabled && (
+                  <div className="absolute top-1 right-1">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteMedia(media.id);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
                 <div className="absolute bottom-1 left-1 right-1">
                   <div className="bg-black bg-opacity-60 text-white text-xs p-1 rounded truncate">
                     {media.fileName}

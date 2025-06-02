@@ -167,6 +167,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     if (assessment) {
       setFormData({
         buildingName: assessment.buildingName || "",
+        clientName: assessment.clientName || "",
         publisherName: assessment.publisherName || "",
         buildingLocation: assessment.buildingLocation || "",
         digitalAddress: assessment.digitalAddress || assessment.detailedAddress || "",
