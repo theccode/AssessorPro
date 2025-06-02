@@ -119,48 +119,212 @@ export default function Assessments() {
   const handleDownloadExcel = async (assessment: Assessment) => {
     setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch assessment sections
-      const sectionsResponse = await apiRequest(`/api/assessments/${assessment.id}/sections`);
-      const sections = await sectionsResponse.json();
-
+      // Fetch full assessment data with sections
+      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
+      const assessmentData = await fullAssessmentResponse.json();
+      
+      // Create a new workbook
       const workbook = XLSX.utils.book_new();
 
-      // Create overview sheet
-      const overviewData = [
-        ['GREDA-GBC Assessment Report'],
+      // Sheet 1: Assessment Summary
+      const summaryData = [
+        ['GREDA Green Building Assessment Report'],
         [''],
-        ['Building Name', assessment.buildingName || 'N/A'],
-        ['Location', assessment.buildingLocation || 'N/A'],
-        ['Overall Score', `${Math.round(assessment.overallScore || 0)}/130`],
-        ['Status', assessment.status],
-        ['Created Date', new Date(assessment.createdAt || '').toLocaleDateString()],
+        ['Assessment Information'],
+        ['Building Name', assessmentData.buildingName || 'N/A'],
+        ['Publisher Name', assessmentData.publisherName || 'N/A'],
+        ['Building Location', assessmentData.buildingLocation || 'N/A'],
+        ['Digital Address', assessmentData.digitalAddress || 'N/A'],
+        ['Detailed Address', assessmentData.detailedAddress || 'N/A'],
+        ['Phone Number', assessmentData.phoneNumber || 'N/A'],
+        ['Additional Notes', assessmentData.additionalNotes || 'N/A'],
         [''],
+        ['Building Specifications'],
+        ['Building Footprint (m²)', assessmentData.buildingFootprint || 'N/A'],
+        ['Room Height (m)', assessmentData.roomHeight || 'N/A'],
+        ['Number of Bedrooms', assessmentData.numberOfBedrooms || 'N/A'],
+        ['Site Area (m²)', assessmentData.siteArea || 'N/A'],
+        ['Number of Windows', assessmentData.numberOfWindows || 'N/A'],
+        ['Number of Doors', assessmentData.numberOfDoors || 'N/A'],
+        ['Average Window Size (m²)', assessmentData.averageWindowSize || 'N/A'],
+        ['Number of Floors', assessmentData.numberOfFloors || 'N/A'],
+        ['Total Green Area (m²)', assessmentData.totalGreenArea || 'N/A'],
+        [''],
+        ['Assessment Results'],
+        ['Total Score', `${assessmentData.overallScore || 0} / ${assessmentData.maxPossibleScore || 130} points`],
+        ['Percentage', `${assessmentData.maxPossibleScore > 0 ? Math.round((assessmentData.overallScore / assessmentData.maxPossibleScore) * 100) : 0}%`],
+        ['Status', assessmentData.status || 'draft'],
+        ['Completed Sections', `${assessmentData.completedSections || 0} / ${assessmentData.totalSections || 8}`],
+        [''],
+        ['Assessment Details'],
+        ['Assessor Name', assessmentData.assessorName || 'N/A'],
+        ['Assessor Role', assessmentData.assessorRole || 'N/A'],
+        ['Conducted At', assessmentData.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : 'N/A'],
+        ['Created At', assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : 'N/A'],
+        ['Last Updated', assessmentData.updatedAt ? new Date(assessmentData.updatedAt).toLocaleDateString() : 'N/A'],
       ];
 
-      const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData);
-      XLSX.utils.book_append_sheet(workbook, overviewSheet, 'Overview');
+      // Calculate certification level
+      const totalScore = assessmentData.overallScore || 0;
+      let certification = '';
+      if (totalScore >= 106) certification = 'Diamond/5★ (106-130 points)';
+      else if (totalScore >= 85) certification = 'Platinum/4★ (85-105 points)';
+      else if (totalScore >= 64) certification = 'Gold/3★ (64-84 points)';
+      else if (totalScore >= 43) certification = 'Silver/2★ (43-63 points)';
+      else if (totalScore >= 22) certification = 'Bronze/1★ (22-42 points)';
+      else certification = 'Not Certified (Below 22 points)';
 
-      // Create sheets for each section
-      sections.forEach((section: any) => {
-        const sectionData = typeof section.data === 'string' ? JSON.parse(section.data) : section.data;
-        const sheetData = [
-          [section.sectionType.replace(/-/g, ' ').toUpperCase()],
+      summaryData.push(['Certification Level', certification]);
+
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      summarySheet['!cols'] = [{ width: 25 }, { width: 40 }];
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Assessment Summary');
+
+      // Sheet 2: Section Details
+      const sectionsData = [
+        ['Section Details'],
+        [''],
+        ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
+      ];
+
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          const score = section.score || 0;
+          const maxScore = section.maxScore || 0;
+          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
+
+          sectionsData.push([
+            sectionName,
+            score,
+            maxScore,
+            `${percentage}%`,
+            status
+          ]);
+        });
+      } else {
+        sectionsData.push(['No section data available', '', '', '', '']);
+      }
+
+      const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
+      sectionsSheet['!cols'] = [{ width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }, { width: 15 }];
+      XLSX.utils.book_append_sheet(workbook, sectionsSheet, 'Section Details');
+
+      // Sheet 3: Variable Scores
+      const variablesData = [
+        ['Variable Scores'],
+        [''],
+        ['Section', 'Variable Name', 'Score', 'Max Score', 'Percentage']
+      ];
+
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          
+          if (section.variables) {
+            try {
+              let variables;
+              if (typeof section.variables === 'string') {
+                variables = JSON.parse(section.variables);
+              } else {
+                variables = section.variables;
+              }
+              
+              const sectionVars = sectionVariables[section.sectionType] || [];
+              
+              if (sectionVars.length > 0) {
+                sectionVars.forEach(variable => {
+                  const score = variables[variable.id] || 0;
+                  const maxScore = variable.maxScore;
+                  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+                  variablesData.push([
+                    sectionName,
+                    formatVariableName(variable.name),
+                    score,
+                    maxScore,
+                    `${percentage}%`
+                  ]);
+                });
+              } else {
+                Object.keys(variables).forEach(variableKey => {
+                  const score = variables[variableKey] || 0;
+                  variablesData.push([
+                    sectionName,
+                    formatVariableName(variableKey),
+                    score,
+                    'N/A',
+                    'N/A'
+                  ]);
+                });
+              }
+            } catch (parseError) {
+              variablesData.push([
+                sectionName,
+                'Data parsing error',
+                section.score || 0,
+                section.maxScore || 0,
+                section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
+              ]);
+            }
+          } else {
+            variablesData.push([
+              sectionName,
+              'Section Total Only',
+              section.score || 0,
+              section.maxScore || 0,
+              section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
+            ]);
+          }
+        });
+      } else {
+        variablesData.push(['No variable data available', '', '', '', '']);
+      }
+
+      const variablesSheet = XLSX.utils.aoa_to_sheet(variablesData);
+      variablesSheet['!cols'] = [{ width: 25 }, { width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }];
+      XLSX.utils.book_append_sheet(workbook, variablesSheet, 'Variable Scores');
+
+      // Sheet 4: Media Files
+      try {
+        const mediaResponse = await apiRequest(`/api/assessments/${assessment.publicId}/media`);
+        const mediaData = await mediaResponse.json();
+
+        const mediaFilesData = [
+          ['Media Files'],
           [''],
+          ['Section Type', 'File Name', 'File Type', 'Size (KB)', 'Upload Date']
         ];
 
-        if (sectionData) {
-          Object.entries(sectionData).forEach(([key, value]) => {
-            sheetData.push([formatVariableName(key), value]);
+        if (mediaData && mediaData.length > 0) {
+          mediaData.forEach((media: any) => {
+            const sectionConfig = assessmentSections.find(s => s.id === media.sectionType);
+            const sectionName = sectionConfig?.name || formatVariableName(media.sectionType || 'Unknown');
+            
+            mediaFilesData.push([
+              sectionName,
+              media.fileName || 'Unknown',
+              media.fileType || 'Unknown',
+              media.fileSize ? Math.round(media.fileSize / 1024) : 'Unknown',
+              media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'Unknown'
+            ]);
           });
+        } else {
+          mediaFilesData.push(['No media files available', '', '', '', '']);
         }
 
-        const sheet = XLSX.utils.aoa_to_sheet(sheetData);
-        const sheetName = section.sectionType.replace(/-/g, ' ').substring(0, 31); // Excel sheet name limit
-        XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
-      });
+        const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
+        mediaSheet['!cols'] = [{ width: 25 }, { width: 30 }, { width: 15 }, { width: 12 }, { width: 15 }];
+        XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
+      } catch (error) {
+        console.warn('Could not load media files for Excel export:', error);
+      }
 
       // Generate and download the Excel file
-      const fileName = `GREDA_Assessment_${assessment.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(workbook, fileName);
 
     } catch (error) {
