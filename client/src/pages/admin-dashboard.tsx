@@ -567,24 +567,27 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-4">
                   {invitations.map((invite: Invitation) => (
-                    <div key={invite.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-medium">{invite.email}</h4>
-                          <Badge className={getRoleColor(invite.role)}>{invite.role}</Badge>
-                          <Badge className={getStatusColor(invite.status)}>{invite.status}</Badge>
+                    <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
+                      <div className="space-y-2 min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <h4 className="font-medium text-sm sm:text-base break-all">{invite.email}</h4>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge className={`${getRoleColor(invite.role)} text-xs`}>{invite.role}</Badge>
+                            <Badge className={`${getStatusColor(invite.status)} text-xs`}>{invite.status}</Badge>
+                          </div>
                         </div>
                         {invite.organizationName && (
-                          <p className="text-sm text-muted-foreground">{invite.organizationName}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{invite.organizationName}</p>
                         )}
                         <p className="text-xs text-muted-foreground">
                           Expires: {new Date(invite.expiresAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
+                          className="text-xs w-full sm:w-auto"
                           onClick={() => handleResendInvitation(invite.id, invite.email)}
                           disabled={loadingStates[invite.id]?.resending}
                         >
@@ -593,6 +596,7 @@ export default function AdminDashboard() {
                         <Button
                           variant="destructive"
                           size="sm"
+                          className="text-xs w-full sm:w-auto"
                           onClick={() => handleCancelInvitation(invite.id)}
                           disabled={loadingStates[invite.id]?.canceling}
                         >
