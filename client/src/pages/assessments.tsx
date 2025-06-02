@@ -42,6 +42,7 @@ export default function Assessments() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
+              <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-semibold text-foreground">GREDA-GBC</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" asChild>
