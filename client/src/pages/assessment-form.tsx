@@ -96,7 +96,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     mutationFn: async () => {
       const response = await apiRequest(`/api/assessments/${assessmentId}`, "PATCH", { 
         status: "completed",
-        conductedAt: new Date().toISOString()
+        conductedAt: new Date()
       });
       return response.json();
     },
@@ -654,18 +654,17 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   <Save className="h-4 w-4 mr-2" />
                   Save Draft
                 </Button>
-                {allSectionsCompleted && currentSectionIndex === assessmentSections.length - 1 ? (
+                <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit}>
+                  {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+                {allSectionsCompleted && currentSectionIndex === assessmentSections.length - 1 && (
                   <Button 
                     onClick={handleSubmitAssessment}
                     disabled={submitAssessmentMutation.isPending}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
-                  </Button>
-                ) : (
-                  <Button onClick={currentSectionIndex === 0 ? handleBuildingInfoSubmit : handleSectionSubmit}>
-                    {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
-                    <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 )}
               </div>
