@@ -335,7 +335,7 @@ export default function Assessments() {
         [''],
         ['Assessment Information'],
         ['Building Name', assessmentData.buildingName || 'N/A'],
-        ['Publisher Name', assessmentData.publisherName || 'N/A'],
+        ['Client Name', assessmentData.clientName || 'N/A'],
         ['Building Location', assessmentData.buildingLocation || 'N/A'],
         ['Digital Address', assessmentData.digitalAddress || 'N/A'],
         ['Detailed Address', assessmentData.detailedAddress || 'N/A'],
