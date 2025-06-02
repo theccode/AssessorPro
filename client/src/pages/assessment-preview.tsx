@@ -208,117 +208,93 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
           pdf.text('Assessment Images', 20, yPosition);
           yPosition += 15;
 
-          // Group images by section
-          const imagesBySectionAndVariable = {};
-          mediaData.forEach(media => {
+          // Display all images in a simple organized format
+          for (const media of mediaData) {
             if (media.fileType === 'image') {
-              const section = media.sectionType || 'other';
-              const variable = media.fieldName || 'general';
-              
-              if (!imagesBySectionAndVariable[section]) {
-                imagesBySectionAndVariable[section] = {};
-              }
-              if (!imagesBySectionAndVariable[section][variable]) {
-                imagesBySectionAndVariable[section][variable] = [];
-              }
-              imagesBySectionAndVariable[section][variable].push(media);
-            }
-          });
-
-          // Display images organized by section and variable
-          for (const [sectionType, variables] of Object.entries(imagesBySectionAndVariable)) {
-            // Section header
-            if (yPosition > pageHeight - 40) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            
-            const sectionName = assessmentSections.find(s => s.id === sectionType)?.name || formatVariableName(sectionType);
-            pdf.setFontSize(14);
-            pdf.setTextColor(0, 102, 51);
-            pdf.text(`${sectionName} Section Images`, 20, yPosition);
-            yPosition += 10;
-
-            for (const [variableName, images] of Object.entries(variables)) {
-              // Variable header
-              if (yPosition > pageHeight - 30) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-              
-              pdf.setFontSize(12);
-              pdf.setTextColor(0, 0, 0);
-              pdf.text(`${formatVariableName(variableName)}:`, 25, yPosition);
-              yPosition += 8;
-
-              // Display images in a grid (2 per row)
-              let imagesInRow = 0;
-              let currentRowY = yPosition;
-              
-              for (const media of images) {
-                try {
-                  // Load and add image
-                  const imgResponse = await fetch(`/api/media/serve/${media.id}`);
-                  const imgBlob = await imgResponse.blob();
-                  const imgUrl = URL.createObjectURL(imgBlob);
-                  
-                  const img = new Image();
-                  img.crossOrigin = 'anonymous';
-                  
-                  await new Promise((resolve) => {
-                    img.onload = () => {
-                      const imgWidth = 70;
-                      const imgHeight = (img.height / img.width) * imgWidth;
-                      
-                      // Check if we need a new page
-                      if (currentRowY + imgHeight > pageHeight - 20) {
-                        pdf.addPage();
-                        yPosition = 20;
-                        currentRowY = yPosition;
-                        imagesInRow = 0;
-                      }
-                      
-                      // Calculate position (2 images per row)
-                      const xOffset = imagesInRow === 0 ? 30 : 110;
-                      
-                      // Add image filename
-                      pdf.setFontSize(8);
-                      pdf.setTextColor(100, 100, 100);
-                      pdf.text(media.fileName, xOffset, currentRowY);
-                      
-                      // Add image
-                      pdf.addImage(img, 'JPEG', xOffset, currentRowY + 3, imgWidth, imgHeight);
-                      
-                      imagesInRow++;
-                      if (imagesInRow >= 2) {
-                        imagesInRow = 0;
-                        currentRowY += imgHeight + 15;
-                        yPosition = currentRowY;
-                      }
-                      
-                      URL.revokeObjectURL(imgUrl);
-                      resolve(true);
-                    };
-                    img.onerror = () => {
-                      console.warn('Could not load image:', media.fileName);
-                      resolve(true);
-                    };
-                    img.src = imgUrl;
-                  });
-                } catch (error) {
-                  console.error('Error adding image to PDF:', error);
+              try {
+                // Check if we need a new page (leave space for image + text)
+                if (yPosition > pageHeight - 120) {
+                  pdf.addPage();
+                  yPosition = 20;
                 }
+
+                // Load and add image
+                const imgResponse = await fetch(`/api/media/serve/${media.id}`);
+                const imgBlob = await imgResponse.blob();
+                const imgUrl = URL.createObjectURL(imgBlob);
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                await new Promise((resolve) => {
+                  img.onload = () => {
+                    // Calculate image dimensions - maintain aspect ratio
+                    const maxWidth = 120;
+                    const maxHeight = 80;
+                    let imgWidth = maxWidth;
+                    let imgHeight = (img.height / img.width) * imgWidth;
+                    
+                    // If image is too tall, scale by height instead
+                    if (imgHeight > maxHeight) {
+                      imgHeight = maxHeight;
+                      imgWidth = (img.width / img.height) * imgHeight;
+                    }
+
+                    // Ensure we have enough space for this image
+                    if (yPosition + imgHeight + 20 > pageHeight - 20) {
+                      pdf.addPage();
+                      yPosition = 20;
+                    }
+                    
+                    // Add section and variable information
+                    const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+                    const variableName = formatVariableName(media.fieldName || 'Image');
+                    
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(0, 102, 51);
+                    pdf.text(`${sectionName} > ${variableName}`, 30, yPosition);
+                    yPosition += 8;
+                    
+                    // Add shortened filename
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(100, 100, 100);
+                    const shortName = media.fileName.length > 50 ? 
+                      media.fileName.substring(0, 47) + '...' : media.fileName;
+                    pdf.text(shortName, 30, yPosition);
+                    yPosition += 8;
+                    
+                    // Add image with subtle border
+                    pdf.setDrawColor(220, 220, 220);
+                    pdf.setLineWidth(0.5);
+                    pdf.rect(29, yPosition - 1, imgWidth + 2, imgHeight + 2);
+                    pdf.addImage(img, 'JPEG', 30, yPosition, imgWidth, imgHeight);
+                    
+                    // Move to next position with proper spacing
+                    yPosition += imgHeight + 15;
+                    
+                    URL.revokeObjectURL(imgUrl);
+                    resolve(true);
+                  };
+                  img.onerror = () => {
+                    console.warn('Could not load image:', media.fileName);
+                    // Add placeholder text for failed image
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(150, 150, 150);
+                    pdf.text(`[Image failed to load: ${media.fileName}]`, 30, yPosition);
+                    yPosition += 15;
+                    resolve(true);
+                  };
+                  img.src = imgUrl;
+                });
+              } catch (error) {
+                console.error('Error adding image to PDF:', error);
+                // Add error note and continue
+                pdf.setFontSize(9);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text(`[Error loading image: ${media.fileName}]`, 30, yPosition);
+                yPosition += 15;
               }
-              
-              // Move to next row if images were added
-              if (imagesInRow > 0) {
-                yPosition = currentRowY + 80; // Add some spacing after images
-              }
-              
-              yPosition += 10; // Space between variables
             }
-            
-            yPosition += 5; // Space between sections
           }
         }
       } catch (error) {
