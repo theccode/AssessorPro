@@ -12,7 +12,7 @@ import { SectionNavigation } from "@/components/assessment/section-navigation";
 import { ScoreInput } from "@/components/assessment/score-input";
 import { MediaUpload } from "@/components/assessment/media-upload";
 import { LocationPicker } from "@/components/assessment/location-picker";
-import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft } from "lucide-react";
+import { Building, ChevronLeft, ChevronRight, Save, ArrowLeft, LockIcon } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
@@ -45,6 +45,9 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     queryKey: [`/api/assessments/${assessmentId}`],
     enabled: !!assessmentId,
   });
+
+  // Check if assessment is locked
+  const isAssessmentLocked = assessment?.isLocked || false;
 
 
 
@@ -395,6 +398,21 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           <p className="text-sm sm:text-base text-gray-600 px-2">Complete all sections to generate comprehensive GREDA-GBC sustainability evaluation</p>
         </div>
 
+        {/* Lock Status Warning */}
+        {isAssessmentLocked && (
+          <Card className="mb-4 border-amber-200 bg-amber-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 text-amber-800">
+                <LockIcon className="w-5 h-5" />
+                <div>
+                  <p className="font-medium">Assessment Locked</p>
+                  <p className="text-sm">This assessment has been submitted and is locked for editing. Contact an administrator to unlock it.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Client and Building Information */}
         {assessment && (
           <Card className="mb-6 sm:mb-8 border-primary/20 bg-primary/5">
@@ -402,6 +420,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               <CardTitle className="flex items-center gap-2 sm:gap-3 text-primary text-lg sm:text-xl">
                 <Building className="w-5 h-5 sm:w-6 sm:h-6" />
                 Assessment Information
+                {isAssessmentLocked && <LockIcon className="w-4 h-4 text-amber-600" />}
               </CardTitle>
             </CardHeader>
             <CardContent>
