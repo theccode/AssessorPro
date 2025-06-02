@@ -35,6 +35,42 @@ export default function Assessments() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Building className="h-8 w-8 mr-3 text-primary" />
+              <span className="text-xl font-semibold text-foreground">GREDA-GBC Assessor Pro</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" asChild>
+                <Link href="/">Dashboard</Link>
+              </Button>
+              <Button variant="default" asChild>
+                <Link href="/assessments">Assessments</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/drafts">Drafts</Link>
+              </Button>
+              {(user?.role === "admin" || user?.role === "assessor") && (
+                <Button variant="ghost" asChild>
+                  <Link href="/profile">Profile</Link>
+                </Button>
+              )}
+              {user?.role === "admin" && (
+                <Button variant="ghost" asChild>
+                  <Link href="/admin">Admin</Link>
+                </Button>
+              )}
+              <Button variant="outline" asChild>
+                <Link href="/api/logout">Logout</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
