@@ -115,6 +115,16 @@ export default function Dashboard() {
               <Button 
                 variant="ghost" 
                 size="sm" 
+                asChild
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                <Link href="/profile">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                </Link>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
                 className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted"

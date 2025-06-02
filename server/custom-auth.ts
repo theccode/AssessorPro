@@ -175,4 +175,113 @@ export function setupCustomAuth(app: Express) {
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // Update profile endpoint
+  app.put("/api/auth/profile", isCustomAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const { firstName, lastName, email, organizationName } = req.body;
+
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        email,
+        organizationName,
+        updatedAt: new Date()
+      });
+
+      const { passwordHash, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Reset password endpoint with email notification
+  app.post("/api/auth/reset-password", isCustomAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const { currentPassword, newPassword } = req.body;
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify current password
+      const isValidPassword = await verifyPassword(currentPassword, user.passwordHash);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+      
+      // Update password
+      await storage.updateUser(userId, {
+        passwordHash: newPasswordHash,
+        updatedAt: new Date()
+      });
+
+      // Send email notification
+      if (user.email) {
+        try {
+          const { emailService } = await import("./email-service");
+          await emailService.sendEmail({
+            to: user.email,
+            subject: "Password Reset Confirmation - GREDA Assessment Platform",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #059669;">Password Reset Confirmation</h2>
+                <p>Hello ${user.firstName || user.email},</p>
+                <p>This email confirms that your password has been successfully reset for your GREDA Assessment Platform account.</p>
+                <div style="background-color: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                  <p style="margin: 0; color: #065f46;"><strong>Account Details:</strong></p>
+                  <p style="margin: 8px 0 0 0; color: #065f46;">Email: ${user.email}</p>
+                  <p style="margin: 4px 0 0 0; color: #065f46;">Role: ${user.role}</p>
+                  <p style="margin: 4px 0 0 0; color: #065f46;">Reset Time: ${new Date().toLocaleString()}</p>
+                </div>
+                <p>If you did not initiate this password reset, please contact our support team immediately.</p>
+                <p>For security reasons, we recommend:</p>
+                <ul>
+                  <li>Using a strong, unique password</li>
+                  <li>Not sharing your credentials with anyone</li>
+                  <li>Logging out of shared devices</li>
+                </ul>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                <p style="color: #6b7280; font-size: 14px;">
+                  This email was sent from the GREDA Assessment Platform. If you have questions, please contact our support team.
+                </p>
+              </div>
+            `,
+            text: `
+Password Reset Confirmation
+
+Hello ${user.firstName || user.email},
+
+This email confirms that your password has been successfully reset for your GREDA Assessment Platform account.
+
+Account Details:
+- Email: ${user.email}
+- Role: ${user.role}
+- Reset Time: ${new Date().toLocaleString()}
+
+If you did not initiate this password reset, please contact our support team immediately.
+
+For security reasons, we recommend using a strong, unique password and not sharing your credentials with anyone.
+            `
+          });
+        } catch (emailError) {
+          console.error("Failed to send password reset email:", emailError);
+          // Don't fail the password reset if email fails
+        }
+      }
+
+      res.json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
 }

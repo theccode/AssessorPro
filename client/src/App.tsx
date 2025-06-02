@@ -20,6 +20,7 @@ import Drafts from "@/pages/drafts";
 import Reports from "@/pages/reports";
 import InvitationAccept from "@/pages/invitation-accept";
 import Portfolio from "@/pages/portfolio";
+import Profile from "@/pages/profile";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -83,6 +84,7 @@ function Router() {
                   <Route path="/assessments/:id/preview" component={AssessmentPreview} />
                   <Route path="/assessments/:id" component={AssessmentDetail} />
                   <Route path="/reports" component={Reports} />
+                  <Route path="/profile" component={Profile} />
                 </>
               )}
               {currentDomainRole === "assessor" && user?.role === "assessor" && (
@@ -95,6 +97,7 @@ function Router() {
                   <Route path="/assessments/:id" component={AssessmentDetail} />
                   <Route path="/drafts" component={Drafts} />
                   <Route path="/reports" component={Reports} />
+                  <Route path="/profile" component={Profile} />
                 </>
               )}
               {currentDomainRole === "client" && user?.role === "client" && (
@@ -103,6 +106,7 @@ function Router() {
                   <Route path="/assessments/:id/preview" component={AssessmentPreview} />
                   <Route path="/assessments/:id" component={AssessmentDetail} />
                   <Route path="/reports" component={Reports} />
+                  <Route path="/profile" component={Profile} />
                 </>
               )}
             </>

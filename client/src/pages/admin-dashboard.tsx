@@ -55,7 +55,8 @@ export default function AdminDashboard() {
     lastName: "",
     role: "client" as const,
     subscriptionTier: "free" as const,
-    organizationName: ""
+    organizationName: "",
+    password: ""
   });
 
   // Fetch all users
@@ -163,7 +164,8 @@ export default function AdminDashboard() {
         lastName: "",
         role: "client",
         subscriptionTier: "free",
-        organizationName: ""
+        organizationName: "",
+        password: ""
       });
     },
     onError: () => {
@@ -274,6 +276,19 @@ export default function AdminDashboard() {
                       onChange={(e) => setCreateUserForm({ ...createUserForm, lastName: e.target.value })}
                     />
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="createPassword">Password</Label>
+                  <Input
+                    id="createPassword"
+                    type="password"
+                    placeholder="Enter a temporary password"
+                    value={createUserForm.password}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    User can change this password after their first login
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="createRole">Role</Label>
