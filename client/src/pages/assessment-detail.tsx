@@ -34,6 +34,7 @@ import type { Assessment, AssessmentSection, AssessmentMedia } from "@shared/sch
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -44,7 +45,7 @@ function formatVariableName(name: string): string {
   if (!name || name === 'General') return 'Document Upload';
   
   // Convert camelCase and PascalCase to readable format
-  const readable = name
+  let readable = name
     .replace(/([A-Z])/g, ' $1') // Add space before capital letters
     .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
     .replace(/_/g, ' ') // Replace underscores with spaces
@@ -52,7 +53,7 @@ function formatVariableName(name: string): string {
     .replace(/\s+/g, ' ') // Remove extra spaces
     .trim();
   
-  // Handle common technical terms - all start with capital letters
+  // Handle common technical terms - Title Case (Each Word Capitalized)
   const mappings: Record<string, string> = {
     'Building Info': 'Building Information',
     'General Info': 'General Information',
@@ -79,9 +80,15 @@ function formatVariableName(name: string): string {
     'General': 'General Documentation'
   };
   
-  // Ensure result starts with capital letter
-  const result = mappings[readable] || readable;
-  return result.charAt(0).toUpperCase() + result.slice(1);
+  // Apply mapping or convert to Title Case
+  let result = mappings[readable] || readable;
+  
+  // Ensure Title Case (capitalize each word)
+  result = result.replace(/\w\S*/g, (txt) => 
+    txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  );
+  
+  return result;
 }
 
 // Helper function to format section names
@@ -100,8 +107,14 @@ function formatSectionName(sectionType: string): string {
     'innovationPoints': 'Innovation Points'
   };
   
-  const result = mappings[sectionType] || formatVariableName(sectionType);
-  return result.charAt(0).toUpperCase() + result.slice(1);
+  let result = mappings[sectionType] || formatVariableName(sectionType);
+  
+  // Ensure Title Case (capitalize each word)
+  result = result.replace(/\w\S*/g, (txt) => 
+    txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  );
+  
+  return result;
 }
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
@@ -565,7 +578,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           {sectionMedia.map((file: any) => (
                             <div key={file.id} className="border rounded-lg p-4 space-y-3">
                               <div className="flex items-start justify-between">
@@ -686,8 +699,8 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
-                <span>{previewMedia.fileName}</span>
-                <div className="flex space-x-2">
+                <span className="truncate">{previewMedia.fileName}</span>
+                <div className="flex space-x-2 flex-shrink-0">
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -711,6 +724,9 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                   </Button>
                 </div>
               </DialogTitle>
+              <DialogDescription>
+                Preview of {formatVariableName(previewMedia.fieldName || previewMedia.variableName || 'General')} media file
+              </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-2">
               <div className="text-sm text-muted-foreground">
