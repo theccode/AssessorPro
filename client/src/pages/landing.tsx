@@ -7,6 +7,7 @@ import heroImage from "@assets/image_1748623363109.png";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 interface PlatformStats {
   totalAssessments: number;
@@ -471,8 +472,8 @@ export default function Landing() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              View Complete Portfolio
+            <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground" asChild>
+              <Link href="/portfolio">View Complete Portfolio</Link>
             </Button>
           </div>
         </div>

@@ -148,8 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const imageFiles = media.filter(m => m.mimeType && m.mimeType.startsWith('image/'));
           const featuredImage = imageFiles.length > 0 ? `/api/media/${imageFiles[0].id}` : null;
           
-          // Calculate star rating based on actual score
-          const starRating = Math.max(1, Math.min(5, Math.round(scorePercentage / 20)));
+          // Calculate star rating based on actual score (adjusted for better accuracy)
+          const starRating = Math.max(1, Math.min(5, Math.ceil(scorePercentage / 20)));
           
           return {
             id: assessment.id,

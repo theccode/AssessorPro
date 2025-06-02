@@ -19,6 +19,7 @@ import ClientSelection from "@/pages/client-selection";
 import Drafts from "@/pages/drafts";
 import Reports from "@/pages/reports";
 import InvitationAccept from "@/pages/invitation-accept";
+import Portfolio from "@/pages/portfolio";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -36,8 +37,9 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public invitation route - no authentication required */}
+      {/* Public routes - no authentication required */}
       <Route path="/invitations/:token/accept" component={InvitationAccept} />
+      <Route path="/portfolio" component={Portfolio} />
       <Route path="/login" component={Login} />
       
       {isLoading || !isAuthenticated ? (
