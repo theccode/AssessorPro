@@ -23,7 +23,7 @@ export default function Dashboard() {
 
   const createAssessmentMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/assessments", {
+      const response = await apiRequest("/api/assessments", "POST", {
         buildingName: "New Assessment",
         status: "draft",
       });
