@@ -703,6 +703,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                             fieldName={variable.id}
                             mediaType="images"
                             className="mt-2"
+                            disabled={isAssessmentLocked}
                           />
                         </div>
                       )}
@@ -716,6 +717,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                             fieldName={variable.id}
                             mediaType="videos"
                             className="mt-2"
+                            disabled={isAssessmentLocked}
                           />
                         </div>
                       )}
@@ -729,6 +731,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                             fieldName={variable.id}
                             mediaType="audio"
                             className="mt-2"
+                            disabled={isAssessmentLocked}
                           />
                         </div>
                       )}
