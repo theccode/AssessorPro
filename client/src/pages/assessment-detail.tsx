@@ -40,7 +40,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   // Don't render if ID is not a valid number
-  if (isNaN(assessmentId) || !params.id || !/^\d+$/.test(params.id)) {
+  if (isNaN(assessmentId) || !params.id) {
     return null;
   }
 
@@ -357,39 +357,109 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
           {/* Variables & Data Tab */}
           <TabsContent value="variables" className="mt-6">
-            <div className="space-y-6">
-              {(assessment as any).sections?.map((section: AssessmentSection) => (
-                <Card key={section.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{section.sectionName}</span>
-                      <Badge variant="outline">
-                        {section.score || 0}/{section.maxScore || 0} credits
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {section.variables ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(section.variables).map(([key, value]) => (
-                            <div key={key} className="p-3 border rounded-lg">
-                              <div className="text-sm font-medium text-muted-foreground mb-1">
-                                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                              </div>
-                              <div className="text-foreground">
-                                {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">No variable data available for this section.</p>
-                      )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Building className="h-5 w-5 mr-2" />
+                    Building Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Building Type</label>
+                        <p className="text-foreground">{(assessment as any).buildingType || "Not specified"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Floor Area</label>
+                        <p className="text-foreground">{(assessment as any).floorArea || "Not specified"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Construction Year</label>
+                        <p className="text-foreground">{(assessment as any).constructionYear || "Not specified"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Occupancy</label>
+                        <p className="text-foreground">{(assessment as any).occupancy || "Not specified"}</p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="h-5 w-5 mr-2" />
+                    Assessment Info
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Assessor</label>
+                      <p className="text-foreground">{(assessment as any).assessorName || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Client</label>
+                      <p className="text-foreground">{(assessment as any).clientName || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Created Date</label>
+                      <p className="text-foreground">
+                        {(assessment as any).createdAt ? new Date((assessment as any).createdAt).toLocaleDateString() : "Not available"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
+                      <p className="text-foreground">
+                        {(assessment as any).updatedAt ? new Date((assessment as any).updatedAt).toLocaleDateString() : "Not available"}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Section Variables Display */}
+              {sections.length > 0 && (
+                <div className="col-span-full">
+                  <h3 className="text-lg font-semibold mb-4">Section Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {sections.map((section: any) => (
+                      <Card key={section.id}>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            <span>{section.sectionType}</span>
+                            <Badge variant="outline">
+                              {section.score || 0}/20 credits
+                            </Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {section.variables && typeof section.variables === 'object' ? (
+                              Object.entries(section.variables).map(([key, value]) => (
+                                <div key={key} className="flex justify-between items-center py-2 border-b border-border last:border-0">
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                  </span>
+                                  <span className="text-sm text-foreground">
+                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No variable data available</p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 

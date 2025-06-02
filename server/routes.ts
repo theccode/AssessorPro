@@ -393,8 +393,8 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.get('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const publicId = req.params.id;
-      const assessment = await storage.getAssessmentByPublicId(publicId);
+      const assessmentId = parseInt(req.params.id);
+      const assessment = await storage.getAssessmentWithSections(assessmentId);
       
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
@@ -404,7 +404,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       const userId = req.session.customUserId;
       const user = await storage.getUser(userId);
       
-      if (assessment.userId !== userId && user?.role !== 'admin') {
+      if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -412,6 +412,102 @@ For security reasons, we recommend using a strong, unique password and not shari
     } catch (error) {
       console.error("Error fetching assessment:", error);
       res.status(500).json({ message: "Failed to fetch assessment" });
+    }
+  });
+
+  // Assessment sections by ID
+  app.get('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const sections = await storage.getAssessmentSections(assessmentId);
+      
+      res.json(sections);
+    } catch (error) {
+      console.error("Error fetching assessment sections:", error);
+      res.status(500).json({ message: "Failed to fetch sections" });
+    }
+  });
+
+  // Assessment media by ID
+  app.get('/api/assessments/:id/media', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const media = await storage.getAssessmentMedia(assessmentId);
+      
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching assessment media:", error);
+      res.status(500).json({ message: "Failed to fetch media" });
+    }
+  });
+
+  // PDF Generation for Assessment
+  app.get('/api/assessments/:id/pdf', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const assessment = await storage.getAssessmentWithSections(assessmentId);
+      
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check if user has access to this assessment
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Generate PDF content
+      const jsPDF = (await import('jspdf')).default;
+      const pdf = new jsPDF();
+      
+      // Add title and header
+      pdf.setFontSize(20);
+      pdf.text('GREDA Green Building Assessment Report', 20, 30);
+      
+      pdf.setFontSize(12);
+      pdf.text(`Building: ${assessment.buildingName || 'Unnamed Building'}`, 20, 50);
+      pdf.text(`Location: ${assessment.buildingLocation || 'Not specified'}`, 20, 60);
+      pdf.text(`Assessment Date: ${new Date(assessment.createdAt || '').toLocaleDateString()}`, 20, 70);
+      pdf.text(`Status: ${assessment.status}`, 20, 80);
+      
+      // Add overall score
+      pdf.setFontSize(16);
+      pdf.text('Overall Performance', 20, 100);
+      pdf.setFontSize(12);
+      pdf.text(`Score: ${Math.round(assessment.overallScore || 0)}/130 credits`, 20, 110);
+      pdf.text(`Performance: ${Math.round(((assessment.overallScore || 0) / 130) * 100)}%`, 20, 120);
+      
+      // Add sections
+      let yPosition = 140;
+      pdf.setFontSize(14);
+      pdf.text('Section Details', 20, yPosition);
+      yPosition += 15;
+      
+      assessment.sections.forEach((section: any) => {
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = 30;
+        }
+        
+        pdf.setFontSize(12);
+        pdf.text(`${section.sectionType}: ${section.score || 0}/20 credits`, 20, yPosition);
+        yPosition += 10;
+      });
+      
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${assessment.buildingName || 'assessment'}-report.pdf"`);
+      
+      // Send PDF
+      const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
 
