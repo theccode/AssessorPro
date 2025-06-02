@@ -33,6 +33,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const assessmentId = urlParams.get('id') ? parseInt(urlParams.get('id')!) : (params?.id ? parseInt(params.id) : null);
 
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [hasSetInitialSection, setHasSetInitialSection] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
   const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
@@ -114,8 +115,32 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       console.log("Setting location data:", initialLocationData);
       setSectionData(initialSectionData);
       setLocationData(initialLocationData);
+
+      // Auto-navigate to the first incomplete section when loading
+      if (!hasSetInitialSection) {
+        let targetSectionIndex = 0;
+        
+        // Find the first incomplete section, or the last section if all are complete
+        for (let i = 0; i < assessmentSections.length; i++) {
+          const sectionId = assessmentSections[i].id;
+          const sectionFromDb = sections.find((s: any) => s.sectionType === sectionId);
+          
+          if (!sectionFromDb || !sectionFromDb.isCompleted) {
+            targetSectionIndex = i;
+            break;
+          }
+          
+          // If this is the last section and it's complete, stay on it
+          if (i === assessmentSections.length - 1 && sectionFromDb?.isCompleted) {
+            targetSectionIndex = i;
+          }
+        }
+        
+        setCurrentSectionIndex(targetSectionIndex);
+        setHasSetInitialSection(true);
+      }
     }
-  }, [sections]);
+  }, [sections, hasSetInitialSection]);
 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;
