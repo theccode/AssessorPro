@@ -27,19 +27,13 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     return <div className="min-h-screen flex items-center justify-center">Assessment not found</div>;
   }
 
-  // Get data from assessment object with proper fallbacks
-  const assessmentData = assessment as any;
+  // Get assessment data (it comes as an array, so get the first element)
+  const assessmentData = Array.isArray(assessment) ? assessment[0] : assessment;
   console.log("Assessment data:", assessmentData);
   
-  // Calculate scores from sections if available
-  const totalScore = assessmentData.sections?.reduce((sum: number, section: any) => {
-    return sum + (section.score || 0);
-  }, 0) || assessmentData.overallScore || 0;
-  
-  const maxScore = assessmentData.sections?.reduce((sum: number, section: any) => {
-    return sum + (section.maxScore || 0);
-  }, 0) || assessmentData.maxPossibleScore || 100;
-  
+  // Use the assessment's overall score and max possible score
+  const totalScore = assessmentData?.overallScore || 0;
+  const maxScore = assessmentData?.maxPossibleScore || 130; // GREDA-GBC total is 130
   const calculatedPercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
   
   console.log("Calculated scores:", { totalScore, maxScore, calculatedPercentage });
@@ -97,7 +91,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                   <div>
                     <div className="text-sm text-white/70">Conducted Date</div>
                     <div className="font-medium text-white">
-                      {assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : "Not specified"}
+                      {assessmentData?.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : "Not specified"}
                     </div>
                   </div>
                   <div>
@@ -125,7 +119,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                   className="mb-4 mx-auto"
                 />
                 <div className="text-3xl font-bold text-white mb-2">
-                  {totalScore}/130 Points
+                  {totalScore}/{maxScore} Points
                 </div>
                 <div className="text-lg font-medium text-white">
                   {getPerformanceLevel(totalScore)}
