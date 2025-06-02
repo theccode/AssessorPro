@@ -296,26 +296,26 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
         {/* Main Tabs Interface */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm">
-              <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Overview</span>
-              <span className="sm:hidden">Info</span>
+          <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+            <TabsTrigger value="overview" className="text-xs px-2 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Eye className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Overview</span>
+              <span className="xs:hidden">Info</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs sm:text-sm">
-              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Analytics</span>
-              <span className="sm:hidden">Charts</span>
+            <TabsTrigger value="analytics" className="text-xs px-2 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <BarChart3 className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Analytics</span>
+              <span className="xs:hidden">Chart</span>
             </TabsTrigger>
-            <TabsTrigger value="variables" className="text-xs sm:text-sm">
-              <PieChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Variables & Data</span>
-              <span className="sm:hidden">Data</span>
+            <TabsTrigger value="variables" className="text-xs px-2 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <PieChart className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Variables</span>
+              <span className="xs:hidden">Data</span>
             </TabsTrigger>
-            <TabsTrigger value="media" className="text-xs sm:text-sm">
-              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Media Files</span>
-              <span className="sm:hidden">Media</span>
+            <TabsTrigger value="media" className="text-xs px-2 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <ImageIcon className="h-3 w-3 mr-1" />
+              <span className="hidden xs:inline">Media</span>
+              <span className="xs:hidden">Files</span>
             </TabsTrigger>
           </TabsList>
 
@@ -701,18 +701,20 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
       {/* Media Preview Modal */}
       {previewMedia && (
         <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span className="truncate">{previewMedia.fileName}</span>
-                <div className="flex space-x-2 flex-shrink-0">
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-2 sm:p-6">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                <span className="truncate text-sm sm:text-base">{previewMedia.fileName}</span>
+                <div className="flex space-x-1 sm:space-x-2 flex-shrink-0">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => window.open(`/api/media/${previewMedia.id}`, '_blank')}
+                    className="text-xs"
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Open in New Tab
+                    <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Open in New Tab</span>
+                    <span className="sm:hidden">Open</span>
                   </Button>
                   <Button 
                     variant="outline" 
@@ -723,9 +725,11 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                       link.download = previewMedia.fileName;
                       link.click();
                     }}
+                    className="text-xs"
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
+                    <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Download</span>
+                    <span className="sm:hidden">Save</span>
                   </Button>
                 </div>
               </DialogTitle>
@@ -734,12 +738,14 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-2">
-              <div className="text-sm text-muted-foreground">
-                Variable: {formatVariableName(previewMedia.fieldName || previewMedia.variableName || 'General')} | 
-                Type: {previewMedia.fileType} | 
-                Uploaded: {new Date(previewMedia.createdAt).toLocaleDateString()}
+              <div className="text-xs sm:text-sm text-muted-foreground flex flex-col sm:flex-row sm:space-x-2 space-y-1 sm:space-y-0">
+                <span>Variable: {formatVariableName(previewMedia.fieldName || previewMedia.variableName || 'General')}</span>
+                <span className="hidden sm:inline">|</span>
+                <span>Type: {previewMedia.fileType}</span>
+                <span className="hidden sm:inline">|</span>
+                <span>Uploaded: {new Date(previewMedia.createdAt).toLocaleDateString()}</span>
               </div>
-              <div className="relative bg-muted rounded-lg overflow-hidden max-h-[70vh] flex items-center justify-center">
+              <div className="relative bg-muted rounded-lg overflow-hidden max-h-[60vh] sm:max-h-[70vh] flex items-center justify-center">
                 {previewMedia.fileType === "image" ? (
                   <img 
                     src={`/api/media/${previewMedia.id}`}
