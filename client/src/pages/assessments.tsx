@@ -10,7 +10,8 @@ import {
   Edit,
   Calendar,
   MapPin,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,9 +20,14 @@ import type { Assessment } from "@shared/schema";
 export default function Assessments() {
   const { user } = useAuth();
   
-  const { data: assessments = [], isLoading } = useQuery({
+  const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
   });
+
+  // Filter to show only completed assessments (exclude drafts)
+  const assessments = allAssessments.filter((assessment: Assessment) => 
+    assessment.status === "completed"
+  );
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading assessments...</div>;
@@ -33,9 +39,9 @@ export default function Assessments() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">All Assessments</h1>
+            <h1 className="text-3xl font-bold text-foreground">Completed Assessments</h1>
             <p className="text-muted-foreground mt-2">
-              Manage and view all building assessments
+              View and manage all completed building assessments
             </p>
           </div>
           {(user?.role === "admin" || user?.role === "assessor") && (
@@ -136,21 +142,29 @@ export default function Assessments() {
         ) : (
           <div className="text-center py-12">
             <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No assessments found</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No completed assessments</h3>
             <p className="text-muted-foreground mb-6">
               {user?.role === "client" 
-                ? "No assessments have been created for your account yet."
-                : "Get started by creating your first building assessment."
+                ? "No completed assessments are available for your account yet."
+                : "Complete assessments from your drafts to see them here, or create new assessments."
               }
             </p>
-            {(user?.role === "admin" || user?.role === "assessor") && (
-              <Button asChild>
-                <Link href="/assessments/select-client">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Assessment
+            <div className="flex gap-4 justify-center">
+              <Button variant="outline" asChild>
+                <Link href="/drafts">
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Drafts
                 </Link>
               </Button>
-            )}
+              {(user?.role === "admin" || user?.role === "assessor") && (
+                <Button asChild>
+                  <Link href="/assessments/select-client">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Assessment
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
