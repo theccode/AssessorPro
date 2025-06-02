@@ -68,8 +68,8 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "lowEmittingVehicles", name: "Low Emitting Vehicles", maxScore: 2 },
   ],
   "innovation": [
-    { id: "innovativeTechnologies", name: "Innovative Technologies", maxScore: 11 },
-    { id: "sustainableProducts", name: "Sustainable Products", maxScore: 3 },
-    { id: "ecoFriendlyDesigns", name: "Eco-Friendly Designs", maxScore: 7 },
+    { id: "innovativeTechnologies", name: "Innovative Technologies", maxScore: 2, requiresVideos: true },
+    { id: "innovativeMaterialsProducts", name: "Innovative Materials & Products", maxScore: 2, requiresImages: true },
+    { id: "innovativeDesign", name: "Innovative Design", maxScore: 4, requiresImages: true },
   ],
 };
