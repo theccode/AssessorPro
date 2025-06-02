@@ -196,11 +196,11 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
       <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
+            <div className="flex items-center min-w-0 flex-1">
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto flex-shrink-0" />
+              <span className="ml-3 text-lg lg:text-xl font-medium text-foreground truncate">GREDA-GBC Assessor Pro</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               {(user?.role === "admin" || user?.role === "assessor") && (
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/assessments/${assessmentId}/edit`}>
@@ -230,7 +230,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
           <Link href="/" className="hover:text-primary">Dashboard</Link>
@@ -242,12 +242,12 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
         {/* Header with Score and Rating */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2 truncate">
                 {(assessment as any).buildingName || "GREDA-GBC Assessment"}
               </h1>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <Badge variant={(assessment as any).status === "completed" ? "default" : "secondary"}>
                   {(assessment as any).status}
                 </Badge>
