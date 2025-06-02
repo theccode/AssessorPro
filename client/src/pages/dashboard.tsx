@@ -48,8 +48,8 @@ export default function Dashboard() {
     onSuccess: () => {
       // Clear all cached data
       queryClient.clear();
-      // Redirect to home page
-      window.location.href = "/";
+      // Force a full page reload to ensure clean state
+      window.location.replace("/");
     },
   });
 
