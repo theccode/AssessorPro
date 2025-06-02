@@ -8,10 +8,12 @@ import { Building, Edit, Download, Check, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
   const [, navigate] = useLocation();
   const assessmentId = parseInt(params.id);
+  const { user } = useAuth();
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", assessmentId],
@@ -42,20 +44,20 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   
   console.log("Calculated scores:", { totalScore, maxScore, calculatedPercentage });
 
-  const getStarRating = (percentage: number) => {
-    if (percentage >= 91) return 5;
-    if (percentage >= 76) return 4;
-    if (percentage >= 51) return 3;
-    if (percentage >= 26) return 2;
-    return 1;
+  const getStarRating = (totalPoints: number) => {
+    if (totalPoints >= 106) return 5; // Diamond
+    if (totalPoints >= 80) return 4;  // 4 Star
+    if (totalPoints >= 60) return 3;  // 3 Star
+    if (totalPoints >= 45) return 2;  // 2 Star
+    return 1; // Below certification threshold
   };
 
-  const getPerformanceLevel = (percentage: number) => {
-    if (percentage >= 91) return "Excellent Performance";
-    if (percentage >= 76) return "Good Performance";
-    if (percentage >= 51) return "Average Performance";
-    if (percentage >= 26) return "Below Average";
-    return "Needs Improvement";
+  const getPerformanceLevel = (totalPoints: number) => {
+    if (totalPoints >= 106) return "Diamond Certification";
+    if (totalPoints >= 80) return "4 Star Certification";
+    if (totalPoints >= 60) return "3 Star Certification";
+    if (totalPoints >= 45) return "2 Star Certification";
+    return "Below Certification Threshold";
   };
 
   return (
@@ -100,7 +102,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                   </div>
                   <div>
                     <div className="text-sm text-white/70">Conducted By</div>
-                    <div className="font-medium text-white">{assessmentData.publisherName || "Assessment Team"}</div>
+                    <div className="font-medium text-white">
+                      {user?.firstName && user?.lastName 
+                        ? `${user.firstName} ${user.lastName}` 
+                        : user?.email || "Assessment Team"}
+                    </div>
                     <div className="text-xs text-white/60">Professional Assessor</div>
                   </div>
                   <div>
@@ -118,8 +124,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                   strokeWidth={10}
                   className="mb-4 mx-auto"
                 />
+                <div className="text-3xl font-bold text-white mb-2">
+                  {totalScore}/130 Points
+                </div>
                 <div className="text-lg font-medium text-white">
-                  {getPerformanceLevel(calculatedPercentage)}
+                  {getPerformanceLevel(totalScore)}
                 </div>
                 <div className="flex justify-center mt-2">
                   <div className="flex space-x-1">
@@ -127,7 +136,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                       <span
                         key={i}
                         className={`text-lg ${
-                          i < getStarRating(calculatedPercentage) ? "text-accent" : "text-gray-300"
+                          i < getStarRating(totalScore) ? "text-accent" : "text-gray-300"
                         }`}
                       >
                         ★
