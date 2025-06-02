@@ -290,7 +290,7 @@ export default function Dashboard() {
                 {assessments.map((assessment: Assessment) => (
                   <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                      <h3 className="font-medium text-white">
                         {assessment.buildingName || "Untitled Assessment"}
                       </h3>
                       <p className="text-sm text-gray-700 dark:text-gray-300">{assessment.buildingLocation}</p>
