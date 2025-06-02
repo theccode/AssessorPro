@@ -562,13 +562,17 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               const rowIndex = index + 3; // Account for headers (starts at row 3)
               const cellAddress = `G${rowIndex}`;
               const authenticatedFileUrl = `${window.location.origin}/api/media/serve/${media.id}`;
-              const variableName = formatVariableName(media.fieldName || 'File');
+              const linkDisplayText = `🔗 Open ${media.fileName}`;
               
-              // Set the cell as a hyperlink
+              // Set the cell as a hyperlink with proper styling
               mediaSheet[cellAddress] = {
                 t: 's',
-                v: variableName,
-                l: { Target: authenticatedFileUrl, Tooltip: `Download ${media.fileName}` }
+                v: linkDisplayText,
+                l: { Target: authenticatedFileUrl, Tooltip: `Click to download ${media.fileName}` },
+                s: {
+                  font: { color: { rgb: "0000FF" }, underline: true },
+                  alignment: { horizontal: "left" }
+                }
               };
             }
           });
