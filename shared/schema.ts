@@ -55,6 +55,9 @@ export const assessments = pgTable("assessments", {
   userId: varchar("user_id").notNull().references(() => users.id), // assessor who created it
   clientId: varchar("client_id").notNull().references(() => users.id), // client who owns the assessment
   status: varchar("status").notNull().default("draft"), // draft, completed, submitted
+  isLocked: boolean("is_locked").default(false), // locked assessments cannot be edited
+  lockedBy: varchar("locked_by").references(() => users.id), // admin who locked the assessment
+  lockedAt: timestamp("locked_at"), // when the assessment was locked
   buildingName: text("building_name"),
   clientName: text("client_name"),
   buildingLocation: text("building_location"),

@@ -522,7 +522,20 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      const updated = await storage.updateAssessment(existing.id, req.body);
+      // Check if assessment is locked and user is not admin
+      if (existing.isLocked && req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Assessment is locked and cannot be edited. Contact an administrator to unlock it." });
+      }
+
+      // Auto-lock when status changes to submitted
+      const updateData = { ...req.body };
+      if (updateData.status === 'submitted' && existing.status !== 'submitted') {
+        updateData.isLocked = true;
+        updateData.lockedBy = userId;
+        updateData.lockedAt = new Date();
+      }
+
+      const updated = await storage.updateAssessment(existing.id, updateData);
       res.json(updated);
     } catch (error) {
       console.error("Error updating assessment:", error);
@@ -559,6 +572,11 @@ For security reasons, we recommend using a strong, unique password and not shari
       const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment || assessment.userId !== userId) {
         return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check if assessment is locked and user is not admin
+      if (assessment.isLocked && req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Assessment is locked and cannot be edited. Contact an administrator to unlock it." });
       }
 
       const data = insertAssessmentSectionSchema.parse({ ...req.body, assessmentId: assessment.id });
@@ -824,6 +842,70 @@ For security reasons, we recommend using a strong, unique password and not shari
     } catch (error) {
       console.error("Error deleting media:", error);
       res.status(500).json({ message: "Failed to delete media" });
+    }
+  });
+
+  // Assessment lock/unlock routes (admin only)
+  app.post('/api/assessments/:id/lock', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can lock assessments" });
+      }
+      
+      const assessment = await storage.getAssessment(id);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      if (assessment.isLocked) {
+        return res.status(400).json({ message: "Assessment is already locked" });
+      }
+      
+      const updated = await storage.updateAssessment(id, {
+        isLocked: true,
+        lockedBy: userId,
+        lockedAt: new Date(),
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error locking assessment:", error);
+      res.status(500).json({ message: "Failed to lock assessment" });
+    }
+  });
+
+  app.post('/api/assessments/:id/unlock', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can unlock assessments" });
+      }
+      
+      const assessment = await storage.getAssessment(id);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      if (!assessment.isLocked) {
+        return res.status(400).json({ message: "Assessment is not locked" });
+      }
+      
+      const updated = await storage.updateAssessment(id, {
+        isLocked: false,
+        lockedBy: null,
+        lockedAt: null,
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error unlocking assessment:", error);
+      res.status(500).json({ message: "Failed to unlock assessment" });
     }
   });
 
