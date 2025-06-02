@@ -38,22 +38,22 @@ export default function Reports() {
   const completedAssessments = filteredAssessments.filter((a: any) => a.status === "completed");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+      <div className="bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <img src={gredaLogo} alt="GREDA-GBC" className="h-10 w-auto" />
+              <img src={gredaLogo} alt="GREDA-GBC" className="h-12 w-auto" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Assessment Reports</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <h1 className="text-2xl font-bold text-white">Assessment Reports</h1>
+                <p className="text-sm text-green-100">
                   {user?.role === "client" ? "Your building assessment reports" : "All assessment reports"}
                 </p>
               </div>
             </div>
             <Link to="/">
-              <Button variant="outline">
+              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
                 Back to Dashboard
               </Button>
             </Link>
@@ -64,23 +64,23 @@ export default function Reports() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-green-100">Total Reports</CardTitle>
+              <FileText className="h-4 w-4 text-green-200" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedAssessments.length}</div>
+              <div className="text-2xl font-bold text-white">{completedAssessments.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 text-white border-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-emerald-100">Average Score</CardTitle>
+              <Star className="h-4 w-4 text-emerald-200" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {completedAssessments.length > 0
                   ? Math.round(
                       completedAssessments.reduce((sum: number, a: any) => sum + (a.overallScore || 0), 0) /
@@ -91,13 +91,13 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white border-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-green-100">This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-green-200" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-white">
                 {completedAssessments.filter((a: any) => {
                   const assessmentDate = new Date(a.conductedAt || a.createdAt);
                   const now = new Date();
@@ -135,7 +135,7 @@ export default function Reports() {
                 {completedAssessments.map((assessment: any) => (
                   <div
                     key={assessment.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
