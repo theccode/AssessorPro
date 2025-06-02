@@ -117,6 +117,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
             await saveSectionMutation.mutateAsync(sectionToSave);
           }
         }
+        // Set saving to false after successful save
+        setIsSaving(false);
       } catch (error) {
         console.error('Auto-save failed:', error);
         setIsSaving(false);
