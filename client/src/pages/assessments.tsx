@@ -94,7 +94,7 @@ export default function Assessments() {
       const buildingInfo = [
         `Building Name: ${assessmentData.buildingName || 'Not specified'}`,
         `Location: ${assessmentData.buildingLocation || assessmentData.detailedAddress || 'Not specified'}`,
-        `Publisher: ${assessmentData.publisherName || 'Not specified'}`,
+        `Client: ${assessmentData.clientName || 'Not specified'}`,
         `Phone: ${assessmentData.phoneNumber || 'Not specified'}`,
         `Digital Address: ${assessmentData.digitalAddress || 'Not specified'}`,
         `Status: ${assessmentData.status}`,
