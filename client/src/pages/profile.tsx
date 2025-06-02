@@ -87,9 +87,17 @@ export default function Profile() {
       });
     },
     onError: (error) => {
+      let description = "Please try again or contact support if the problem persists.";
+      
+      if (error.message.includes("Current password is incorrect")) {
+        description = "The current password you entered is incorrect. Please check and try again.";
+      } else if (error.message.includes("400")) {
+        description = "Please check your current password and try again.";
+      }
+      
       toast({ 
         title: "Failed to reset password", 
-        description: error.message,
+        description,
         variant: "destructive" 
       });
     }
