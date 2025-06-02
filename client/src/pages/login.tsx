@@ -49,7 +49,14 @@ export default function Login() {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      // Check if the server wants us to redirect to a different domain
+      if (data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
+      
+      // Otherwise, navigate to dashboard and refresh
       setLocation("/");
       window.location.reload(); // Refresh to update auth state
     },

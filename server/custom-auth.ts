@@ -94,8 +94,37 @@ export function setupCustomAuth(app: Express) {
           return res.status(500).json({ message: "Session error" });
         }
         
+        // Get domain configuration for role-based redirection
+        const getDomainForRole = (role: string): string => {
+          switch (role) {
+            case 'admin':
+              return 'www.assessorpro.app';
+            case 'assessor':
+              return 'assessor.portal.assessorpro.app';
+            case 'client':
+              return 'client.portal.assessorpro.app';
+            default:
+              return 'www.assessorpro.app';
+          }
+        };
+
+        const targetDomain = getDomainForRole(user.role);
+        const currentDomain = req.hostname;
+
         // Return user data (without password hash)
         const { passwordHash, ...userResponse } = user;
+        
+        // If user is not on their correct domain, include redirect URL
+        if (currentDomain !== targetDomain) {
+          const protocol = req.secure ? 'https' : 'http';
+          const redirectUrl = `${protocol}://${targetDomain}`;
+          
+          return res.json({
+            ...userResponse,
+            redirect: redirectUrl
+          });
+        }
+
         res.json(userResponse);
       });
     } catch (error) {
