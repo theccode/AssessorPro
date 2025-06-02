@@ -2,20 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Building, 
-  ArrowLeft, 
   Plus, 
-  Eye,
+  Eye, 
   Edit,
   Calendar,
-  BarChart3,
-  Star
+  MapPin,
+  TrendingUp
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
-import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function Assessments() {
   const { user } = useAuth();
@@ -28,143 +27,130 @@ export default function Assessments() {
     return <div className="min-h-screen flex items-center justify-center">Loading assessments...</div>;
   }
 
-  const canCreateAssessments = (user as any)?.role === "admin" || (user as any)?.role === "assessor";
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {canCreateAssessments && (
-                <Button asChild>
-                  <Link href="/assessments/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Assessment
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" asChild>
-                <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Assessments</h1>
-          <p className="text-muted-foreground">
-            {canCreateAssessments 
-              ? "Manage and view all building assessments" 
-              : "View available assessment reports"
-            }
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">All Assessments</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage and view all building assessments
+            </p>
+          </div>
+          {(user?.role === "admin" || user?.role === "assessor") && (
+            <Button asChild>
+              <Link href="/assessments/select-client">
+                <Plus className="h-4 w-4 mr-2" />
+                New Assessment
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Assessments Grid */}
-        {(assessments as any[]).length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Building className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No Assessments Found</h3>
-              <p className="text-muted-foreground text-center mb-6">
-                {canCreateAssessments 
-                  ? "Get started by creating your first building assessment."
-                  : "No assessments are available for viewing at this time."
-                }
-              </p>
-              {canCreateAssessments && (
-                <Button asChild>
-                  <Link href="/assessments/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Assessment
-                  </Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
+        {assessments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(assessments as any[]).map((assessment: any) => (
+            {(assessments as Assessment[]).map((assessment) => (
               <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg mb-2">
-                        {assessment.buildingName || `Assessment #${assessment.id}`}
+                    <div className="flex-1">
+                      <CardTitle className="text-lg flex items-center">
+                        <Building className="h-5 w-5 mr-2 text-primary" />
+                        {assessment.buildingName || "Unnamed Building"}
                       </CardTitle>
-                      <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
-                        {assessment.status}
-                      </Badge>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-primary">
-                        {Math.round(assessment.overallScore || 0)}
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {assessment.buildingLocation || "Location not specified"}
                       </div>
-                      <div className="text-xs text-muted-foreground">/ 130</div>
                     </div>
+                    <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
+                      {assessment.status}
+                    </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {assessment.buildingLocation && (
-                      <div className="text-sm text-muted-foreground truncate">
-                        📍 {assessment.buildingLocation}
+                <CardContent className="space-y-4">
+                  {/* Score and Progress */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Overall Score</span>
+                      <span className="text-sm font-bold text-primary">
+                        {Math.round(assessment.overallScore || 0)}/130
+                      </span>
+                    </div>
+                    <Progress 
+                      value={((assessment.overallScore || 0) / 130) * 100} 
+                      className="h-2"
+                    />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Performance: {Math.round(((assessment.overallScore || 0) / 130) * 100)}%</span>
+                      <TrendingUp className="h-3 w-3" />
+                    </div>
+                  </div>
+
+                  {/* Assessment Info */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Created</span>
+                      <span className="flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {new Date(assessment.createdAt || "").toLocaleDateString()}
+                      </span>
+                    </div>
+                    {assessment.assessorName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Assessor</span>
+                        <span>{assessment.assessorName}</span>
                       </div>
                     )}
-                    
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {new Date(assessment.createdAt).toLocaleDateString()}
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Performance: {Math.round((assessment.overallScore || 0) / 130 * 100)}%
-                    </div>
+                    {assessment.clientName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Client</span>
+                        <span>{assessment.clientName}</span>
+                      </div>
+                    )}
+                  </div>
 
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor((assessment.overallScore || 0) / 26)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                      <span className="ml-2 text-sm text-muted-foreground">GREDA Rating</span>
-                    </div>
-
-                    <div className="flex space-x-2 pt-4">
-                      <Button variant="outline" size="sm" asChild className="flex-1">
-                        <Link href={`/assessments/${assessment.publicId}/preview`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
+                  {/* Action Buttons */}
+                  <div className="flex space-x-2 pt-2">
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
+                      <Link href={`/assessment/${assessment.id}`}>
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </Link>
+                    </Button>
+                    {(user?.role === "admin" || user?.role === "assessor") && (
+                      <Button variant="outline" size="sm" className="flex-1" asChild>
+                        <Link href={`/assessments/${assessment.id}/edit`}>
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
                         </Link>
                       </Button>
-                      {canCreateAssessments && assessment.status !== "completed" && (
-                        <Button variant="outline" size="sm" asChild className="flex-1">
-                          <Link href={`/assessments/${assessment.publicId}/edit`}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">No assessments found</h3>
+            <p className="text-muted-foreground mb-6">
+              {user?.role === "client" 
+                ? "No assessments have been created for your account yet."
+                : "Get started by creating your first building assessment."
+              }
+            </p>
+            {(user?.role === "admin" || user?.role === "assessor") && (
+              <Button asChild>
+                <Link href="/assessments/select-client">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Assessment
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </div>
