@@ -57,6 +57,7 @@ export interface IStorage {
   getAssessmentByPublicId(publicId: string): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getUserAssessments(userId: string): Promise<Assessment[]>;
+  getClientAssessments(clientId: string): Promise<Assessment[]>;
   updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment>;
   deleteAssessment(id: number): Promise<void>;
 
@@ -142,6 +143,12 @@ class MemoryStorage implements IStorage {
   async getUserAssessments(userId: string): Promise<Assessment[]> {
     return Array.from(this.assessments.values())
       .filter(a => a.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+  }
+
+  async getClientAssessments(clientId: string): Promise<Assessment[]> {
+    return Array.from(this.assessments.values())
+      .filter(a => a.clientId === clientId)
       .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
   }
 
@@ -500,6 +507,14 @@ export class DatabaseStorage implements IStorage {
     const { assessments } = await import("@shared/schema");
     
     return await db.select().from(assessments).where(eq(assessments.userId, userId));
+  }
+
+  async getClientAssessments(clientId: string): Promise<Assessment[]> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    return await db.select().from(assessments).where(eq(assessments.clientId, clientId));
   }
 
   async updateAssessment(id: number, data: Partial<Assessment>): Promise<Assessment> {

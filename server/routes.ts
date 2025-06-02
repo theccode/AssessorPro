@@ -137,8 +137,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/assessments', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const assessments = await storage.getUserAssessments(userId);
-      res.json(assessments);
+      // Get both assessments where user is the assessor and where user is the client
+      const assessorAssessments = await storage.getUserAssessments(userId);
+      const clientAssessments = await storage.getClientAssessments(userId);
+      
+      // Combine and remove duplicates (in case user is both assessor and client)
+      const allAssessments = [...assessorAssessments, ...clientAssessments];
+      const uniqueAssessments = allAssessments.filter((assessment, index, self) => 
+        index === self.findIndex(a => a.id === assessment.id)
+      );
+      
+      res.json(uniqueAssessments);
     } catch (error) {
       console.error("Error fetching assessments:", error);
       res.status(500).json({ message: "Failed to fetch assessments" });
@@ -357,13 +366,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       console.log(`Serving media ${mediaId} for user ${userId}`);
       
-      // Get all user assessments to find the media
-      const allAssessments = await storage.getUserAssessments(userId);
+      // Get assessments where user is either the assessor (userId) or the client (clientId)
+      const assessorAssessments = await storage.getUserAssessments(userId);
+      const clientAssessments = await storage.getClientAssessments(userId);
+      const allAccessibleAssessments = [...assessorAssessments, ...clientAssessments];
+      
       let targetMedia = null;
       
-      console.log(`Found ${allAssessments.length} assessments for user`);
+      console.log(`Found ${allAccessibleAssessments.length} accessible assessments for user`);
       
-      for (const assessment of allAssessments) {
+      for (const assessment of allAccessibleAssessments) {
         const media = await storage.getAssessmentMedia(assessment.id);
         console.log(`Assessment ${assessment.id} has ${media.length} media files`);
         targetMedia = media.find(m => m.id === mediaId);
