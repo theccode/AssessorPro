@@ -127,8 +127,8 @@ export default function Login() {
 
         {/* Right Side - Login Form */}
         <div className="flex justify-center">
-          <Card className="w-full max-w-md shadow-2xl border-0">
-            <CardHeader className="text-center pb-6">
+          <Card className="w-full max-w-md shadow-2xl border-0 bg-white dark:bg-gray-800">
+            <CardHeader className="text-center pb-6 bg-white dark:bg-gray-800">
               <div className="lg:hidden mb-4">
                 <img 
                   src={gredaLogo} 
@@ -143,7 +143,7 @@ export default function Login() {
                 Sign in to access your assessment dashboard
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-white dark:bg-gray-800">
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
@@ -154,7 +154,7 @@ export default function Login() {
                     type="email"
                     placeholder="Enter your email"
                     {...form.register("email")}
-                    className="h-11"
+                    className="h-11 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                   {form.formState.errors.email && (
                     <p className="text-sm text-red-600 dark:text-red-400">
@@ -172,7 +172,7 @@ export default function Login() {
                     type="password"
                     placeholder="Enter your password"
                     {...form.register("password")}
-                    className="h-11"
+                    className="h-11 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                   {form.formState.errors.password && (
                     <p className="text-sm text-red-600 dark:text-red-400">
