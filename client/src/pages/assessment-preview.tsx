@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,15 +9,37 @@ import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
   const [, navigate] = useLocation();
   const publicId = params.id; // Now using UUID instead of integer
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", publicId],
   });
+
+  // Submit assessment mutation
+  const submitAssessmentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/assessments/${publicId}`, "PATCH", { 
+        status: "completed",
+        conductedAt: new Date()
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/assessments/${publicId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      // Stay on preview page after successful submission
+    },
+  });
+
+  const handleSubmitAssessment = () => {
+    submitAssessmentMutation.mutate();
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -214,9 +236,14 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
-          <Button size="lg">
+          <Button 
+            size="lg" 
+            onClick={handleSubmitAssessment}
+            disabled={submitAssessmentMutation.isPending}
+            className="bg-green-600 hover:bg-green-700"
+          >
             <Check className="h-4 w-4 mr-2" />
-            Submit Assessment
+            {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
           </Button>
         </div>
       </div>
