@@ -25,9 +25,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     return <div className="min-h-screen flex items-center justify-center">Assessment not found</div>;
   }
 
-  const overallPercentage = assessment.maxPossibleScore > 0 
-    ? (assessment.overallScore / assessment.maxPossibleScore) * 100 
-    : 0;
+  // Get data from assessment object with proper fallbacks
+  const assessmentData = assessment as any;
+  const totalScore = assessmentData.overallScore || 0;
+  const maxScore = assessmentData.maxPossibleScore || 1;
+  const calculatedPercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
 
   const getStarRating = (percentage: number) => {
     if (percentage >= 91) return 5;
@@ -74,39 +76,39 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
               <div className="lg:col-span-2">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {assessment.buildingName || "Untitled Assessment"}
+                  {assessmentData.buildingName || "Building Assessment"}
                 </h2>
-                <p className="text-gray-600 mb-4">{assessment.buildingLocation}</p>
+                <p className="text-gray-600 mb-4">{assessmentData.buildingLocation || assessmentData.detailedAddress}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <div className="text-sm text-gray-500">Conducted Date</div>
                     <div className="font-medium">
-                      {assessment.conductedAt ? new Date(assessment.conductedAt).toLocaleDateString() : "Not specified"}
+                      {assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : "Not specified"}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Conducted By</div>
-                    <div className="font-medium">{assessment.assessorName || "Unknown"}</div>
-                    <div className="text-xs text-gray-400 capitalize">{assessment.assessorRole}</div>
+                    <div className="font-medium">{assessmentData.publisherName || "Assessment Team"}</div>
+                    <div className="text-xs text-gray-400">Professional Assessor</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Status</div>
-                    <div className="font-medium capitalize">{assessment.status}</div>
+                    <div className="font-medium capitalize">{assessmentData.status || "Completed"}</div>
                   </div>
                 </div>
               </div>
               
               <div className="text-center">
                 <ProgressRing
-                  value={overallPercentage}
+                  value={calculatedPercentage}
                   max={100}
                   size={160}
                   strokeWidth={10}
                   className="mb-4 mx-auto"
                 />
                 <div className="text-lg font-medium text-gray-900">
-                  {getPerformanceLevel(overallPercentage)}
+                  {getPerformanceLevel(calculatedPercentage)}
                 </div>
                 <div className="flex justify-center mt-2">
                   <div className="flex space-x-1">
@@ -114,7 +116,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                       <span
                         key={i}
                         className={`text-lg ${
-                          i < getStarRating(overallPercentage) ? "text-accent" : "text-gray-300"
+                          i < getStarRating(calculatedPercentage) ? "text-accent" : "text-gray-300"
                         }`}
                       >
                         ★
