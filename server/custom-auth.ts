@@ -2,6 +2,9 @@ import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import type { Express, RequestHandler } from "express";
 import { z } from "zod";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -37,6 +40,27 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 // Setup custom authentication routes
 export function setupCustomAuth(app: Express) {
+  // Configure session middleware
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    pool: pool,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
+
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'default-secret-key-for-dev',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true in production with HTTPS
+      maxAge: sessionTtl,
+    },
+  }));
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -71,6 +95,12 @@ export function setupCustomAuth(app: Express) {
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
       // Set session
+      console.log("Session object:", req.session ? "exists" : "undefined");
+      if (!req.session) {
+        console.error("Session object is undefined");
+        return res.status(500).json({ message: "Session not initialized" });
+      }
+
       req.session.customUserId = user.id;
       req.session.save((err) => {
         if (err) {
@@ -78,6 +108,7 @@ export function setupCustomAuth(app: Express) {
           return res.status(500).json({ message: "Session error" });
         }
         
+        console.log("Login successful for user:", user.email);
         // Return user data (without password hash)
         const { passwordHash, ...userResponse } = user;
         res.json(userResponse);
