@@ -62,6 +62,16 @@ export const assessments = pgTable("assessments", {
   detailedAddress: text("detailed_address"), // Keep for backward compatibility
   phoneNumber: varchar("phone_number"),
   additionalNotes: text("additional_notes"),
+  // Building specifications
+  buildingFootprint: real("building_footprint"), // in m²
+  roomHeight: real("room_height"), // in m
+  numberOfBedrooms: integer("number_of_bedrooms"),
+  siteArea: real("site_area"), // in m²
+  numberOfWindows: integer("number_of_windows"),
+  numberOfDoors: integer("number_of_doors"),
+  averageWindowSize: real("average_window_size"), // in m²
+  numberOfFloors: integer("number_of_floors"),
+  totalGreenArea: real("total_green_area"), // in m²
   overallScore: real("overall_score").default(0),
   maxPossibleScore: real("max_possible_score").default(0),
   completedSections: integer("completed_sections").default(0),
