@@ -26,7 +26,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     mutationFn: async () => {
       const response = await apiRequest(`/api/assessments/${publicId}`, "PATCH", { 
         status: "completed",
-        conductedAt: new Date()
+        conductedAt: new Date().toISOString()
       });
       return response.json();
     },
@@ -101,7 +101,20 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Assessment Preview</h1>
-          <p className="text-gray-600">Review your building assessment before final submission</p>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+              assessmentData.status === 'completed' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              {assessmentData.status === 'completed' ? '✓ Submitted' : 'Draft'}
+            </div>
+          </div>
+          <p className="text-gray-600">
+            {assessmentData.status === 'completed' 
+              ? 'This assessment has been successfully submitted' 
+              : 'Review your building assessment before final submission'}
+          </p>
         </div>
 
         {/* Overall Score Card */}
@@ -236,15 +249,17 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
-          <Button 
-            size="lg" 
-            onClick={handleSubmitAssessment}
-            disabled={submitAssessmentMutation.isPending}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
-          </Button>
+          {assessmentData.status !== 'completed' && (
+            <Button 
+              size="lg" 
+              onClick={handleSubmitAssessment}
+              disabled={submitAssessmentMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
