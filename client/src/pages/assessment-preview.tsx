@@ -536,13 +536,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
             const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
             
-            // Create direct download link
-            let fileLink = 'File not available';
-            
-            if (media.filePath) {
-              const fullFileUrl = `${window.location.origin}/uploads/${media.filePath}`;
-              fileLink = fullFileUrl;
-            }
+            // Just add the variable name for now, we'll add hyperlinks after sheet creation
+            const linkText = media.filePath ? variableName : 'File not available';
 
             mediaFilesData.push([
               sectionName,
@@ -551,7 +546,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               media.fileType || 'Unknown',
               fileSize,
               uploadDate,
-              fileLink
+              linkText
             ]);
           }
         } else {
@@ -559,7 +554,27 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         }
 
         const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
-        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 50 }];
+        
+        // Add hyperlinks to the File Access URL column (column G)
+        if (mediaData && mediaData.length > 0) {
+          mediaData.forEach((media: any, index: number) => {
+            if (media.filePath) {
+              const rowIndex = index + 3; // Account for headers (starts at row 3)
+              const cellAddress = `G${rowIndex}`;
+              const fullFileUrl = `${window.location.origin}/uploads/${media.filePath}`;
+              const variableName = formatVariableName(media.fieldName || 'File');
+              
+              // Set the cell as a hyperlink
+              mediaSheet[cellAddress] = {
+                t: 's',
+                v: variableName,
+                l: { Target: fullFileUrl, Tooltip: `Download ${media.fileName}` }
+              };
+            }
+          });
+        }
+        
+        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }, { width: 30 }];
         XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
       } catch (error) {
         console.warn('Could not load media for Excel export:', error);
