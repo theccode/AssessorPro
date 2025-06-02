@@ -666,8 +666,15 @@ export default function Assessments() {
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/">Dashboard</Link>
               </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/api/logout">Logout</Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={async () => {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  window.location.href = "/";
+                }}
+              >
+                Logout
               </Button>
             </div>
           </div>
