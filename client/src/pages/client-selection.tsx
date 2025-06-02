@@ -36,7 +36,7 @@ export default function ClientSelection() {
     },
     onSuccess: (assessment) => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
-      setLocation(`/assessments/new?id=${assessment.id}`);
+      setLocation(`/assessments/${assessment.id}/edit`);
     },
     onError: (error) => {
       toast({
