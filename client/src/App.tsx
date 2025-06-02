@@ -11,6 +11,7 @@ import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
 import AssessmentDetail from "@/pages/assessment-detail";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AssessorDashboard from "@/pages/assessor-dashboard";
 import ClientSelection from "@/pages/client-selection";
 import Drafts from "@/pages/drafts";
 import Reports from "@/pages/reports";
@@ -38,6 +39,9 @@ function Router() {
           <Route path="/reports" component={Reports} />
           {user?.role === "admin" && (
             <Route path="/admin" component={AdminDashboard} />
+          )}
+          {user?.role === "assessor" && (
+            <Route path="/assessor" component={AssessorDashboard} />
           )}
         </>
       )}

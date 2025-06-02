@@ -56,7 +56,7 @@ export default function AssessorDashboard() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Assessor Dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Welcome back, {user?.firstName || user?.email}! View assessment analytics and insights.
+            Welcome back, {user?.firstName || user?.email}! Create assessments, manage reports, and view analytics.
           </p>
         </div>
         <div className="flex gap-2">
@@ -66,13 +66,277 @@ export default function AssessorDashboard() {
               Back to Dashboard
             </Link>
           </Button>
+          <Button asChild>
+            <Link href="/assessments/select-client">
+              <Plus className="w-4 h-4 mr-2" />
+              New Assessment
+            </Link>
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="analytics" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-1">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="assessments">Assessments</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          {/* Key Metrics */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Assessments</CardTitle>
+                <ClipboardList className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{totalAssessments}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{completedAssessments}</div>
+                <p className="text-xs text-muted-foreground">Ready for review</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">In Progress</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{inProgressAssessments}</div>
+                <p className="text-xs text-muted-foreground">Active assessments</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Drafts</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{draftAssessments}</div>
+                <p className="text-xs text-muted-foreground">Saved drafts</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks for efficient workflow</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Button asChild className="h-auto p-4">
+                  <Link href="/assessments/select-client">
+                    <div className="flex flex-col items-center gap-2">
+                      <Plus className="h-6 w-6" />
+                      <span>New Assessment</span>
+                    </div>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-auto p-4">
+                  <Link href="/drafts">
+                    <div className="flex flex-col items-center gap-2">
+                      <FileText className="h-6 w-6" />
+                      <span>View Drafts</span>
+                    </div>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-auto p-4">
+                  <Link href="/reports">
+                    <div className="flex flex-col items-center gap-2">
+                      <BarChart3 className="h-6 w-6" />
+                      <span>View Reports</span>
+                    </div>
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Assessments */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Assessments</CardTitle>
+              <CardDescription>Your latest assessment activity</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {assessmentsLoading ? (
+                <div className="text-center py-4">Loading assessments...</div>
+              ) : recentAssessments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No assessments yet. Create your first assessment to get started.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentAssessments.map((assessment: any) => (
+                    <div key={assessment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">{assessment.buildingName || "Unnamed Building"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Updated {new Date(assessment.updatedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(assessment.status)}>
+                          {assessment.status.replace('_', ' ')}
+                        </Badge>
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/assessments/${assessment.id}/preview`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="assessments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assessment Management</CardTitle>
+              <CardDescription>Create, view, and manage all your building assessments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button asChild>
+                    <Link href="/assessments/select-client">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New Assessment
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/drafts">
+                      <FileText className="w-4 h-4 mr-2" />
+                      View Draft Assessments
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Assessment List */}
+                {assessmentsLoading ? (
+                  <div className="text-center py-8">Loading assessments...</div>
+                ) : assessments.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ClipboardList className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>No assessments found</p>
+                    <p className="text-sm">Create your first assessment to get started</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {assessments.map((assessment: any) => (
+                      <Card key={assessment.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base">{assessment.buildingName || "Unnamed Building"}</CardTitle>
+                            <Badge className={getStatusColor(assessment.status)}>
+                              {assessment.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="text-sm text-muted-foreground">
+                            <p>Publisher: {assessment.publisherName || "Not specified"}</p>
+                            <p>Updated: {new Date(assessment.updatedAt).toLocaleDateString()}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/assessments/${assessment.id}/preview`}>
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Link>
+                            </Button>
+                            {assessment.status !== "completed" && (
+                              <Button size="sm" asChild>
+                                <Link href={`/assessments/${assessment.id}/edit`}>
+                                  Edit
+                                </Link>
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports & Downloads</CardTitle>
+              <CardDescription>View and download assessment reports and documentation</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button asChild>
+                  <Link href="/reports">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View All Reports
+                  </Link>
+                </Button>
+
+                {/* Completed Assessments Available for Reports */}
+                <div className="space-y-3">
+                  <h4 className="font-medium text-foreground">Available Reports</h4>
+                  {assessments.filter((a: any) => a.status === "completed").length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>No completed assessments available for reports</p>
+                      <p className="text-sm">Complete assessments to generate reports</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {assessments
+                        .filter((a: any) => a.status === "completed")
+                        .slice(0, 5)
+                        .map((assessment: any) => (
+                          <div key={assessment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <p className="font-medium text-foreground">{assessment.buildingName || "Unnamed Building"}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Completed: {new Date(assessment.updatedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" asChild>
+                                <Link href={`/assessments/${assessment.id}/preview`}>
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Link>
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <Download className="w-4 h-4 mr-1" />
+                                PDF
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
 
 
