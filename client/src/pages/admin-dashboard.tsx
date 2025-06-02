@@ -288,29 +288,33 @@ export default function AdminDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="createTier">Subscription Tier</Label>
-                  <Select value={createUserForm.subscriptionTier} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, subscriptionTier: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="basic">Basic</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
-                      <SelectItem value="enterprise">Enterprise</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="createOrganization">Building Name (Optional)</Label>
-                  <Input
-                    id="createOrganization"
-                    placeholder="Building or Organization Name"
-                    value={createUserForm.organizationName}
-                    onChange={(e) => setCreateUserForm({ ...createUserForm, organizationName: e.target.value })}
-                  />
-                </div>
+                {createUserForm.role === "client" && (
+                  <>
+                    <div className="grid gap-2">
+                      <Label htmlFor="createTier">Subscription Tier</Label>
+                      <Select value={createUserForm.subscriptionTier} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, subscriptionTier: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                          <SelectItem value="enterprise">Enterprise</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="createOrganization">Building Name (Optional)</Label>
+                      <Input
+                        id="createOrganization"
+                        placeholder="Building or Organization Name"
+                        value={createUserForm.organizationName}
+                        onChange={(e) => setCreateUserForm({ ...createUserForm, organizationName: e.target.value })}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateUserDialogOpen(false)}>
