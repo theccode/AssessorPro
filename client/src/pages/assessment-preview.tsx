@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Edit, Download, Check, ArrowLeft, Loader2 } from "lucide-react";
+import { Building, Edit, Download, Check, ArrowLeft, Loader2, FileSpreadsheet } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import * as XLSX from 'xlsx';
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
@@ -21,6 +22,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", publicId],
@@ -323,6 +325,192 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     }
   };
 
+  // Excel Download functionality
+  const handleDownloadExcel = async () => {
+    if (!assessment) {
+      alert('Assessment data not loaded yet. Please wait and try again.');
+      return;
+    }
+
+    setIsGeneratingExcel(true);
+    try {
+      // Get assessment data safely
+      const assessmentData = Array.isArray(assessment) ? assessment[0] : assessment;
+      
+      // Create a new workbook
+      const workbook = XLSX.utils.book_new();
+
+      // Sheet 1: Assessment Summary
+      const summaryData = [
+        ['GREDA Green Building Assessment Report'],
+        [''],
+        ['Assessment Information'],
+        ['Building Name', assessmentData.buildingName || 'N/A'],
+        ['Publisher Name', assessmentData.publisherName || 'N/A'],
+        ['Building Location', assessmentData.buildingLocation || 'N/A'],
+        ['Digital Address', assessmentData.digitalAddress || 'N/A'],
+        ['Detailed Address', assessmentData.detailedAddress || 'N/A'],
+        ['Phone Number', assessmentData.phoneNumber || 'N/A'],
+        ['Additional Notes', assessmentData.additionalNotes || 'N/A'],
+        [''],
+        ['Assessment Results'],
+        ['Total Score', `${assessmentData.overallScore || 0} / ${assessmentData.maxPossibleScore || 130} points`],
+        ['Percentage', `${assessmentData.maxPossibleScore > 0 ? Math.round((assessmentData.overallScore / assessmentData.maxPossibleScore) * 100) : 0}%`],
+        ['Status', assessmentData.status || 'draft'],
+        ['Completed Sections', `${assessmentData.completedSections || 0} / ${assessmentData.totalSections || 8}`],
+        [''],
+        ['Assessment Details'],
+        ['Assessor Name', assessmentData.assessorName || 'N/A'],
+        ['Assessor Role', assessmentData.assessorRole || 'N/A'],
+        ['Conducted At', assessmentData.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : 'N/A'],
+        ['Created At', assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : 'N/A'],
+        ['Last Updated', assessmentData.updatedAt ? new Date(assessmentData.updatedAt).toLocaleDateString() : 'N/A'],
+      ];
+
+      // Calculate certification level
+      const totalScore = assessmentData.overallScore || 0;
+      let certification = '';
+      if (totalScore >= 106) certification = 'Diamond/5★ (106-130 points)';
+      else if (totalScore >= 85) certification = 'Platinum/4★ (85-105 points)';
+      else if (totalScore >= 64) certification = 'Gold/3★ (64-84 points)';
+      else if (totalScore >= 43) certification = 'Silver/2★ (43-63 points)';
+      else if (totalScore >= 22) certification = 'Bronze/1★ (22-42 points)';
+      else certification = 'Not Certified (Below 22 points)';
+
+      summaryData.push(['Certification Level', certification]);
+
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      
+      // Set column widths for summary sheet
+      summarySheet['!cols'] = [{ width: 25 }, { width: 40 }];
+      
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Assessment Summary');
+
+      // Sheet 2: Section Details
+      const sectionsData = [
+        ['Section Details'],
+        [''],
+        ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
+      ];
+
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          const score = section.score || 0;
+          const maxScore = section.maxScore || 0;
+          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
+
+          sectionsData.push([
+            sectionName,
+            score,
+            maxScore,
+            `${percentage}%`,
+            status
+          ]);
+        });
+      }
+
+      const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
+      sectionsSheet['!cols'] = [{ width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }, { width: 15 }];
+      XLSX.utils.book_append_sheet(workbook, sectionsSheet, 'Section Details');
+
+      // Sheet 3: Variable Scores
+      const variablesData = [
+        ['Variable Scores'],
+        [''],
+        ['Section', 'Variable Name', 'Score', 'Max Score', 'Percentage']
+      ];
+
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          
+          if (section.variables) {
+            const variables = JSON.parse(section.variables);
+            const sectionVars = sectionVariables[section.sectionType] || [];
+            
+            sectionVars.forEach(variable => {
+              const score = variables[variable.id] || 0;
+              const maxScore = variable.maxScore;
+              const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+              variablesData.push([
+                sectionName,
+                formatVariableName(variable.name),
+                score,
+                maxScore,
+                `${percentage}%`
+              ]);
+            });
+          }
+        });
+      }
+
+      const variablesSheet = XLSX.utils.aoa_to_sheet(variablesData);
+      variablesSheet['!cols'] = [{ width: 25 }, { width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }];
+      XLSX.utils.book_append_sheet(workbook, variablesSheet, 'Variable Scores');
+
+      // Sheet 4: Media Files
+      try {
+        const mediaResponse = await fetch(`/api/assessments/${publicId}/media`);
+        const mediaData = await mediaResponse.json();
+
+        const mediaFilesData = [
+          ['Media Files'],
+          [''],
+          ['Section', 'Variable', 'File Name', 'File Type', 'File Size', 'Upload Date']
+        ];
+
+        if (mediaData && mediaData.length > 0) {
+          mediaData.forEach((media: any) => {
+            const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+            const variableName = formatVariableName(media.fieldName || 'File');
+            const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+            const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
+
+            mediaFilesData.push([
+              sectionName,
+              variableName,
+              media.fileName || 'Unknown',
+              media.fileType || 'Unknown',
+              fileSize,
+              uploadDate
+            ]);
+          });
+        } else {
+          mediaFilesData.push(['No media files found', '', '', '', '', '']);
+        }
+
+        const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
+        mediaSheet['!cols'] = [{ width: 25 }, { width: 25 }, { width: 40 }, { width: 12 }, { width: 12 }, { width: 15 }];
+        XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
+      } catch (error) {
+        console.warn('Could not load media for Excel export:', error);
+        // Add empty media sheet
+        const emptyMediaData = [
+          ['Media Files'],
+          [''],
+          ['No media data available']
+        ];
+        const emptyMediaSheet = XLSX.utils.aoa_to_sheet(emptyMediaData);
+        XLSX.utils.book_append_sheet(workbook, emptyMediaSheet, 'Media Files');
+      }
+
+      // Generate and download the Excel file
+      const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+    } catch (error) {
+      console.error('Error generating Excel:', error);
+      alert('Error generating Excel file. Please try again.');
+    } finally {
+      setIsGeneratingExcel(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -537,6 +725,19 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               <>
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
+              </>
+            )}
+          </Button>
+          <Button variant="outline" onClick={handleDownloadExcel} disabled={isGeneratingExcel}>
+            {isGeneratingExcel ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating Excel...
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Download Excel
               </>
             )}
           </Button>
