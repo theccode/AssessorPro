@@ -31,6 +31,7 @@ function Router() {
           <Route path="/assessments/select-client" component={ClientSelection} />
           <Route path="/assessments/new" component={AssessmentForm} />
           <Route path="/assessments/:id/preview" component={AssessmentPreview} />
+          <Route path="/assessments/:id/edit" component={AssessmentForm} />
           <Route path="/assessments/:id" component={AssessmentDetail} />
           <Route path="/drafts" component={Drafts} />
           {user?.role === "admin" && (
