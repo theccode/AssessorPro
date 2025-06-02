@@ -151,21 +151,37 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
     }
     
     const validFiles = files.filter(file => {
-      const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      const videoTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi'];
-      const audioTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/ogg', 'audio/vorbis'];
+      const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const videoTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi', 'video/quicktime'];
+      const audioTypes = [
+        'audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/wave', 'audio/x-wav',
+        'audio/m4a', 'audio/aac', 'audio/x-aac', 'audio/mp4',
+        'audio/ogg', 'audio/vorbis', 'audio/x-vorbis'
+      ];
+      
+      // Debug logging to see what MIME type the file actually has
+      console.log(`File: ${file.name}, MIME type: ${file.type}, Size: ${file.size}`);
+      
+      // Also check file extension as a fallback
+      const getFileExtension = (filename: string) => filename.split('.').pop()?.toLowerCase();
+      const extension = getFileExtension(file.name);
       
       // Filter based on media type requirement
       if (mediaType === 'images') {
-        return imageTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
+        const isValidImage = imageTypes.includes(file.type) || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '');
+        return isValidImage && file.size <= 10 * 1024 * 1024; // 10MB limit
       } else if (mediaType === 'videos') {
-        return videoTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit for videos
+        const isValidVideo = videoTypes.includes(file.type) || ['mp4', 'webm', 'mov', 'avi'].includes(extension || '');
+        return isValidVideo && file.size <= 50 * 1024 * 1024; // 50MB limit for videos
       } else if (mediaType === 'audio') {
-        return audioTypes.includes(file.type) && file.size <= 20 * 1024 * 1024; // 20MB limit for audio
+        const isValidAudio = audioTypes.includes(file.type) || ['mp3', 'wav', 'm4a', 'aac', 'ogg'].includes(extension || '');
+        return isValidAudio && file.size <= 20 * 1024 * 1024; // 20MB limit for audio
       } else {
         // Allow all supported types
         const allValidTypes = [...imageTypes, ...videoTypes, ...audioTypes, 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        return allValidTypes.includes(file.type) && file.size <= 50 * 1024 * 1024; // 50MB limit
+        const allValidExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mov', 'avi', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'pdf', 'doc', 'docx'];
+        const isValid = allValidTypes.includes(file.type) || allValidExtensions.includes(extension || '');
+        return isValid && file.size <= 50 * 1024 * 1024; // 50MB limit
       }
     });
 
