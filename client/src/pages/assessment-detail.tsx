@@ -45,15 +45,17 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   }
 
   const { data: assessment, isLoading } = useQuery({
-    queryKey: ["/api/assessments", assessmentId],
+    queryKey: [`/api/assessments/${assessmentId}`],
   });
 
   const { data: media = [] } = useQuery({
-    queryKey: ["/api/assessments", assessmentId, "media"],
+    queryKey: [`/api/assessments/${assessmentId}/media`],
+    enabled: !!assessmentId,
   });
 
   const { data: sections = [] } = useQuery({
-    queryKey: ["/api/assessments", assessmentId, "sections"],
+    queryKey: [`/api/assessments/${assessmentId}/sections`],
+    enabled: !!assessmentId,
   });
 
   // PDF Download functionality
