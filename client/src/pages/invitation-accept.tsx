@@ -243,7 +243,7 @@ export default function InvitationAccept() {
                 This invitation has already been accepted.
               </p>
               <Button asChild className="w-full">
-                <a href="/api/login">
+                <a href="/login">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Go to Login
                 </a>

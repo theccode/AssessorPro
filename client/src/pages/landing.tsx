@@ -63,7 +63,7 @@ export default function Landing() {
               <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
             <Button asChild>
-              <a href="/api/login">Sign In</a>
+              <a href="/login">Sign In</a>
             </Button>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function Landing() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
-                  <a href="/api/login">Start Assessment</a>
+                  <a href="/login">Start Assessment</a>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
                   View Analytics Demo
