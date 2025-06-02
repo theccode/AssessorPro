@@ -194,36 +194,36 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
           {/* Quick Stats Card */}
-          <Card>
+          <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white border-none">
             <CardHeader>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-white">
                 {user?.role === "client" ? "My Assessments" : "Quick Stats"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">
+                <span className="text-green-100">
                   {user?.role === "client" ? "Total Assessments" : "Active Assessments"}
                 </span>
-                <span className="font-semibold text-primary">{assessments.length}</span>
+                <span className="font-semibold text-white">{assessments.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Completed This Month</span>
-                <span className="font-semibold text-secondary">{completedThisMonth}</span>
+                <span className="text-green-100">Completed This Month</span>
+                <span className="font-semibold text-white">{completedThisMonth}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">
+                <span className="text-green-100">
                   {user?.role === "client" ? "Pending Reviews" : "Draft Assessments"}
                 </span>
-                <span className="font-semibold text-accent">{draftAssessments}</span>
+                <span className="font-semibold text-white">{draftAssessments}</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Recent Activity Card */}
-          <Card>
+          <Card className="bg-gradient-to-br from-emerald-600 to-green-700 text-white border-none">
             <CardHeader>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-white">
                 {user?.role === "client" ? "Assessment History" : "Recent Activity"}
               </CardTitle>
             </CardHeader>
@@ -232,12 +232,12 @@ export default function Dashboard() {
                 recentAssessments.map((assessment: Assessment) => (
                   <div key={assessment.id} className="flex items-start space-x-3">
                     <div className={`w-2 h-2 rounded-full mt-2 ${
-                      assessment.status === "completed" ? "bg-secondary" :
-                      assessment.status === "draft" ? "bg-accent" : "bg-primary"
+                      assessment.status === "completed" ? "bg-green-200" :
+                      assessment.status === "draft" ? "bg-green-300" : "bg-green-100"
                     }`}></div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-900">{assessment.buildingName}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm text-white">{assessment.buildingName}</p>
+                      <p className="text-xs text-green-100">
                         {user?.role === "client" && assessment.assessorName ? 
                           `Assessed by: ${assessment.assessorName}` : 
                           assessment.buildingLocation || "No location specified"
@@ -258,9 +258,9 @@ export default function Dashboard() {
           </Card>
 
           {/* Performance Overview Card */}
-          <Card>
+          <Card className="bg-gradient-to-br from-green-700 to-emerald-800 text-white border-none">
             <CardHeader>
-              <CardTitle className="text-lg">
+              <CardTitle className="text-lg text-white">
                 {user?.role === "client" ? "Sustainability Score" : "Performance Overview"}
               </CardTitle>
             </CardHeader>
@@ -273,12 +273,12 @@ export default function Dashboard() {
                   strokeWidth={8}
                   className="mb-4"
                 />
-                <p className="text-center text-gray-600 text-sm">
+                <p className="text-center text-green-100 text-sm">
                   {user?.role === "client" ? "Average Building Score" : "Average Assessment Score"}
                 </p>
                 {user?.role === "client" && averageScore > 0 && (
                   <div className="mt-2 text-center">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-green-200">
                       {averageScore >= 80 ? "Excellent Performance" :
                        averageScore >= 60 ? "Good Performance" :
                        averageScore >= 40 ? "Fair Performance" : "Needs Improvement"}
