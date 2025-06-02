@@ -552,6 +552,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter building footprint"
                         min="0"
                         step="0.01"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -564,6 +565,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter average room height"
                         min="0"
                         step="0.01"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -576,6 +578,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter number of bedrooms"
                         min="0"
                         step="1"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -588,6 +591,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter total site area"
                         min="0"
                         step="0.01"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -600,6 +604,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter number of windows"
                         min="0"
                         step="1"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -612,6 +617,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter number of doors"
                         min="0"
                         step="1"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -624,6 +630,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter average window size"
                         min="0"
                         step="0.01"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -636,6 +643,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Enter number of floors"
                         min="1"
                         step="1"
+                        disabled={isAssessmentLocked}
                       />
                     </div>
                     <div>
@@ -648,6 +656,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         placeholder="Green area vs hard landscaping"
                         min="0"
                         step="0.01"
+                        disabled={isAssessmentLocked}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
                         To be measured against hard landscaping left
@@ -664,6 +673,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
                     placeholder="Enter any additional notes"
                     rows={4}
+                    disabled={isAssessmentLocked}
                   />
                 </div>
               </div>
