@@ -25,6 +25,10 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const domains = useDomainConfig();
 
+  // Check if we're on admin domain
+  const isAdminDomain = !isDevelopmentMode() && 
+    (getCurrentHostname() === 'www.assessorpro.app' || getCurrentHostname().includes('www.assessorpro.app'));
+
   // Handle domain-based redirects when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user?.role && !isDevelopmentMode()) {
@@ -43,7 +47,13 @@ function Router() {
       <Route path="/login" component={Login} />
       
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          {isAdminDomain ? (
+            <Route path="/" component={Login} />
+          ) : (
+            <Route path="/" component={Landing} />
+          )}
+        </>
       ) : (
         <>
           {/* In development, show role-specific dashboards based on user role */}

@@ -36,6 +36,19 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Custom login redirect for admin domain
+  app.get('/api/login', (req, res, next) => {
+    const hostname = req.hostname;
+    
+    // If accessing from admin domain, redirect to custom login page
+    if (hostname === 'www.assessorpro.app' || hostname.includes('www.assessorpro.app')) {
+      return res.redirect('/login');
+    }
+    
+    // Otherwise, continue to Replit OAuth
+    next();
+  });
+
   // Auth middleware
   try {
     await setupAuth(app);
