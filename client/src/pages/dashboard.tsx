@@ -407,7 +407,7 @@ export default function Dashboard() {
                         className="w-20"
                       />
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assessments/${assessment.publicId}/preview`}>View</Link>
+                        <Link href={`/assessment/${assessment.id}`}>View Details</Link>
                       </Button>
                     </div>
                   </div>

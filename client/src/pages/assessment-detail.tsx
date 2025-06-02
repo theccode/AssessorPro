@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,14 +20,24 @@ import {
   Star,
   Award,
   Eye,
-  PieChart
+  PieChart,
+  MapPin,
+  Calendar,
+  User,
+  Edit
 } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import type { Assessment, AssessmentSection, AssessmentMedia } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
   const assessmentId = parseInt(params.id);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   // Don't render if ID is not a valid number
   if (isNaN(assessmentId) || !params.id || !/^\d+$/.test(params.id)) {
@@ -41,6 +51,49 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   const { data: media = [] } = useQuery({
     queryKey: ["/api/assessments", assessmentId, "media"],
   });
+
+  const { data: sections = [] } = useQuery({
+    queryKey: ["/api/assessments", assessmentId, "sections"],
+  });
+
+  // PDF Download functionality
+  const downloadPDFMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}/pdf`, "GET");
+      return response.blob();
+    },
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${assessment?.buildingName || 'assessment'}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: "Success",
+        description: "PDF report downloaded successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to download PDF report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDownloadPDF = () => {
+    setIsGeneratingPDF(true);
+    downloadPDFMutation.mutate();
+    setTimeout(() => setIsGeneratingPDF(false), 2000);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -61,11 +114,24 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
               <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
+              {(user?.role === "admin" || user?.role === "assessor") && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/assessments/${assessmentId}/edit`}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Assessment
+                  </Link>
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+              >
                 <Download className="h-4 w-4 mr-2" />
-                Download Report
+                {isGeneratingPDF ? "Generating..." : "Download PDF"}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
@@ -226,23 +292,24 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    {(assessment as any).sections?.map((section: AssessmentSection) => (
+                    {sections.length > 0 ? sections.map((section: any) => (
                       <div key={section.id} className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{section.sectionName}</span>
+                          <span className="text-sm font-medium">{section.sectionType || 'Section'}</span>
                           <span className="text-sm text-muted-foreground">
-                            {section.score || 0}/{section.maxScore || 0}
+                            {section.score || 0}/20
                           </span>
                         </div>
                         <Progress 
-                          value={Math.min(((section.score || 0) / (section.maxScore || 1)) * 100, 100)}
+                          value={((section.score || 0) / 20) * 100} 
                           className="h-2"
                         />
-                        <div className="text-xs text-muted-foreground text-right">
-                          {Math.round(((section.score || 0) / (section.maxScore || 1)) * 100)}% completed
-                        </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No section data available
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
