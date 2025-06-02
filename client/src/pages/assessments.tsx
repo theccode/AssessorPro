@@ -44,7 +44,7 @@ export default function Assessments() {
               <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto" />
               <span className="ml-2 sm:ml-3 text-sm sm:text-xl font-semibold text-foreground">GREDA-GBC</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
               <Button variant="ghost" asChild>
                 <Link href="/">Dashboard</Link>
               </Button>
@@ -68,21 +68,31 @@ export default function Assessments() {
                 <Link href="/api/logout">Logout</Link>
               </Button>
             </div>
+            
+            {/* Mobile Navigation */}
+            <div className="md:hidden flex items-center space-x-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/">Dashboard</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/api/logout">Logout</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Completed Assessments</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Completed Assessments</h1>
+            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
               View and manage all completed building assessments
             </p>
           </div>
           {(user?.role === "admin" || user?.role === "assessor") && (
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/assessments/select-client">
                 <Plus className="h-4 w-4 mr-2" />
                 New Assessment
