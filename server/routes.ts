@@ -341,30 +341,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files
-  app.get('/api/media/serve/:id', async (req: any, res) => {
+  app.get('/api/media/serve/:id', isAuthenticated, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
       
-      // First get all media to find the specific one
-      // This is a workaround since we don't have a direct getMediaById method
-      const allAssessments = await storage.getUserAssessments(req.user?.claims?.sub || '');
+      console.log(`Serving media ${mediaId} for user ${userId}`);
+      
+      // Get all user assessments to find the media
+      const allAssessments = await storage.getUserAssessments(userId);
       let targetMedia = null;
+      
+      console.log(`Found ${allAssessments.length} assessments for user`);
       
       for (const assessment of allAssessments) {
         const media = await storage.getAssessmentMedia(assessment.id);
+        console.log(`Assessment ${assessment.id} has ${media.length} media files`);
         targetMedia = media.find(m => m.id === mediaId);
-        if (targetMedia) break;
+        if (targetMedia) {
+          console.log(`Found target media:`, targetMedia);
+          break;
+        }
       }
       
       if (!targetMedia) {
+        console.log(`Media ${mediaId} not found for user ${userId}`);
         return res.status(404).json({ message: "Media not found" });
       }
 
       // Serve the file
       const filePath = path.resolve(targetMedia.filePath);
+      console.log(`Attempting to serve file from: ${filePath}`);
       
       // Check if file exists
       if (!fs.existsSync(filePath)) {
+        console.log(`File not found on disk: ${filePath}`);
         return res.status(404).json({ message: "File not found on disk" });
       }
 
