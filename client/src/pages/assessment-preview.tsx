@@ -105,7 +105,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       const buildingInfo = [
         `Building Name: ${assessmentData.buildingName || 'Not specified'}`,
         `Location: ${assessmentData.buildingLocation || assessmentData.detailedAddress || 'Not specified'}`,
-        `Publisher: ${assessmentData.publisherName || 'Not specified'}`,
+        `Client: ${assessmentData.clientName || 'Not specified'}`,
         `Phone: ${assessmentData.phoneNumber || 'Not specified'}`,
         `Digital Address: ${assessmentData.digitalAddress || 'Not specified'}`,
         `Status: ${assessmentData.status}`,
@@ -358,7 +358,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         [''],
         ['Assessment Information'],
         ['Building Name', assessmentData.buildingName || 'N/A'],
-        ['Publisher Name', assessmentData.publisherName || 'N/A'],
+        ['Client Name', assessmentData.clientName || 'N/A'],
         ['Building Location', assessmentData.buildingLocation || 'N/A'],
         ['Digital Address', assessmentData.digitalAddress || 'N/A'],
         ['Detailed Address', assessmentData.detailedAddress || 'N/A'],

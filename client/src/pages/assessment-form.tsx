@@ -466,12 +466,12 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     />
                   </div>
                   <div>
-                    <Label htmlFor="publisherName">Publisher Name</Label>
+                    <Label htmlFor="clientName">Client's Name</Label>
                     <Input
-                      id="publisherName"
-                      value={formData.publisherName || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, publisherName: e.target.value }))}
-                      placeholder="Enter publisher name"
+                      id="clientName"
+                      value={formData.clientName || ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
+                      placeholder="Enter client's name"
                     />
                   </div>
                   <div>

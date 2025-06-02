@@ -56,7 +56,7 @@ export const assessments = pgTable("assessments", {
   clientId: varchar("client_id").notNull().references(() => users.id), // client who owns the assessment
   status: varchar("status").notNull().default("draft"), // draft, completed, submitted
   buildingName: text("building_name"),
-  publisherName: text("publisher_name"),
+  clientName: text("client_name"),
   buildingLocation: text("building_location"),
   digitalAddress: text("digital_address"),
   detailedAddress: text("detailed_address"), // Keep for backward compatibility
