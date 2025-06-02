@@ -11,7 +11,8 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  FileText
+  FileText,
+  Table
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -165,21 +166,38 @@ export default function Assessments() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" asChild>
-                      <Link href={`/assessment/${assessment.id}`}>
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Link>
-                    </Button>
-                    {(user?.role === "admin" || user?.role === "assessor") && (
+                  <div className="space-y-2 pt-2">
+                    <div className="flex space-x-2">
                       <Button variant="outline" size="sm" className="flex-1" asChild>
-                        <Link href={`/assessments/${assessment.id}/edit`}>
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit
+                        <Link href={`/assessment/${assessment.id}`}>
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
                         </Link>
                       </Button>
-                    )}
+                      {(user?.role === "admin" || user?.role === "assessor") && (
+                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                          <Link href={`/assessments/${assessment.id}/edit`}>
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                    {/* Download Buttons */}
+                    <div className="flex space-x-2">
+                      <Button variant="secondary" size="sm" className="flex-1" asChild>
+                        <a href={`/api/assessments/${assessment.id}/export/excel`} download>
+                          <Table className="h-3 w-3 mr-1" />
+                          Excel
+                        </a>
+                      </Button>
+                      <Button variant="secondary" size="sm" className="flex-1" asChild>
+                        <a href={`/api/assessments/${assessment.id}/export/pdf`} download>
+                          <FileText className="h-3 w-3 mr-1" />
+                          PDF
+                        </a>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
