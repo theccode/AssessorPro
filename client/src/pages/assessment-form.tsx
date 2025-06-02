@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -37,6 +37,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [formData, setFormData] = useState<any>({});
   const [sectionData, setSectionData] = useState<Record<string, any>>({});
   const [locationData, setLocationData] = useState<Record<string, Record<string, { lat: number; lng: number; address: string } | null>>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
@@ -86,8 +88,50 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/assessments/${assessmentId}/sections`] });
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      setIsSaving(false);
     },
   });
+
+  // Debounced auto-save function
+  const debouncedSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    setIsSaving(true);
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        if (assessmentId) {
+          // Auto-save current assessment data
+          await updateAssessmentMutation.mutateAsync(formData);
+          
+          // Auto-save current section if we have section data
+          const currentSectionType = assessmentSections[currentSectionIndex].id;
+          if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
+            const sectionToSave = {
+              sectionType: currentSectionType,
+              sectionName: assessmentSections[currentSectionIndex].name,
+              variables: sectionData[currentSectionType],
+              locationData: locationData[currentSectionType] || {},
+            };
+            await saveSectionMutation.mutateAsync(sectionToSave);
+          }
+        }
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setIsSaving(false);
+      }
+    }, 1000); // Save after 1 second of no changes
+  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (assessment) {
@@ -141,6 +185,27 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       }
     }
   }, [sections, hasSetInitialSection]);
+
+  // Auto-save when form data changes
+  useEffect(() => {
+    if (assessmentId && Object.keys(formData).length > 0) {
+      debouncedSave();
+    }
+  }, [formData, debouncedSave, assessmentId]);
+
+  // Auto-save when section data changes
+  useEffect(() => {
+    if (assessmentId && Object.keys(sectionData).length > 0) {
+      debouncedSave();
+    }
+  }, [sectionData, debouncedSave, assessmentId]);
+
+  // Auto-save when location data changes
+  useEffect(() => {
+    if (assessmentId && Object.keys(locationData).length > 0) {
+      debouncedSave();
+    }
+  }, [locationData, debouncedSave, assessmentId]);
 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;
@@ -258,10 +323,19 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   Back to Dashboard
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleSaveDraft}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
-              </Button>
+              <div className="flex items-center text-sm text-gray-600">
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-green-600 border-t-transparent rounded-full mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <div className="h-2 w-2 bg-green-600 rounded-full mr-2"></div>
+                    Auto-saved
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
