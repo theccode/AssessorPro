@@ -347,6 +347,33 @@ For security reasons, we recommend using a strong, unique password and not shari
     try {
       const userId = req.session.customUserId;
       
+      // Check if we need to fix the user association for existing assessments
+      const { db } = await import("./db");
+      const { assessments } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      // Get all assessments and check if any need user association fixes
+      const allAssessmentsInDB = await db.select().from(assessments);
+      
+      // Fix user association for assessments that don't belong to any current user
+      for (const assessment of allAssessmentsInDB) {
+        if (assessment.userId && assessment.userId !== userId) {
+          // Check if the original user still exists
+          const originalUser = await storage.getUser(assessment.userId);
+          if (!originalUser) {
+            // Update assessment to belong to current user
+            await db.update(assessments)
+              .set({ 
+                userId: userId,
+                clientId: userId,
+                updatedAt: new Date()
+              })
+              .where(eq(assessments.id, assessment.id));
+            console.log(`Updated assessment ${assessment.id} to belong to current user`);
+          }
+        }
+      }
+      
       // Get both assessments where user is the assessor and where user is the client
       const assessorAssessments = await storage.getUserAssessments(userId);
       const clientAssessments = await storage.getClientAssessments(userId);
@@ -361,42 +388,6 @@ For security reasons, we recommend using a strong, unique password and not shari
     } catch (error) {
       console.error("Error fetching assessments:", error);
       res.status(500).json({ message: "Failed to fetch assessments" });
-    }
-  });
-
-  // Fix assessment ownership endpoint
-  app.post('/api/fix-assessments', isCustomAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.session.customUserId;
-      const { db } = await import("./db");
-      const { assessments } = await import("@shared/schema");
-      const { eq } = await import("drizzle-orm");
-      
-      // Get all assessments in database
-      const allAssessments = await db.select().from(assessments);
-      let fixedCount = 0;
-      
-      // Update all orphaned assessments to belong to current user
-      for (const assessment of allAssessments) {
-        if (assessment.userId !== userId) {
-          await db.update(assessments)
-            .set({ 
-              userId: userId,
-              clientId: userId,
-              updatedAt: new Date()
-            })
-            .where(eq(assessments.id, assessment.id));
-          fixedCount++;
-        }
-      }
-      
-      res.json({ 
-        message: `Fixed ${fixedCount} assessments`, 
-        fixedCount 
-      });
-    } catch (error) {
-      console.error("Error fixing assessments:", error);
-      res.status(500).json({ message: "Failed to fix assessments" });
     }
   });
 
