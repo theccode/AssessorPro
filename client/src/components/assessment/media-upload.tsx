@@ -330,6 +330,14 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                     muted
                     preload="metadata"
                   />
+                ) : (media.fileType?.startsWith('audio/') || media.fileType === 'audio' || media.mimeType?.startsWith('audio/')) ? (
+                  <div 
+                    className="w-full h-24 bg-green-50 border rounded-lg cursor-pointer hover:bg-green-100 transition-colors flex flex-col items-center justify-center"
+                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'audio/mpeg' })}
+                  >
+                    <Music className="h-8 w-8 text-green-600 mb-1" />
+                    <span className="text-xs text-green-700 font-medium">Audio</span>
+                  </div>
                 ) : (
                   <img
                     src={`/api/media/serve/${media.id}`}
