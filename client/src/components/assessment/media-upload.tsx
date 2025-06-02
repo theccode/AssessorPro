@@ -373,48 +373,200 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       {existingMedia.length === 0 && !disabled && (
         <Card
           className={cn(
-            "border-2 border-dashed transition-colors cursor-pointer",
+            "border-2 border-dashed transition-colors",
             dragActive ? "border-primary bg-primary/5" : "border-gray-300",
-            "hover:border-primary hover:bg-primary/5"
+            mediaType === 'all' && "cursor-pointer hover:border-primary hover:bg-primary/5"
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={mediaType === 'all' ? () => fileInputRef.current?.click() : undefined}
         >
         <CardContent className="p-6 text-center">
-          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          {(() => {
-            if (mediaType === 'images') {
-              return (
-                <>
-                  <p className="text-sm text-gray-600 mb-1">Upload images only</p>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
-                </>
-              );
-            } else if (mediaType === 'videos') {
-              return (
-                <>
-                  <p className="text-sm text-gray-600 mb-1">Upload videos only</p>
-                  <p className="text-xs text-gray-500">MP4, WEBM, MOV, AVI up to 50MB</p>
-                </>
-              );
-            } else if (mediaType === 'audio') {
-              return (
-                <>
-                  <p className="text-sm text-gray-600 mb-1">Upload audio only</p>
-                  <p className="text-xs text-gray-500">MP3, WAV, M4A, AAC, OGG up to 20MB</p>
-                </>
-              );
-            }
-            return (
-              <>
-                <p className="text-sm text-gray-600 mb-1">Upload images, videos, or documents</p>
-                <p className="text-xs text-gray-500">PNG, JPG, MP4, WEBM, PDF up to 50MB</p>
-              </>
-            );
-          })()}
+          {/* Upload Options Based on Media Type */}
+          {mediaType === 'images' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-4">
+                <Image className="h-6 w-6 text-gray-400" />
+                <span className="text-lg font-medium text-gray-600">Add Photo</span>
+              </div>
+              <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startCamera();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <Camera className="h-6 w-6" />
+                  <span className="text-sm">Take Photo</span>
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="text-sm">Upload Photo</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {mediaType === 'videos' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-4">
+                <Video className="h-6 w-6 text-gray-400" />
+                <span className="text-lg font-medium text-gray-600">Add Video</span>
+              </div>
+              <p className="text-xs text-gray-500">MP4, WEBM, MOV, AVI up to 50MB</p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startVideoRecording();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <VideoIcon className="h-6 w-6" />
+                  <span className="text-sm">Record Video</span>
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="text-sm">Upload Video</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {mediaType === 'audio' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-4">
+                <Music className="h-6 w-6 text-gray-400" />
+                <span className="text-lg font-medium text-gray-600">Add Audio</span>
+              </div>
+              <p className="text-xs text-gray-500">MP3, WAV, M4A, AAC, OGG up to 20MB</p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startAudioRecording();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <Mic className="h-6 w-6" />
+                  <span className="text-sm">Record Audio</span>
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="flex flex-col items-center gap-2 h-auto py-3"
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="text-sm">Upload Audio</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {mediaType === 'all' && (
+            <div className="space-y-4">
+              <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Upload media files</p>
+                <p className="text-xs text-gray-500">Images, videos, audio, or documents up to 50MB</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startCamera();
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Camera className="h-4 w-4" />
+                  Photo
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startVideoRecording();
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <VideoIcon className="h-4 w-4" />
+                  Video
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startAudioRecording();
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Mic className="h-4 w-4" />
+                  Audio
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload
+                </Button>
+              </div>
+            </div>
+          )}
+
           <input
             ref={fileInputRef}
             type="file"
@@ -432,57 +584,6 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             onChange={handleChange}
             className="hidden"
           />
-          
-          {/* Camera and Recording Options */}
-          <div className="mt-4 flex gap-2 justify-center flex-wrap">
-            {(mediaType === 'images' || mediaType === 'all') && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startCamera();
-                }}
-                className="flex items-center gap-1"
-              >
-                <Camera className="h-4 w-4" />
-                Take Photo
-              </Button>
-            )}
-            
-            {(mediaType === 'videos' || mediaType === 'all') && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startVideoRecording();
-                }}
-                className="flex items-center gap-1"
-              >
-                <VideoIcon className="h-4 w-4" />
-                Record Video
-              </Button>
-            )}
-            
-            {(mediaType === 'audio' || mediaType === 'all') && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  startAudioRecording();
-                }}
-                className="flex items-center gap-1"
-              >
-                <Mic className="h-4 w-4" />
-                Record Audio
-              </Button>
-            )}
-          </div>
         </CardContent>
       </Card>
       )}
@@ -634,6 +735,144 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
               />
             )
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Camera Dialog for Photo Capture */}
+      <Dialog open={showCameraDialog} onOpenChange={() => stopCamera()}>
+        <DialogContent className="max-w-2xl">
+          <DialogTitle>Take Photo</DialogTitle>
+          <DialogDescription>
+            Position your camera to capture the photo
+          </DialogDescription>
+          <div className="space-y-4">
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full rounded-lg bg-black"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+            </div>
+            <div className="flex justify-center gap-4">
+              <Button
+                onClick={capturePhoto}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-4 w-4" />
+                Capture Photo
+              </Button>
+              <Button
+                variant="outline"
+                onClick={stopCamera}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Recording Dialog */}
+      <Dialog open={showVideoDialog} onOpenChange={() => stopCamera()}>
+        <DialogContent className="max-w-2xl">
+          <DialogTitle>Record Video</DialogTitle>
+          <DialogDescription>
+            Record your video by clicking start recording
+          </DialogDescription>
+          <div className="space-y-4">
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full rounded-lg bg-black"
+              />
+            </div>
+            <div className="flex justify-center gap-4">
+              {!isRecording ? (
+                <Button
+                  onClick={startRecording}
+                  className="flex items-center gap-2"
+                >
+                  <VideoIcon className="h-4 w-4" />
+                  Start Recording
+                </Button>
+              ) : (
+                <Button
+                  onClick={stopRecording}
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <Square className="h-4 w-4" />
+                  Stop Recording
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={stopCamera}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Audio Recording Dialog */}
+      <Dialog open={showAudioDialog} onOpenChange={() => stopCamera()}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>Record Audio</DialogTitle>
+          <DialogDescription>
+            Record your audio by clicking start recording
+          </DialogDescription>
+          <div className="space-y-6 py-6">
+            <div className="flex justify-center">
+              <div className={cn(
+                "w-24 h-24 rounded-full flex items-center justify-center",
+                isRecording ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400"
+              )}>
+                <Mic className={cn(
+                  "h-12 w-12",
+                  isRecording && "animate-pulse"
+                )} />
+              </div>
+            </div>
+            
+            {isRecording && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Recording in progress...</p>
+              </div>
+            )}
+            
+            <div className="flex justify-center gap-4">
+              {!isRecording ? (
+                <Button
+                  onClick={startAudioCapture}
+                  className="flex items-center gap-2"
+                >
+                  <Mic className="h-4 w-4" />
+                  Start Recording
+                </Button>
+              ) : (
+                <Button
+                  onClick={stopAudioCapture}
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <Square className="h-4 w-4" />
+                  Stop Recording
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={stopCamera}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
