@@ -63,8 +63,8 @@ function Router() {
               <Route path="/" component={Dashboard} />
               <Route path="/assessments/select-client" component={ClientSelection} />
               <Route path="/assessments/new" component={AssessmentForm} />
-              <Route path="/assessments/:id/preview" component={AssessmentPreview} />
               <Route path="/assessments/:id/edit" component={AssessmentForm} />
+              <Route path="/assessments/:id/preview" component={AssessmentPreview} />
               <Route path="/assessments/:id" component={AssessmentDetail} />
               <Route path="/drafts" component={Drafts} />
               <Route path="/reports" component={Reports} />
@@ -93,8 +93,8 @@ function Router() {
                   <Route path="/" component={AssessorDashboard} />
                   <Route path="/assessments/select-client" component={ClientSelection} />
                   <Route path="/assessments/new" component={AssessmentForm} />
-                  <Route path="/assessments/:id/preview" component={AssessmentPreview} />
                   <Route path="/assessments/:id/edit" component={AssessmentForm} />
+                  <Route path="/assessments/:id/preview" component={AssessmentPreview} />
                   <Route path="/assessments/:id" component={AssessmentDetail} />
                   <Route path="/drafts" component={Drafts} />
                   <Route path="/reports" component={Reports} />
