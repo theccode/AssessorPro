@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft } from "lucide-react";
+import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck } from "lucide-react";
 import { Link } from "wouter";
 
 interface User {
@@ -42,8 +42,17 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: "",
+    role: "client" as const,
+    subscriptionTier: "free" as const,
+    organizationName: ""
+  });
+  const [createUserForm, setCreateUserForm] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
     role: "client" as const,
     subscriptionTier: "free" as const,
     organizationName: ""
@@ -140,6 +149,28 @@ export default function AdminDashboard() {
     }
   });
 
+  // Create user directly mutation
+  const createUserMutation = useMutation({
+    mutationFn: (userData: typeof createUserForm) => 
+      apiRequest("/api/admin/users", "POST", userData),
+    onSuccess: () => {
+      toast({ title: "User created successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setCreateUserDialogOpen(false);
+      setCreateUserForm({
+        email: "",
+        firstName: "",
+        lastName: "",
+        role: "client",
+        subscriptionTier: "free",
+        organizationName: ""
+      });
+    },
+    onError: () => {
+      toast({ title: "Failed to create user", variant: "destructive" });
+    }
+  });
+
   // Handler functions
   const handleCancelInvitation = (invitationId: number) => {
     setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: true } }));
@@ -199,9 +230,105 @@ export default function AdminDashboard() {
               New Assessment
             </Link>
           </Button>
-          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <Dialog open={createUserDialogOpen} onOpenChange={setCreateUserDialogOpen}>
             <DialogTrigger asChild>
               <Button>
+                <UserCheck className="w-4 h-4 mr-2" />
+                Add User
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New User</DialogTitle>
+                <DialogDescription>
+                  Create a new user account directly without requiring an invitation
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="createEmail">Email</Label>
+                  <Input
+                    id="createEmail"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={createUserForm.email}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      placeholder="John"
+                      value={createUserForm.firstName}
+                      onChange={(e) => setCreateUserForm({ ...createUserForm, firstName: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      placeholder="Doe"
+                      value={createUserForm.lastName}
+                      onChange={(e) => setCreateUserForm({ ...createUserForm, lastName: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="createRole">Role</Label>
+                  <Select value={createUserForm.role} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, role: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">Client</SelectItem>
+                      <SelectItem value="assessor">Assessor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="createTier">Subscription Tier</Label>
+                  <Select value={createUserForm.subscriptionTier} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, subscriptionTier: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="basic">Basic</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="createOrganization">Building Name (Optional)</Label>
+                  <Input
+                    id="createOrganization"
+                    placeholder="Building or Organization Name"
+                    value={createUserForm.organizationName}
+                    onChange={(e) => setCreateUserForm({ ...createUserForm, organizationName: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCreateUserDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => createUserMutation.mutate(createUserForm)}
+                  disabled={createUserMutation.isPending || !createUserForm.email || !createUserForm.firstName || !createUserForm.lastName}
+                >
+                  {createUserMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Create User
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="secondary">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Invite User
               </Button>

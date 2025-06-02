@@ -33,6 +33,34 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // Create user directly (admin only)
+  app.post('/api/admin/users', requireAuth, requireAdmin, auditLog("user_created"), async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Generate a unique user ID (simulate what would come from auth provider)
+      const userId = crypto.randomUUID();
+      
+      // Create user with generated ID
+      const user = await storage.upsertUser({
+        id: userId,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        status: "active",
+        subscriptionTier: userData.subscriptionTier,
+        subscriptionStatus: "active",
+        organizationName: userData.organizationName || null,
+      });
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
   // Update user (admin only)
   app.patch('/api/admin/users/:id', requireAuth, requireAdmin, auditLog("user_updated"), async (req, res) => {
     try {
