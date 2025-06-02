@@ -1,10 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupCustomAuth, isCustomAuthenticated } from "./custom-auth";
 import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
-import { setupDemoAuth, isDemoAuthenticated } from "./demo-auth";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
 import { insertAssessmentSchema, insertAssessmentSectionSchema, assessmentMedia, assessments, users } from "@shared/schema";
@@ -36,29 +34,7 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Custom login redirect for admin domain
-  app.get('/api/login', (req, res, next) => {
-    const hostname = req.hostname;
-    
-    // If accessing from admin domain, redirect to custom login page
-    if (hostname === 'www.assessorpro.app' || hostname.includes('www.assessorpro.app')) {
-      return res.redirect('/login');
-    }
-    
-    // Otherwise, continue to Replit OAuth
-    next();
-  });
-
-  // Auth middleware
-  try {
-    await setupAuth(app);
-    console.log("Authentication setup completed successfully");
-  } catch (error) {
-    console.error("Authentication setup failed:", error);
-    // Continue without auth for now
-  }
-
-  // Setup custom authentication
+  // Setup custom authentication only
   setupCustomAuth(app);
 
   // Domain routing middleware (after auth but before routes)
@@ -68,10 +44,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register admin routes
   registerAdminRoutes(app);
 
-  // Auth routes with enterprise authentication
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes with custom authentication
+  app.get('/api/auth/user', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       const dbUser = await storage.getUser(userId);
       res.json(dbUser);
     } catch (error) {
@@ -216,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get available clients for assessment creation
-  app.get('/api/clients', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
+  app.get('/api/clients', isCustomAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
       const clients = await storage.getUsersByRole("client");
       res.json(clients);
@@ -227,9 +203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assessment routes
-  app.post('/api/assessments', isAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
+  app.post('/api/assessments', isCustomAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -256,9 +232,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       // Get both assessments where user is the assessor and where user is the client
       const assessorAssessments = await storage.getUserAssessments(userId);
       const clientAssessments = await storage.getClientAssessments(userId);
@@ -276,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
       const assessment = await storage.getAssessmentByPublicId(publicId);
@@ -300,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
       const userId = req.user.claims.sub;
@@ -319,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/assessments/:id', isDemoAuthenticated, async (req: any, res) => {
+  app.delete('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.user.claims.sub;
