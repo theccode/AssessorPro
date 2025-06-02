@@ -702,6 +702,19 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
       {previewMedia && (
         <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
           <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-2 sm:p-6">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPreviewMedia(null)}
+              className="absolute top-2 right-2 z-50 h-8 w-8 p-0 bg-background/80 hover:bg-background border border-border rounded-full shadow-md"
+            >
+              <span className="sr-only">Close</span>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+            
             <DialogHeader className="pb-2">
               <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <span className="truncate text-sm sm:text-base">{previewMedia.fileName}</span>
