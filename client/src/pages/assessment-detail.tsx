@@ -477,107 +477,133 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
 
           {/* Media Files Tab */}
           <TabsContent value="media" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <ImageIcon className="h-5 w-5 mr-2" />
-                    Images ({(media as any[]).filter((m: any) => m.fileType === "image").length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(media as any[]).filter((m: any) => m.fileType === "image").length > 0 ? (
-                    <div className="space-y-2">
-                      {(media as any[]).filter((m: any) => m.fileType === "image").map((image: any) => (
-                        <div key={image.id} className="p-2 border rounded flex items-center justify-between">
-                          <p className="text-sm truncate">{image.fileName}</p>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-3 w-3" />
-                          </Button>
+            {/* Group media files by section */}
+            {sections.length > 0 ? (
+              <div className="space-y-6">
+                {sections.map((section: any) => {
+                  const sectionMedia = (media as any[]).filter((m: any) => m.sectionType === section.sectionType);
+                  if (sectionMedia.length === 0) return null;
+                  
+                  return (
+                    <Card key={section.id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{section.sectionType}</span>
+                          <Badge variant="outline">{sectionMedia.length} files</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {sectionMedia.map((file: any) => (
+                            <div key={file.id} className="border rounded-lg p-4 space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1 flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{file.fileName}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Variable: {file.variableName || 'General'}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Type: {file.fileType}
+                                  </p>
+                                </div>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => window.open(`/api/media/${file.id}`, '_blank')}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              {/* File preview */}
+                              <div className="aspect-video bg-muted rounded-md flex items-center justify-center overflow-hidden">
+                                {file.fileType === "image" ? (
+                                  <img 
+                                    src={`/api/media/${file.id}`}
+                                    alt={file.fileName}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    onClick={() => window.open(`/api/media/${file.id}`, '_blank')}
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      target.nextElementSibling!.classList.remove('hidden');
+                                    }}
+                                  />
+                                ) : file.fileType === "video" ? (
+                                  <video 
+                                    controls 
+                                    className="w-full h-full"
+                                    preload="metadata"
+                                  >
+                                    <source src={`/api/media/${file.id}`} />
+                                    Your browser does not support video playback.
+                                  </video>
+                                ) : file.fileType === "audio" ? (
+                                  <div className="flex flex-col items-center space-y-2">
+                                    <Music className="h-8 w-8 text-muted-foreground" />
+                                    <audio controls className="w-full">
+                                      <source src={`/api/media/${file.id}`} />
+                                      Your browser does not support audio playback.
+                                    </audio>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center space-y-2">
+                                    <FileDown className="h-8 w-8 text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">Document</span>
+                                  </div>
+                                )}
+                                
+                                {/* Fallback icon for failed image loads */}
+                                <div className="hidden flex-col items-center space-y-2">
+                                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                                  <span className="text-sm text-muted-foreground">Image</span>
+                                </div>
+                              </div>
+                              
+                              {/* File actions */}
+                              <div className="flex justify-between items-center pt-2 border-t">
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(file.createdAt).toLocaleDateString()}
+                                </span>
+                                <div className="flex space-x-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => window.open(`/api/media/${file.id}`, '_blank')}
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      const link = document.createElement('a');
+                                      link.href = `/api/media/${file.id}`;
+                                      link.download = file.fileName;
+                                      link.click();
+                                    }}
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No images uploaded</p>
-                  )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No media files available for this assessment.</p>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Video className="h-5 w-5 mr-2" />
-                    Videos ({(media as any[]).filter((m: any) => m.fileType === "video").length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(media as any[]).filter((m: any) => m.fileType === "video").length > 0 ? (
-                    <div className="space-y-2">
-                      {(media as any[]).filter((m: any) => m.fileType === "video").map((video: any) => (
-                        <div key={video.id} className="p-2 border rounded flex items-center justify-between">
-                          <p className="text-sm truncate">{video.fileName}</p>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No videos uploaded</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Music className="h-5 w-5 mr-2" />
-                    Audio ({(media as any[]).filter((m: any) => m.fileType === "audio").length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(media as any[]).filter((m: any) => m.fileType === "audio").length > 0 ? (
-                    <div className="space-y-2">
-                      {(media as any[]).filter((m: any) => m.fileType === "audio").map((audio: any) => (
-                        <div key={audio.id} className="p-2 border rounded flex items-center justify-between">
-                          <p className="text-sm truncate">{audio.fileName}</p>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No audio files uploaded</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileDown className="h-5 w-5 mr-2" />
-                    Documents ({(media as any[]).filter((m: any) => m.fileType === "document").length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(media as any[]).filter((m: any) => m.fileType === "document").length > 0 ? (
-                    <div className="space-y-2">
-                      {(media as any[]).filter((m: any) => m.fileType === "document").map((doc: any) => (
-                        <div key={doc.id} className="p-2 border rounded flex items-center justify-between">
-                          <p className="text-sm truncate">{doc.fileName}</p>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">No documents uploaded</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
