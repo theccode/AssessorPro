@@ -177,10 +177,12 @@ export default function AdminDashboard() {
   const resetUserPasswordMutation = useMutation({
     mutationFn: (userId: string) => 
       apiRequest(`/api/admin/users/${userId}/reset-password`, "POST"),
-    onSuccess: (data: { tempPassword: string; email: string }) => {
+    onSuccess: (data: any) => {
+      const email = data?.email || 'user';
+      const tempPassword = data?.tempPassword || 'generated';
       toast({ 
         title: "Password reset successfully", 
-        description: `Temporary password: ${data.tempPassword} (sent to ${data.email})` 
+        description: `Temporary password: ${tempPassword} (sent to ${email})` 
       });
     },
     onError: () => {
