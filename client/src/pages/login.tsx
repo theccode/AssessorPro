@@ -53,28 +53,8 @@ export default function Login() {
     onSuccess: (data: any) => {
       // Check if the server wants us to redirect to a different domain
       if (data.redirect) {
-        // Extract domain from redirect URL for user feedback
-        const url = new URL(data.redirect);
-        const targetDomain = url.hostname;
-        
-        // Determine role based on domain
-        let roleText = "dashboard";
-        if (targetDomain.includes("assessor.portal")) {
-          roleText = "assessor portal";
-        } else if (targetDomain.includes("client.portal")) {
-          roleText = "client portal";
-        } else if (targetDomain.includes("www.")) {
-          roleText = "admin portal";
-        }
-        
-        // Show user feedback before redirecting
-        setIsRedirecting(true);
-        setError(`Authentication successful! Redirecting you to the ${roleText}...`);
-        
-        // Delay redirect slightly so user can see the message
-        setTimeout(() => {
-          window.location.href = data.redirect;
-        }, 1500);
+        // Redirect silently for security reasons
+        window.location.href = data.redirect;
         return;
       }
       
