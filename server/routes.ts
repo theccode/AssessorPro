@@ -169,16 +169,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/assessments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const id = req.params.id;
+      const publicId = req.params.id;
       const userId = req.user.claims.sub;
       
-      // Verify ownership
-      const existing = await storage.getAssessment(id);
+      // Verify ownership using public ID
+      const existing = await storage.getAssessmentByPublicId(publicId);
       if (!existing || existing.userId !== userId) {
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      const updated = await storage.updateAssessment(id, req.body);
+      const updated = await storage.updateAssessment(existing.id, req.body);
       res.json(updated);
     } catch (error) {
       console.error("Error updating assessment:", error);
