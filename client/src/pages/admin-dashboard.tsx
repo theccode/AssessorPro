@@ -230,13 +230,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Manage users, invitations, and system access</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button variant="outline" asChild>
             <Link href="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
@@ -492,47 +492,49 @@ export default function AdminDashboard() {
                           <p className="text-xs sm:text-sm text-muted-foreground">{user.organizationName}</p>
                         )}
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <Select
-                          value={user.status}
-                          onValueChange={(status) => 
-                            updateUserStatusMutation.mutate({ userId: user.id, status })
-                          }
-                        >
-                          <SelectTrigger className="w-full sm:w-24 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="suspended">Suspended</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={`${user.subscriptionTier}-${user.subscriptionStatus}`}
-                          onValueChange={(value) => {
-                            const [tier, status] = value.split('-');
-                            updateSubscriptionMutation.mutate({ 
-                              userId: user.id, 
-                              tier, 
-                              status 
-                            });
-                          }}
-                        >
-                          <SelectTrigger className="w-full sm:w-32 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="free-inactive">Free (Inactive)</SelectItem>
-                            <SelectItem value="basic-active">Basic (Active)</SelectItem>
-                            <SelectItem value="premium-active">Premium (Active)</SelectItem>
-                            <SelectItem value="enterprise-active">Enterprise (Active)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex flex-col gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Select
+                            value={user.status}
+                            onValueChange={(status) => 
+                              updateUserStatusMutation.mutate({ userId: user.id, status })
+                            }
+                          >
+                            <SelectTrigger className="w-full sm:w-24 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="suspended">Suspended</SelectItem>
+                              <SelectItem value="pending">Pending</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={`${user.subscriptionTier}-${user.subscriptionStatus}`}
+                            onValueChange={(value) => {
+                              const [tier, status] = value.split('-');
+                              updateSubscriptionMutation.mutate({ 
+                                userId: user.id, 
+                                tier, 
+                                status 
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-full sm:w-32 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="free-inactive">Free (Inactive)</SelectItem>
+                              <SelectItem value="basic-active">Basic (Active)</SelectItem>
+                              <SelectItem value="premium-active">Premium (Active)</SelectItem>
+                              <SelectItem value="enterprise-active">Enterprise (Active)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs"
+                          className="text-xs w-full sm:w-auto"
                           onClick={() => resetUserPasswordMutation.mutate(user.id)}
                           disabled={resetUserPasswordMutation.isPending}
                         >
