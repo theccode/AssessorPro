@@ -346,29 +346,43 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.get('/api/assessments', isCustomAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.customUserId;
-      console.log("Current user ID:", userId);
       
-      // Check what assessments exist in the database
+      // Check if we need to fix the user association for existing assessments
       const { db } = await import("./db");
       const { assessments } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      // Get all assessments and check if any need user association fixes
       const allAssessmentsInDB = await db.select().from(assessments);
-      console.log("All assessments in database:", allAssessmentsInDB.map(a => ({ id: a.id, userId: a.userId, clientId: a.clientId, status: a.status, buildingName: a.buildingName })));
+      
+      // Fix user association for assessments that don't belong to any current user
+      for (const assessment of allAssessmentsInDB) {
+        if (assessment.userId && assessment.userId !== userId) {
+          // Check if the original user still exists
+          const originalUser = await storage.getUser(assessment.userId);
+          if (!originalUser) {
+            // Update assessment to belong to current user
+            await db.update(assessments)
+              .set({ 
+                userId: userId,
+                clientId: userId,
+                updatedAt: new Date()
+              })
+              .where(eq(assessments.id, assessment.id));
+            console.log(`Updated assessment ${assessment.id} to belong to current user`);
+          }
+        }
+      }
       
       // Get both assessments where user is the assessor and where user is the client
       const assessorAssessments = await storage.getUserAssessments(userId);
       const clientAssessments = await storage.getClientAssessments(userId);
-      
-      console.log("Assessor assessments:", assessorAssessments.length);
-      console.log("Client assessments:", clientAssessments.length);
       
       // Combine and remove duplicates (in case user is both assessor and client)
       const allAssessments = [...assessorAssessments, ...clientAssessments];
       const uniqueAssessments = allAssessments.filter((assessment, index, self) => 
         index === self.findIndex(a => a.id === assessment.id)
       );
-      
-      // Debug: Log assessment statuses
-      console.log("User's assessments with statuses:", uniqueAssessments.map(a => ({ id: a.id, status: a.status, buildingName: a.buildingName })));
       
       res.json(uniqueAssessments);
     } catch (error) {
