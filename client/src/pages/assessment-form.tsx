@@ -658,15 +658,6 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   {currentSectionIndex === assessmentSections.length - 1 ? "Complete Assessment" : "Next Section"}
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
-                {allSectionsCompleted && currentSectionIndex === assessmentSections.length - 1 && (
-                  <Button 
-                    onClick={handleSubmitAssessment}
-                    disabled={submitAssessmentMutation.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
-                  </Button>
-                )}
               </div>
             </div>
           </CardContent>
