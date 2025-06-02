@@ -3,6 +3,7 @@ import { storage } from "./storage";
 import { requireAuth, requireAdmin, auditLog } from "./middleware";
 import { insertUserInvitationSchema, updateUserSchema } from "@shared/schema";
 import { emailService } from "./email-service";
+import { hashPassword } from "./custom-auth";
 import crypto from "crypto";
 
 export function registerAdminRoutes(app: Express) {
@@ -111,6 +112,63 @@ export function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error("Error updating user subscription:", error);
       res.status(500).json({ message: "Failed to update subscription" });
+    }
+  });
+
+  // Reset user password (admin only)
+  app.post('/api/admin/users/:id/reset-password', requireAuth, requireAdmin, auditLog("password_reset"), async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get user to reset password for
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate temporary password
+      const tempPassword = crypto.randomBytes(8).toString('hex');
+      const hashedPassword = await hashPassword(tempPassword);
+      
+      // Update user's password in database
+      await storage.updateUser(id, { passwordHash: hashedPassword });
+      
+      // Send email with temporary password
+      try {
+        await emailService.sendEmail({
+          to: user.email!,
+          subject: 'Password Reset - GREDA Green Building Assessment',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Password Reset</h2>
+              <p>Hello ${user.firstName} ${user.lastName},</p>
+              <p>Your password has been reset by an administrator. Please use this temporary password to log in:</p>
+              <div style="background-color: #f3f4f6; padding: 15px; margin: 20px 0; border-radius: 5px; font-family: monospace; font-size: 16px; font-weight: bold;">
+                ${tempPassword}
+              </div>
+              <p><strong>Please change your password immediately after logging in for security.</strong></p>
+              <p>If you did not request this password reset, please contact your administrator immediately.</p>
+              <br>
+              <p>Best regards,<br>GREDA Green Building Assessment Team</p>
+            </div>
+          `,
+          text: `Your password has been reset. Temporary password: ${tempPassword}. Please change it immediately after logging in.`
+        });
+        
+        console.log(`Password reset email sent to ${user.email}`);
+      } catch (emailError) {
+        console.error("Failed to send password reset email:", emailError);
+        return res.status(500).json({ message: "Failed to send password reset email" });
+      }
+      
+      res.json({ 
+        message: "Password reset successfully",
+        tempPassword,
+        email: user.email
+      });
+    } catch (error) {
+      console.error("Error resetting user password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
     }
   });
 

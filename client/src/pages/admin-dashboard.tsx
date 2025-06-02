@@ -173,6 +173,21 @@ export default function AdminDashboard() {
     }
   });
 
+  // Reset user password mutation
+  const resetUserPasswordMutation = useMutation({
+    mutationFn: (userId: string) => 
+      apiRequest(`/api/admin/users/${userId}/reset-password`, "POST"),
+    onSuccess: (data: { tempPassword: string; email: string }) => {
+      toast({ 
+        title: "Password reset successfully", 
+        description: `Temporary password: ${data.tempPassword} (sent to ${data.email})` 
+      });
+    },
+    onError: () => {
+      toast({ title: "Failed to reset password", variant: "destructive" });
+    }
+  });
+
   // Handler functions
   const handleCancelInvitation = (invitationId: number) => {
     setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: true } }));
@@ -512,6 +527,15 @@ export default function AdminDashboard() {
                             <SelectItem value="enterprise-active">Enterprise (Active)</SelectItem>
                           </SelectContent>
                         </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => resetUserPasswordMutation.mutate(user.id)}
+                          disabled={resetUserPasswordMutation.isPending}
+                        >
+                          {resetUserPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                        </Button>
                       </div>
                     </div>
                   ))}
