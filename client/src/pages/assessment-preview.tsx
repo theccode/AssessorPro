@@ -57,16 +57,21 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-              <span className="ml-3 text-xl font-medium text-gray-900">GREDA-GBC Assessor Pro</span>
+      <nav className="sticky top-0 z-50 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-card rounded-lg shadow-sm border">
+            <div className="flex justify-between items-center px-6 py-4">
+              <div className="flex items-center">
+                <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
+                <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessment Preview</span>
+              </div>
+              <Button variant="outline" asChild>
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Link>
+              </Button>
             </div>
-            <Button variant="outline" asChild>
-              <Link href="/"><ArrowLeft className="h-4 w-4 mr-2" />Back to Dashboard</Link>
-            </Button>
           </div>
         </div>
       </nav>
