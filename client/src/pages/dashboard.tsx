@@ -290,10 +290,10 @@ export default function Dashboard() {
                 {assessments.map((assessment: Assessment) => (
                   <div key={assessment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                     <div>
-                      <h3 className="font-medium text-gray-900">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
                         {assessment.buildingName || "Untitled Assessment"}
                       </h3>
-                      <p className="text-sm text-gray-700">{assessment.buildingLocation}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{assessment.buildingLocation}</p>
                       <div className="flex items-center space-x-4 mt-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           assessment.status === "completed" 
@@ -320,17 +320,27 @@ export default function Dashboard() {
                       </div>
                       {/* Star Rating */}
                       <div className="flex items-center mt-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.floor((assessment.overallScore || 0) / 26)
-                                ? "text-yellow-400 fill-current"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                        <span className="ml-2 text-sm text-gray-600">GREDA Rating</span>
+                        {[...Array(5)].map((_, i) => {
+                          const score = assessment.overallScore || 0;
+                          let stars = 0;
+                          if (score >= 106) stars = 5; // Diamond/5★ (106-130)
+                          else if (score >= 80) stars = 4; // 4★ (80-105)
+                          else if (score >= 60) stars = 3; // 3★ (60-79)
+                          else if (score >= 45) stars = 2; // 2★ (45-59)
+                          else if (score >= 1) stars = 1; // 1★ (1-44)
+                          
+                          return (
+                            <Star
+                              key={i}
+                              className={`h-4 w-4 ${
+                                i < stars
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          );
+                        })}
+                        <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">GREDA Rating</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
