@@ -102,25 +102,19 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     setIsSaving(true);
     setSaveProgress(0);
     
-    // Simulate progress animation
-    const progressInterval = setInterval(() => {
-      setSaveProgress(prev => {
-        if (prev >= 90) return prev;
-        return Math.min(prev + Math.random() * 15 + 5, 90);
-      });
-    }, 100);
-    
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         if (assessmentId) {
+          // Start progress animation
+          setSaveProgress(20);
+          
           // Auto-save current assessment data
-          setSaveProgress(50);
           await updateAssessmentMutation.mutateAsync(formData);
+          setSaveProgress(60);
           
           // Auto-save current section if we have section data
           const currentSectionType = assessmentSections[currentSectionIndex].id;
           if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
-            setSaveProgress(75);
             const sectionToSave = {
               sectionType: currentSectionType,
               sectionName: assessmentSections[currentSectionIndex].name,
@@ -129,19 +123,18 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
             };
             await saveSectionMutation.mutateAsync(sectionToSave);
           }
+          
+          // Complete the progress
+          setSaveProgress(100);
+          
+          // Reset after showing 100% briefly
+          setTimeout(() => {
+            setIsSaving(false);
+            setSaveProgress(0);
+          }, 800);
         }
-        
-        clearInterval(progressInterval);
-        setSaveProgress(100);
-        
-        // Reset after showing 100% briefly
-        setTimeout(() => {
-          setIsSaving(false);
-          setSaveProgress(0);
-        }, 500);
       } catch (error) {
         console.error('Auto-save failed:', error);
-        clearInterval(progressInterval);
         setIsSaving(false);
         setSaveProgress(0);
       }
