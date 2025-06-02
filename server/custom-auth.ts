@@ -64,30 +64,22 @@ export function setupCustomAuth(app: Express) {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
-      console.log("Login attempt for:", req.body.email);
       const { email, password } = loginSchema.parse(req.body);
       
       // Find user by email
       const user = await storage.getUserByEmail(email);
-      console.log("User found:", user ? "Yes" : "No");
       if (!user || !user.passwordHash) {
-        console.log("Login failed: User not found or no password hash");
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Check if user is active
-      console.log("User status:", user.status);
       if (user.status !== "active") {
-        console.log("Login failed: User not active");
         return res.status(401).json({ message: "Account is not active. Please contact administrator." });
       }
 
       // Verify password
-      console.log("Verifying password...");
       const isValidPassword = await verifyPassword(password, user.passwordHash);
-      console.log("Password valid:", isValidPassword);
       if (!isValidPassword) {
-        console.log("Login failed: Invalid password");
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
@@ -95,12 +87,6 @@ export function setupCustomAuth(app: Express) {
       await storage.updateUser(user.id, { lastLoginAt: new Date() });
 
       // Set session
-      console.log("Session object:", req.session ? "exists" : "undefined");
-      if (!req.session) {
-        console.error("Session object is undefined");
-        return res.status(500).json({ message: "Session not initialized" });
-      }
-
       req.session.customUserId = user.id;
       req.session.save((err) => {
         if (err) {
@@ -108,7 +94,6 @@ export function setupCustomAuth(app: Express) {
           return res.status(500).json({ message: "Session error" });
         }
         
-        console.log("Login successful for user:", user.email);
         // Return user data (without password hash)
         const { passwordHash, ...userResponse } = user;
         res.json(userResponse);
