@@ -187,30 +187,19 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         
         setCurrentSectionIndex(targetSectionIndex);
         setHasSetInitialSection(true);
+        
+        // Mark data as loaded after initial setup
+        setTimeout(() => {
+          setDataLoaded(true);
+        }, 500);
       }
     }
   }, [sections, hasSetInitialSection]);
 
-  // Auto-save when form data changes
-  useEffect(() => {
-    if (assessmentId && Object.keys(formData).length > 0) {
-      debouncedSave();
-    }
-  }, [formData, debouncedSave, assessmentId]);
+  // Track if data has been loaded to prevent auto-save on initial load
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Auto-save when section data changes
-  useEffect(() => {
-    if (assessmentId && Object.keys(sectionData).length > 0) {
-      debouncedSave();
-    }
-  }, [sectionData, debouncedSave, assessmentId]);
-
-  // Auto-save when location data changes
-  useEffect(() => {
-    if (assessmentId && Object.keys(locationData).length > 0) {
-      debouncedSave();
-    }
-  }, [locationData, debouncedSave, assessmentId]);
+  // Note: Auto-save is now triggered only by explicit user actions, not by useEffect hooks
 
   const currentSection = assessmentSections[currentSectionIndex];
   const progress = ((currentSectionIndex + 1) / assessmentSections.length) * 100;
@@ -417,7 +406,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     <Input
                       id="buildingName"
                       value={formData.buildingName || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, buildingName: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, buildingName: e.target.value }));
+                        if (dataLoaded) debouncedSave();
+                      }}
                       placeholder="Enter building name"
                     />
                   </div>
