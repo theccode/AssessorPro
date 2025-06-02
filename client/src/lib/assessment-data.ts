@@ -61,9 +61,11 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "materialsWithThirdPartyCertification", name: "Materials With Third-Party Certification/Verifications", maxScore: 2, requiresImages: true },
   ],
   "waste-pollution": [
-    { id: "constructionWasteManagement", name: "Construction Waste Management", maxScore: 14 },
-    { id: "operationalWasteManagement", name: "Operational Waste Management", maxScore: 1 },
-    { id: "pollutionControl", name: "Pollution Control", maxScore: 2 },
+    { id: "constructionWasteManagement", name: "Construction Waste Management", maxScore: 4, requiresImages: true },
+    { id: "operationalWaste", name: "Operational Waste", maxScore: 3 },
+    { id: "publicTransportAccess", name: "Public Transport Access", maxScore: 2, requiresLocation: true },
+    { id: "wasteDisposalFacilities", name: "Waste Disposal Facilities", maxScore: 3, requiresImages: true },
+    { id: "lowEmittingVehicles", name: "Low Emitting Vehicles", maxScore: 2 },
   ],
   "innovation": [
     { id: "innovativeTechnologies", name: "Innovative Technologies", maxScore: 11 },
