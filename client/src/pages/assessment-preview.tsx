@@ -45,6 +45,14 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     submitAssessmentMutation.mutate();
   };
 
+  // Helper function to format camelCase to readable text
+  const formatVariableName = (camelCase: string) => {
+    return camelCase
+      .replace(/([A-Z])/g, ' $1') // Add space before capitals
+      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+      .trim();
+  };
+
   // PDF Download functionality
   const handleDownloadPDF = async () => {
     if (!assessment) {
@@ -126,6 +134,10 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
       pdf.setTextColor(0, 0, 0);
       pdf.text(`Total Score: ${totalScore} / ${maxScore} points`, 20, yPosition);
       yPosition += 7;
+      
+      const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+      pdf.text(`Percentage: ${percentage}%`, 20, yPosition);
+      yPosition += 7;
 
       // Calculate certification level
       let certification = '';
@@ -171,7 +183,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
 
               sectionConfig.forEach(variable => {
                 const score = variables[variable.id] || 0;
-                pdf.text(`• ${variable.name}: ${score} / ${variable.maxScore} points`, 30, yPosition);
+                const formattedName = formatVariableName(variable.name);
+                pdf.text(`• ${formattedName}: ${score} / ${variable.maxScore} points`, 30, yPosition);
                 yPosition += 5;
               });
             }
@@ -181,7 +194,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         }
       }
 
-      // Media section
+      // Media section - organized by section
       try {
         const mediaResponse = await fetch(`/api/assessments/${publicId}/media`);
         const mediaData = await mediaResponse.json();
@@ -195,52 +208,117 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
           pdf.text('Assessment Images', 20, yPosition);
           yPosition += 15;
 
-          for (const media of mediaData) {
+          // Group images by section
+          const imagesBySectionAndVariable = {};
+          mediaData.forEach(media => {
             if (media.fileType === 'image') {
-              try {
-                if (yPosition > pageHeight - 80) {
-                  pdf.addPage();
-                  yPosition = 20;
-                }
-
-                pdf.setFontSize(10);
-                pdf.setTextColor(0, 0, 0);
-                pdf.text(`${media.fieldName} - ${media.fileName}`, 20, yPosition);
-                yPosition += 7;
-
-                // Load and add image
-                const imgResponse = await fetch(`/api/media/serve/${media.id}`);
-                const imgBlob = await imgResponse.blob();
-                const imgUrl = URL.createObjectURL(imgBlob);
-                
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                
-                await new Promise((resolve) => {
-                  img.onload = () => {
-                    const imgWidth = 80;
-                    const imgHeight = (img.height / img.width) * imgWidth;
-                    
-                    if (yPosition + imgHeight > pageHeight - 20) {
-                      pdf.addPage();
-                      yPosition = 20;
-                    }
-                    
-                    pdf.addImage(img, 'JPEG', 20, yPosition, imgWidth, imgHeight);
-                    yPosition += imgHeight + 10;
-                    URL.revokeObjectURL(imgUrl);
-                    resolve(true);
-                  };
-                  img.onerror = () => {
-                    console.warn('Could not load image:', media.fileName);
-                    resolve(true);
-                  };
-                  img.src = imgUrl;
-                });
-              } catch (error) {
-                console.error('Error adding image to PDF:', error);
+              const section = media.sectionType || 'other';
+              const variable = media.fieldName || 'general';
+              
+              if (!imagesBySectionAndVariable[section]) {
+                imagesBySectionAndVariable[section] = {};
               }
+              if (!imagesBySectionAndVariable[section][variable]) {
+                imagesBySectionAndVariable[section][variable] = [];
+              }
+              imagesBySectionAndVariable[section][variable].push(media);
             }
+          });
+
+          // Display images organized by section and variable
+          for (const [sectionType, variables] of Object.entries(imagesBySectionAndVariable)) {
+            // Section header
+            if (yPosition > pageHeight - 40) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            
+            const sectionName = assessmentSections.find(s => s.id === sectionType)?.name || formatVariableName(sectionType);
+            pdf.setFontSize(14);
+            pdf.setTextColor(0, 102, 51);
+            pdf.text(`${sectionName} Section Images`, 20, yPosition);
+            yPosition += 10;
+
+            for (const [variableName, images] of Object.entries(variables)) {
+              // Variable header
+              if (yPosition > pageHeight - 30) {
+                pdf.addPage();
+                yPosition = 20;
+              }
+              
+              pdf.setFontSize(12);
+              pdf.setTextColor(0, 0, 0);
+              pdf.text(`${formatVariableName(variableName)}:`, 25, yPosition);
+              yPosition += 8;
+
+              // Display images in a grid (2 per row)
+              let imagesInRow = 0;
+              let currentRowY = yPosition;
+              
+              for (const media of images) {
+                try {
+                  // Load and add image
+                  const imgResponse = await fetch(`/api/media/serve/${media.id}`);
+                  const imgBlob = await imgResponse.blob();
+                  const imgUrl = URL.createObjectURL(imgBlob);
+                  
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  
+                  await new Promise((resolve) => {
+                    img.onload = () => {
+                      const imgWidth = 70;
+                      const imgHeight = (img.height / img.width) * imgWidth;
+                      
+                      // Check if we need a new page
+                      if (currentRowY + imgHeight > pageHeight - 20) {
+                        pdf.addPage();
+                        yPosition = 20;
+                        currentRowY = yPosition;
+                        imagesInRow = 0;
+                      }
+                      
+                      // Calculate position (2 images per row)
+                      const xOffset = imagesInRow === 0 ? 30 : 110;
+                      
+                      // Add image filename
+                      pdf.setFontSize(8);
+                      pdf.setTextColor(100, 100, 100);
+                      pdf.text(media.fileName, xOffset, currentRowY);
+                      
+                      // Add image
+                      pdf.addImage(img, 'JPEG', xOffset, currentRowY + 3, imgWidth, imgHeight);
+                      
+                      imagesInRow++;
+                      if (imagesInRow >= 2) {
+                        imagesInRow = 0;
+                        currentRowY += imgHeight + 15;
+                        yPosition = currentRowY;
+                      }
+                      
+                      URL.revokeObjectURL(imgUrl);
+                      resolve(true);
+                    };
+                    img.onerror = () => {
+                      console.warn('Could not load image:', media.fileName);
+                      resolve(true);
+                    };
+                    img.src = imgUrl;
+                  });
+                } catch (error) {
+                  console.error('Error adding image to PDF:', error);
+                }
+              }
+              
+              // Move to next row if images were added
+              if (imagesInRow > 0) {
+                yPosition = currentRowY + 80; // Add some spacing after images
+              }
+              
+              yPosition += 10; // Space between variables
+            }
+            
+            yPosition += 5; // Space between sections
           }
         }
       } catch (error) {
