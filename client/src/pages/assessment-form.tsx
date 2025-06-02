@@ -508,6 +508,125 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     />
                   </div>
                 </div>
+
+                {/* Building Specifications Section */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Building Specifications</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                      <Label htmlFor="buildingFootprint">Building Footprint (m²)</Label>
+                      <Input
+                        id="buildingFootprint"
+                        type="number"
+                        value={formData.buildingFootprint || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, buildingFootprint: e.target.value }))}
+                        placeholder="Enter building footprint"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="roomHeight">Room Height (m)</Label>
+                      <Input
+                        id="roomHeight"
+                        type="number"
+                        value={formData.roomHeight || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, roomHeight: e.target.value }))}
+                        placeholder="Enter average room height"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="numberOfBedrooms">Number of Bedrooms</Label>
+                      <Input
+                        id="numberOfBedrooms"
+                        type="number"
+                        value={formData.numberOfBedrooms || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfBedrooms: e.target.value }))}
+                        placeholder="Enter number of bedrooms"
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="siteArea">Site Area (m²)</Label>
+                      <Input
+                        id="siteArea"
+                        type="number"
+                        value={formData.siteArea || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, siteArea: e.target.value }))}
+                        placeholder="Enter total site area"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="numberOfWindows">Number of Windows</Label>
+                      <Input
+                        id="numberOfWindows"
+                        type="number"
+                        value={formData.numberOfWindows || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfWindows: e.target.value }))}
+                        placeholder="Enter number of windows"
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="numberOfDoors">Number of Doors</Label>
+                      <Input
+                        id="numberOfDoors"
+                        type="number"
+                        value={formData.numberOfDoors || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfDoors: e.target.value }))}
+                        placeholder="Enter number of doors"
+                        min="0"
+                        step="1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="averageWindowSize">Average Size of Windows (m²)</Label>
+                      <Input
+                        id="averageWindowSize"
+                        type="number"
+                        value={formData.averageWindowSize || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, averageWindowSize: e.target.value }))}
+                        placeholder="Enter average window size"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="numberOfFloors">Number of Floors</Label>
+                      <Input
+                        id="numberOfFloors"
+                        type="number"
+                        value={formData.numberOfFloors || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfFloors: e.target.value }))}
+                        placeholder="Enter number of floors"
+                        min="1"
+                        step="1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="totalGreenArea">Total Size of Green Area (m²)</Label>
+                      <Input
+                        id="totalGreenArea"
+                        type="number"
+                        value={formData.totalGreenArea || ""}
+                        onChange={(e) => setFormData(prev => ({ ...prev, totalGreenArea: e.target.value }))}
+                        placeholder="Green area vs hard landscaping"
+                        min="0"
+                        step="0.01"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        To be measured against hard landscaping left
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="additionalNotes">Additional Notes</Label>
                   <Textarea
