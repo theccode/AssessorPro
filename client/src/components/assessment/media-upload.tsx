@@ -277,7 +277,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        const file = new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        const file = new File([blob], `${fieldName}.webm`, { type: 'audio/webm' });
         handleFiles([file]);
         stopCamera();
       };
