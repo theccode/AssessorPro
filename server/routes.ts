@@ -783,15 +783,22 @@ For security reasons, we recommend using a strong, unique password and not shari
     try {
       const mediaId = parseInt(req.params.id);
       
+      console.log('Media access request for ID:', mediaId);
+      console.log('Session data:', req.session);
+      console.log('User data:', req.user);
+      
       // Check for custom authentication first
       let userId = null;
       if (req.session && req.session.customUserId) {
         userId = req.session.customUserId;
+        console.log('Found custom user ID:', userId);
       } else if (req.user && req.user.claims && req.user.claims.sub) {
         userId = req.user.claims.sub;
+        console.log('Found Replit user ID:', userId);
       }
       
       if (!userId) {
+        console.log('No valid user ID found, returning 401');
         return res.status(401).json({ message: "Unauthorized" });
       }
       
