@@ -52,6 +52,8 @@ export const sectionVariables: Record<string, Array<{ id: string; name: string; 
     { id: "roomsWithin10mNaturalLightingSource", name: "Rooms Within 10m Natural Lighting Source", maxScore: 2, requiresImages: true },
   ],
   "materials-resources": [
+    { id: "lifeCycleImpactReduction", name: "Life Cycle Impact Reduction", maxScore: 2, requiresImages: true },
+    { id: "environmentalProductDeclaration", name: "Environmental Product Declaration", maxScore: 2, requiresImages: true },
     { id: "responsibleSourcing", name: "Responsible Sourcing of Raw Materials", maxScore: 2 },
     { id: "sustainableGreenProducts", name: "Sustainable/Green Products", maxScore: 2, requiresImages: true },
     { id: "materialsWithRecycledContent", name: "Materials With Recycled Content", maxScore: 2, requiresImages: true },
