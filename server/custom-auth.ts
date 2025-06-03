@@ -114,18 +114,23 @@ export function setupCustomAuth(app: Express) {
         // Return user data (without password hash)
         const { passwordHash, ...userResponse } = user;
         
-        // If user is not on their correct domain, include redirect URL
-        if (currentDomain !== targetDomain) {
-          const protocol = req.secure ? 'https' : 'http';
-          const redirectUrl = `${protocol}://${targetDomain}`;
-          
-          return res.json({
-            ...userResponse,
-            redirect: redirectUrl
-          });
-        }
+        // In development, skip domain redirection
+        if (process.env.NODE_ENV === 'development') {
+          res.json(userResponse);
+        } else {
+          // If user is not on their correct domain, include redirect URL
+          if (currentDomain !== targetDomain) {
+            const protocol = req.secure ? 'https' : 'http';
+            const redirectUrl = `${protocol}://${targetDomain}`;
+            
+            return res.json({
+              ...userResponse,
+              redirect: redirectUrl
+            });
+          }
 
-        res.json(userResponse);
+          res.json(userResponse);
+        }
       });
     } catch (error) {
       console.error("Login error:", error);
