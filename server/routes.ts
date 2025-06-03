@@ -452,8 +452,23 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Assessment media by ID
   app.get('/api/assessments/:id/media', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
-      const media = await storage.getAssessmentMedia(assessmentId);
+      const publicId = req.params.id;
+      const { sectionType, fieldName } = req.query;
+      
+      // Get assessment by public ID to get internal ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      let media;
+      if (sectionType && fieldName) {
+        // Filter by both section and field
+        const allMedia = await storage.getAssessmentMedia(assessment.id, sectionType as string);
+        media = allMedia.filter(m => m.fieldName === fieldName);
+      } else {
+        media = await storage.getAssessmentMedia(assessment.id, sectionType as string);
+      }
       
       res.json(media);
     } catch (error) {
@@ -751,32 +766,7 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
-  app.get('/api/assessments/:id/media', isCustomAuthenticated, async (req: any, res) => {
-    try {
-      const publicId = req.params.id;
-      const { sectionType, fieldName } = req.query;
-      
-      // Get assessment by public ID to get internal ID
-      const assessment = await storage.getAssessmentByPublicId(publicId);
-      if (!assessment) {
-        return res.status(404).json({ message: "Assessment not found" });
-      }
-      
-      let media;
-      if (sectionType && fieldName) {
-        // Filter by both section and field
-        const allMedia = await storage.getAssessmentMedia(assessment.id, sectionType as string);
-        media = allMedia.filter(m => m.fieldName === fieldName);
-      } else {
-        media = await storage.getAssessmentMedia(assessment.id, sectionType as string);
-      }
-      
-      res.json(media);
-    } catch (error) {
-      console.error("Error fetching media:", error);
-      res.status(500).json({ message: "Failed to fetch media" });
-    }
-  });
+
 
   // Direct media access endpoint
   app.get('/api/media/:id', async (req: any, res) => {
