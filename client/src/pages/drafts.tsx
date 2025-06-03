@@ -14,6 +14,7 @@ import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 interface Assessment {
   id: number;
   buildingName?: string;
+  clientName?: string;
   publisherName?: string;
   buildingLocation?: string;
   status: string;
@@ -43,7 +44,7 @@ export default function Drafts() {
     if (searchTerm) {
       filtered = filtered.filter((a: Assessment) => 
         (a.buildingName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (a.publisherName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (a.clientName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (a.buildingLocation || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -72,7 +73,7 @@ export default function Drafts() {
 
     // Group by client
     const groups = filtered.reduce((acc: Record<string, Assessment[]>, assessment: Assessment) => {
-      const clientKey = assessment.publisherName || "Unknown Client";
+      const clientKey = assessment.clientName || "Unknown Client";
       if (!acc[clientKey]) {
         acc[clientKey] = [];
       }
