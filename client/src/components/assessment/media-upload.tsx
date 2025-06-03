@@ -391,7 +391,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-4">
                 <Image className="h-6 w-6 text-gray-400" />
-                <span className="text-lg font-medium text-gray-600">Add Photo</span>
+                <span className="text-lg font-medium text-gray-600">Photo</span>
               </div>
               <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 10MB</p>
               
@@ -406,7 +406,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <Camera className="h-6 w-6" />
-                  <span className="text-sm">Take Photo</span>
+                  <span className="text-sm">Camera</span>
                 </Button>
                 
                 <Button
@@ -419,7 +419,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <Upload className="h-6 w-6" />
-                  <span className="text-sm">Upload Photo</span>
+                  <span className="text-sm">Upload</span>
                 </Button>
               </div>
             </div>
@@ -429,7 +429,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-4">
                 <Video className="h-6 w-6 text-gray-400" />
-                <span className="text-lg font-medium text-gray-600">Add Video</span>
+                <span className="text-lg font-medium text-gray-600">Video</span>
               </div>
               <p className="text-xs text-gray-500">MP4, WEBM, MOV, AVI up to 50MB</p>
               
@@ -444,7 +444,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <VideoIcon className="h-6 w-6" />
-                  <span className="text-sm">Record Video</span>
+                  <span className="text-sm">Camera</span>
                 </Button>
                 
                 <Button
@@ -457,7 +457,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <Upload className="h-6 w-6" />
-                  <span className="text-sm">Upload Video</span>
+                  <span className="text-sm">Upload</span>
                 </Button>
               </div>
             </div>
@@ -467,7 +467,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             <div className="space-y-4">
               <div className="flex items-center justify-center space-x-4">
                 <Music className="h-6 w-6 text-gray-400" />
-                <span className="text-lg font-medium text-gray-600">Add Audio</span>
+                <span className="text-lg font-medium text-gray-600">Audio</span>
               </div>
               <p className="text-xs text-gray-500">MP3, WAV, M4A, AAC, OGG up to 20MB</p>
               
@@ -482,7 +482,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <Mic className="h-6 w-6" />
-                  <span className="text-sm">Record Audio</span>
+                  <span className="text-sm">Record</span>
                 </Button>
                 
                 <Button
@@ -495,7 +495,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   className="flex flex-col items-center gap-2 h-auto py-3"
                 >
                   <Upload className="h-6 w-6" />
-                  <span className="text-sm">Upload Audio</span>
+                  <span className="text-sm">Upload</span>
                 </Button>
               </div>
             </div>
