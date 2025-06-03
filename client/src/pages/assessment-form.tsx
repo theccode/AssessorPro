@@ -41,6 +41,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const [showSavedState, setShowSavedState] = useState(true);
   const [hasLoggedView, setHasLoggedView] = useState(false);
   const [hasLoggedEdit, setHasLoggedEdit] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Fetch assessment if editing
   const { data: assessment, isLoading: assessmentLoading, error: assessmentError } = useQuery({
@@ -362,9 +364,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     }
   }, [sections, hasSetInitialSection]);
 
-  // Track if data has been loaded to prevent auto-save on initial load
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+
 
   // Note: Auto-save is now triggered only by explicit user actions, not by useEffect hooks
 
