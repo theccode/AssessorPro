@@ -580,6 +580,19 @@ For security reasons, we recommend using a strong, unique password and not shari
         updateData.lockedAt = new Date();
       }
 
+      // Convert empty strings to null for numeric fields to prevent database errors
+      const numericFields = [
+        'buildingFootprint', 'roomHeight', 'numberOfBedrooms', 'siteArea',
+        'numberOfWindows', 'numberOfDoors', 'averageWindowSize', 'numberOfFloors', 
+        'totalGreenArea'
+      ];
+      
+      numericFields.forEach(field => {
+        if (updateData[field] === '') {
+          updateData[field] = null;
+        }
+      });
+
       const updated = await storage.updateAssessment(existing.id, updateData);
       res.json(updated);
     } catch (error) {
