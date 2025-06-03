@@ -594,7 +594,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     <Input
                       id="clientName"
                       value={formData.clientName || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, clientName: e.target.value }));
+                        if (dataLoaded) debouncedSave();
+                      }}
                       placeholder="Enter client's name"
                       disabled={isAssessmentLocked}
                     />
@@ -604,7 +607,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     <Input
                       id="buildingLocation"
                       value={formData.buildingLocation || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, buildingLocation: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, buildingLocation: e.target.value }));
+                        if (dataLoaded) debouncedSave();
+                      }}
                       placeholder="Enter building location"
                       disabled={isAssessmentLocked}
                     />
@@ -614,7 +620,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                     <Input
                       id="digitalAddress"
                       value={formData.digitalAddress || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, digitalAddress: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, digitalAddress: e.target.value }));
+                        if (dataLoaded) debouncedSave();
+                      }}
                       placeholder="e.g. GA-543-0125"
                       pattern="[A-Z]{2}-\d{3}-\d{4}"
                       title="Format: Two letters, hyphen, 3 digits, hyphen, 4 digits (e.g. GA-543-0125)"
@@ -630,7 +639,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       id="phoneNumber"
                       type="tel"
                       value={formData.phoneNumber || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, phoneNumber: e.target.value }));
+                        if (dataLoaded) debouncedSave();
+                      }}
                       placeholder="Enter phone number"
                       disabled={isAssessmentLocked}
                     />
@@ -647,7 +659,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="buildingFootprint"
                         type="number"
                         value={formData.buildingFootprint || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, buildingFootprint: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, buildingFootprint: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter building footprint"
                         min="0"
                         step="0.01"
@@ -660,7 +675,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="roomHeight"
                         type="number"
                         value={formData.roomHeight || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, roomHeight: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, roomHeight: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter average room height"
                         min="0"
                         step="0.01"
