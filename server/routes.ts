@@ -414,8 +414,8 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.get('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
-      const assessment = await storage.getAssessmentWithSections(assessmentId);
+      const publicId = req.params.id;
+      const assessment = await storage.getAssessmentByPublicId(publicId);
       
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
@@ -439,8 +439,14 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Assessment sections by ID
   app.get('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
-      const sections = await storage.getAssessmentSections(assessmentId);
+      const publicId = req.params.id;
+      // Get assessment by public ID to get internal ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
+      const sections = await storage.getAssessmentSections(assessment.id);
       
       res.json(sections);
     } catch (error) {
@@ -480,8 +486,8 @@ For security reasons, we recommend using a strong, unique password and not shari
   // PDF Generation for Assessment
   app.get('/api/assessments/:id/pdf', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const assessmentId = parseInt(req.params.id);
-      const assessment = await storage.getAssessmentWithSections(assessmentId);
+      const publicId = req.params.id;
+      const assessment = await storage.getAssessmentByPublicId(publicId);
       
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
