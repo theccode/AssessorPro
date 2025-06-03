@@ -26,12 +26,24 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function AssessorDashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedTimeRange, setSelectedTimeRange] = useState("30");
 
   // Fetch assessments data
   const { data: assessments = [], isLoading: assessmentsLoading } = useQuery({
     queryKey: ["/api/assessments"],
     retry: false,
+  });
+
+  // Lock/unlock assessment mutation
+  const lockMutation = useMutation({
+    mutationFn: async ({ assessmentId, isLocked }: { assessmentId: number; isLocked: boolean }) => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}/lock`, "PATCH", { isLocked });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
   });
 
   // Calculate analytics data
@@ -181,6 +193,29 @@ export default function AssessorDashboard() {
                         <Badge className={getStatusColor(assessment.status)}>
                           {assessment.status.replace('_', ' ')}
                         </Badge>
+                        {assessment.isLocked && (
+                          <div className="flex items-center">
+                            <Lock className="h-3 w-3 text-red-500 mr-1" />
+                            <span className="text-xs text-red-600">Locked</span>
+                          </div>
+                        )}
+                        {(user as any)?.role === "admin" && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => lockMutation.mutate({ 
+                              assessmentId: assessment.id, 
+                              isLocked: !assessment.isLocked 
+                            })}
+                            disabled={lockMutation.isPending}
+                          >
+                            {assessment.isLocked ? (
+                              <Unlock className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Lock className="h-4 w-4 text-red-600" />
+                            )}
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/assessments/${assessment.id}/preview`}>
                             <Eye className="h-4 w-4" />

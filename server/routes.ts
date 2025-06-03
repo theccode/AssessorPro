@@ -646,6 +646,33 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Lock/unlock assessment toggle (admin only)
+  app.patch('/api/assessments/:id/lock', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { isLocked } = req.body;
+      const userId = req.session.customUserId;
+      
+      // Get current user to check admin role
+      const currentUser = await storage.getUser(userId);
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can lock/unlock assessments" });
+      }
+      
+      // Update assessment lock status
+      const updated = await storage.updateAssessment(id, {
+        isLocked: isLocked,
+        lockedBy: isLocked ? userId : null,
+        lockedAt: isLocked ? new Date() : null
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating assessment lock status:", error);
+      res.status(500).json({ message: "Failed to update assessment lock status" });
+    }
+  });
+
   // Unlock assessment (admin only)
   app.post('/api/assessments/:id/unlock', isCustomAuthenticated, async (req: any, res) => {
     try {
