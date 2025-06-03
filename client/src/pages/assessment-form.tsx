@@ -464,27 +464,30 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
               <span className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                 Section {currentSectionIndex + 1} of {assessmentSections.length}
               </span>
+              {/* Fixed width container for auto-save indicator to prevent layout shifts */}
+              <div className="flex items-center text-sm text-muted-foreground w-20 sm:w-24 justify-end">
+                {(autoSaveAssessmentMutation.isPending || autoSaveSectionMutation.isPending) ? (
+                  <div className="flex items-center">
+                    <div className="w-16 h-1.5 bg-secondary rounded-full mr-2 overflow-hidden">
+                      <div className="h-full bg-primary animate-pulse"></div>
+                    </div>
+                    <span className="text-xs">Saving</span>
+                  </div>
+                ) : showSavedState ? (
+                  <div className="flex items-center">
+                    <div className="h-1.5 w-1.5 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-xs">Saved</span>
+                  </div>
+                ) : (
+                  <div className="w-full"></div>
+                )}
+              </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/">
                   <ArrowLeft className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Back to Dashboard</span>
                 </Link>
               </Button>
-              <div className="flex items-center text-sm text-muted-foreground">
-                {(updateAssessmentMutation.isPending || saveSectionMutation.isPending) ? (
-                  <div className="flex items-center">
-                    <div className="w-20 h-2 bg-secondary rounded-full mr-2 overflow-hidden">
-                      <div className="h-full bg-primary animate-pulse"></div>
-                    </div>
-                    <span>Saving...</span>
-                  </div>
-                ) : showSavedState ? (
-                  <>
-                    <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                    Auto-saved
-                  </>
-                ) : null}
-              </div>
             </div>
           </div>
         </div>
