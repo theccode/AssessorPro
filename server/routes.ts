@@ -779,10 +779,21 @@ For security reasons, we recommend using a strong, unique password and not shari
   });
 
   // Direct media access endpoint
-  app.get('/api/media/:id', isCustomAuthenticated, async (req: any, res) => {
+  app.get('/api/media/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      
+      // Check for custom authentication first
+      let userId = null;
+      if (req.session && req.session.customUserId) {
+        userId = req.session.customUserId;
+      } else if (req.user && req.user.claims && req.user.claims.sub) {
+        userId = req.user.claims.sub;
+      }
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       // Get the media file details
       const assessments = await storage.getUserAssessments(userId);
