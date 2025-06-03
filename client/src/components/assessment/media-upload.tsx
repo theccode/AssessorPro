@@ -676,6 +676,16 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                     alt={media.fileName}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
                     onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'image/jpeg' })}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.parentElement!.innerHTML = `
+                        <div class="w-full h-24 bg-red-50 border border-red-200 rounded-lg flex flex-col items-center justify-center">
+                          <span class="text-red-600 text-xs font-medium">File Missing</span>
+                          <span class="text-red-500 text-xs">${media.fileName}</span>
+                        </div>
+                      `;
+                    }}
                   />
                 )}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
@@ -719,39 +729,50 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
 
       {/* Media Preview Modal */}
       <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogTitle className="sr-only">Media Preview</DialogTitle>
-          <DialogDescription className="sr-only">
-            Full size preview of uploaded assessment media
-          </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <div className="p-6">
+            <DialogTitle className="text-center mb-2">{toTitleCase(fieldName)}</DialogTitle>
+            <DialogDescription className="text-center mb-4">
+              Assessment media for {toTitleCase(fieldName)}
+            </DialogDescription>
+          </div>
           {previewMedia && (
-            (previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
-              <video
-                src={previewMedia.url}
-                controls
-                className="w-full h-auto max-h-[80vh] object-contain"
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
-              <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                <Music className="h-16 w-16 text-green-600" />
-                <h3 className="text-lg font-medium text-center">Audio File</h3>
-                <audio
+            <div className="flex flex-col items-center space-y-4 p-6 pt-0">
+              {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
+                <video
                   src={previewMedia.url}
                   controls
-                  className="w-full max-w-md"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 >
-                  Your browser does not support the audio tag.
-                </audio>
+                  Your browser does not support the video tag.
+                </video>
+              ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
+                <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                  <Music className="h-16 w-16 text-green-600" />
+                  <h3 className="text-lg font-medium text-center">Audio File</h3>
+                  <audio
+                    src={previewMedia.url}
+                    controls
+                    className="w-full max-w-md"
+                  >
+                    Your browser does not support the audio tag.
+                  </audio>
+                </div>
+              ) : (
+                <div className="flex justify-center w-full">
+                  <img
+                    src={previewMedia.url}
+                    alt={toTitleCase(fieldName)}
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                  />
+                </div>
+              )}
+              <div className="text-center mt-4">
+                <p className="text-sm text-muted-foreground font-medium">
+                  {toTitleCase(fieldName)}
+                </p>
               </div>
-            ) : (
-              <img
-                src={previewMedia.url}
-                alt="Preview"
-                className="w-full h-auto max-h-[80vh] object-contain"
-              />
-            )
+            </div>
           )}
         </DialogContent>
       </Dialog>
