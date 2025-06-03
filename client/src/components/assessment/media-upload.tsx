@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
 interface MediaUploadProps {
-  assessmentId: number | null;
+  assessmentId: string | null;
   sectionType: string;
   fieldName: string;
   className?: string;
@@ -85,7 +85,9 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         clearInterval(progressInterval);
 
         if (!response.ok) {
-          throw new Error('Upload failed');
+          const errorText = await response.text();
+          console.error('Upload failed:', response.status, errorText);
+          throw new Error(`Upload failed: ${response.status} ${errorText}`);
         }
 
         const result = await response.json();
