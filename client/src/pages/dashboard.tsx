@@ -1,19 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import Header from "@/components/Header";
-import { Building, Plus, FileText, Users, BarChart3, Star } from "lucide-react";
+import { Building, Plus, FileText, Users, BarChart3, Star, Lock, Unlock } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
+  });
+
+  // Lock/unlock assessment mutation
+  const lockMutation = useMutation({
+    mutationFn: async ({ assessmentId, isLocked }: { assessmentId: number; isLocked: boolean }) => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}/lock`, "PATCH", { isLocked });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
   });
 
   // Only show completed/submitted assessments on dashboard
@@ -99,7 +112,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 {(user as any)?.role === "client" ? (
-                  <ProgressRing value={averageScore} size={32} strokeWidth={3} />
+                  <ProgressRing value={averageScore} max={100} size={32} strokeWidth={3} />
                 ) : (
                   <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                 )}
@@ -147,7 +160,7 @@ export default function Dashboard() {
                   <div key={assessment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                     <div className="flex-1">
                       <h3 className="font-medium text-foreground">{assessment.buildingName}</h3>
-                      <p className="text-sm text-muted-foreground">{assessment.location}</p>
+                      <p className="text-sm text-muted-foreground">{assessment.buildingLocation || "No location specified"}</p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                           {assessment.status}
@@ -158,13 +171,38 @@ export default function Dashboard() {
                             <span className="text-sm font-medium">{assessment.overallScore}%</span>
                           </div>
                         )}
+                        {assessment.isLocked && (
+                          <div className="flex items-center">
+                            <Lock className="h-3 w-3 text-red-500 mr-1" />
+                            <span className="text-xs text-red-600">Locked</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/assessment/${assessment.id}`}>
-                        View Details
-                      </Link>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {(user as any)?.role === "admin" && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => lockMutation.mutate({ 
+                            assessmentId: assessment.id, 
+                            isLocked: !assessment.isLocked 
+                          })}
+                          disabled={lockMutation.isPending}
+                        >
+                          {assessment.isLocked ? (
+                            <Unlock className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Lock className="h-4 w-4 text-red-600" />
+                          )}
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/assessment/${assessment.id}`}>
+                          View Details
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
