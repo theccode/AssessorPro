@@ -832,7 +832,20 @@ For security reasons, we recommend using a strong, unique password and not shari
       // Check if file exists
       const filePath = path.resolve(media.filePath);
       if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ message: "File not found on disk" });
+        // Return a placeholder SVG for missing images
+        const placeholderSvg = `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="300" fill="#f3f4f6"/>
+          <text x="200" y="140" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="14">
+            ${media.fileName}
+          </text>
+          <text x="200" y="160" text-anchor="middle" fill="#9ca3af" font-family="Arial, sans-serif" font-size="12">
+            File not available
+          </text>
+        </svg>`;
+        
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.send(placeholderSvg);
       }
 
       // Set appropriate headers

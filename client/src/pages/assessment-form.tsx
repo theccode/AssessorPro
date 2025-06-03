@@ -403,6 +403,11 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         [variableId]: location,
       }
     }));
+    
+    // Auto-save section data when location data changes
+    if (dataLoaded) {
+      debouncedSave();
+    }
   };
 
   const handleSaveDraft = () => {
