@@ -115,112 +115,46 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     },
   });
 
-  // Debounced auto-save function (disabled when locked)
+  // Simple auto-save with debounce
+  const autoSave = useCallback(async () => {
+    if (!assessmentId || isAssessmentLocked || !dataLoaded) return;
+    
+    try {
+      // Only save building information section for section 0
+      if (currentSectionIndex === 0) {
+        // Update main assessment data
+        await updateAssessmentMutation.mutateAsync(formData);
+        
+        // Save building information section
+        const buildingInfoSection = {
+          sectionType: "building-information",
+          sectionName: "Building Information",
+          score: 0,
+          maxScore: 0,
+          variables: formData,
+          locationData: {},
+          isCompleted: true,
+        };
+        await saveSectionMutation.mutateAsync(buildingInfoSection);
+        
+        setShowSavedState(true);
+        setTimeout(() => setShowSavedState(false), 2000);
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  }, [assessmentId, formData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked, dataLoaded]);
+
+  // Debounced version of auto-save
   const debouncedSave = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
     
-    // Don't auto-save if assessment is locked or data is still loading
-    if (isAssessmentLocked || !dataLoaded || isTyping) {
-      return;
-    }
-    
-    setShowSavedState(false); // Hide saved state when starting to save
-    
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        if (assessmentId) {
-          // Log edit if user didn't create the assessment and hasn't been logged yet
-          if (user && assessment && assessment.userId !== user.id && !hasLoggedEdit) {
-            const userName = user.firstName && user.lastName 
-              ? `${user.firstName} ${user.lastName}` 
-              : user.email || user.id;
-            
-            apiRequest("/api/audit/log", "POST", {
-              action: `edited assessment "${assessment.buildingName || 'Untitled'}"`,
-              details: {
-                assessmentId: assessment.id,
-                buildingName: assessment.buildingName,
-                originalCreator: assessment.userId,
-                editorName: userName,
-                editorRole: user.role
-              }
-            }).catch(error => console.error("Failed to log assessment edit:", error));
-            
-            setHasLoggedEdit(true);
-          }
-
-          // Auto-save current assessment data
-          await updateAssessmentMutation.mutateAsync(formData);
-          
-          // Auto-save current section if we have section data
-          const currentSectionType = assessmentSections[currentSectionIndex].id;
-          
-          // For building information section, check if it should be marked complete
-          if (currentSectionIndex === 0) {
-            const hasRequiredFields = formData.buildingName && formData.clientName && formData.buildingLocation;
-            if (hasRequiredFields) {
-              const buildingInfoSection = {
-                sectionType: "building-information",
-                sectionName: "Building Information",
-                score: 0,
-                maxScore: 0,
-                variables: formData,
-                locationData: {},
-                isCompleted: true,
-              };
-              await saveSectionMutation.mutateAsync(buildingInfoSection);
-            }
-          } else if (sectionData[currentSectionType] && Object.keys(sectionData[currentSectionType]).length > 0) {
-            const sectionToSave = {
-              sectionType: currentSectionType,
-              sectionName: assessmentSections[currentSectionIndex].name,
-              variables: sectionData[currentSectionType],
-              locationData: locationData[currentSectionType] || {},
-            };
-            await saveSectionMutation.mutateAsync(sectionToSave);
-          }
-          
-          // Show saved state after a brief delay
-          setTimeout(() => {
-            setShowSavedState(true);
-          }, 500);
-        } else if (currentSectionIndex === 0 && formData.buildingName) {
-          // For new assessments without ID, create the assessment when building info is provided
-          console.log("Creating new assessment with auto-save:", formData);
-          
-          // Use client name from form or from existing assessment
-          const clientName = formData.clientName || assessment?.clientName || "";
-          
-          const newAssessment = await createAssessmentMutation.mutateAsync({
-            ...formData,
-            clientName
-          });
-          
-          // After creating assessment, save the building information section as completed
-          if (newAssessment && newAssessment.id) {
-            const buildingInfoSection = {
-              sectionType: "building-information",
-              sectionName: "Building Information", 
-              score: 0,
-              maxScore: 0,
-              variables: { ...formData, clientName },
-              locationData: {},
-              isCompleted: true,
-            };
-            
-            // Use the new assessment ID for the section save
-            const sectionResponse = await apiRequest(`/api/assessments/${newAssessment.id}/sections`, "POST", buildingInfoSection);
-            console.log("Building info section saved for new assessment:", sectionResponse);
-          }
-        }
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        setShowSavedState(true);
-      }
-    }, 5000); // Save after 5 seconds of no changes (increased to reduce interference)
-  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked, dataLoaded, isTyping]);
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSave();
+    }, 3000); // 3 second delay
+  }, [autoSave]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -639,8 +573,6 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       value={formData.clientName || ""}
                       onChange={(e) => {
                         setFormData(prev => ({ ...prev, clientName: e.target.value }));
-                        setIsTyping(true);
-                        setTimeout(() => setIsTyping(false), 1000);
                         if (dataLoaded) debouncedSave();
                       }}
                       placeholder="Enter client's name"
