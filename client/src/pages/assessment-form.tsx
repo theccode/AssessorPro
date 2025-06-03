@@ -240,6 +240,15 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         digitalAddress: assessment.digitalAddress || assessment.detailedAddress || "",
         phoneNumber: assessment.phoneNumber || "",
         additionalNotes: assessment.additionalNotes || "",
+        buildingFootprint: "",
+        roomHeight: "",
+        numberOfBedrooms: "",
+        siteArea: "",
+        numberOfWindows: "",
+        numberOfDoors: "",
+        averageWindowSize: "",
+        numberOfFloors: "",
+        totalGreenArea: "",
       });
 
       // Log assessment view if user didn't create it
@@ -271,6 +280,15 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         digitalAddress: "",
         phoneNumber: "",
         additionalNotes: "",
+        buildingFootprint: "",
+        roomHeight: "",
+        numberOfBedrooms: "",
+        siteArea: "",
+        numberOfWindows: "",
+        numberOfDoors: "",
+        averageWindowSize: "",
+        numberOfFloors: "",
+        totalGreenArea: "",
       });
     }
   }, [assessment, assessmentId, user, hasLoggedView]);
@@ -288,6 +306,30 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       console.log("Setting location data:", initialLocationData);
       setSectionData(initialSectionData);
       setLocationData(initialLocationData);
+      
+      // Update formData with building information section data if it exists
+      const buildingInfoSection = initialSectionData['building-information'];
+      if (buildingInfoSection) {
+        setFormData(prev => ({
+          ...prev,
+          buildingName: buildingInfoSection.buildingName || prev.buildingName,
+          clientName: buildingInfoSection.clientName || prev.clientName,
+          publisherName: buildingInfoSection.publisherName || prev.publisherName,
+          buildingLocation: buildingInfoSection.buildingLocation || prev.buildingLocation,
+          digitalAddress: buildingInfoSection.digitalAddress || prev.digitalAddress,
+          phoneNumber: buildingInfoSection.phoneNumber || prev.phoneNumber,
+          additionalNotes: buildingInfoSection.additionalNotes || prev.additionalNotes,
+          buildingFootprint: buildingInfoSection.buildingFootprint || "",
+          roomHeight: buildingInfoSection.roomHeight || "",
+          numberOfBedrooms: buildingInfoSection.numberOfBedrooms || "",
+          siteArea: buildingInfoSection.siteArea || "",
+          numberOfWindows: buildingInfoSection.numberOfWindows || "",
+          numberOfDoors: buildingInfoSection.numberOfDoors || "",
+          averageWindowSize: buildingInfoSection.averageWindowSize || "",
+          numberOfFloors: buildingInfoSection.numberOfFloors || "",
+          totalGreenArea: buildingInfoSection.totalGreenArea || "",
+        }));
+      }
 
       // Auto-navigate to the first incomplete section when loading
       if (!hasSetInitialSection) {
