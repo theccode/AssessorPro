@@ -699,10 +699,10 @@ For security reasons, we recommend using a strong, unique password and not shari
   });
 
   // Media upload routes
-  app.post('/api/assessments/:id/media',  upload.array('files'), async (req: any, res) => {
+  app.post('/api/assessments/:id/media', isCustomAuthenticated, upload.array('files'), async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       const { sectionType, fieldName } = req.body;
       
       // Verify ownership using public ID
@@ -751,7 +751,7 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
-  app.get('/api/assessments/:id/media',  async (req: any, res) => {
+  app.get('/api/assessments/:id/media', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
       const { sectionType, fieldName } = req.query;
@@ -883,7 +883,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.delete('/api/media/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.session.customUserId;
       
       // First find the media and verify ownership
       const allAssessments = await storage.getUserAssessments(userId);
