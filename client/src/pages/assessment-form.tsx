@@ -691,7 +691,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="numberOfBedrooms"
                         type="number"
                         value={formData.numberOfBedrooms || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfBedrooms: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, numberOfBedrooms: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter number of bedrooms"
                         min="0"
                         step="1"
@@ -704,7 +707,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="siteArea"
                         type="number"
                         value={formData.siteArea || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, siteArea: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, siteArea: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter total site area"
                         min="0"
                         step="0.01"
