@@ -638,26 +638,26 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
               <div key={media.id} className="relative group">
                 {(media.fileType?.startsWith('video/') || media.fileType === 'video' || media.mimeType?.startsWith('video/')) ? (
                   <video
-                    src={`/api/media/serve/${media.id}`}
+                    src={`/api/media/${media.id}`}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'video/mp4' })}
+                    onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'video/mp4' })}
                     muted
                     preload="metadata"
                   />
                 ) : (media.fileType?.startsWith('audio/') || media.fileType === 'audio' || media.mimeType?.startsWith('audio/')) ? (
                   <div 
                     className="w-full h-24 bg-green-50 border rounded-lg cursor-pointer hover:bg-green-100 transition-colors flex flex-col items-center justify-center"
-                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'audio/mpeg' })}
+                    onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'audio/mpeg' })}
                   >
                     <Music className="h-8 w-8 text-green-600 mb-1" />
                     <span className="text-xs text-green-700 font-medium">Audio</span>
                   </div>
                 ) : (
                   <img
-                    src={`/api/media/serve/${media.id}`}
+                    src={`/api/media/${media.id}`}
                     alt={media.fileName}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setPreviewMedia({ url: `/api/media/serve/${media.id}`, type: media.fileType || 'image/jpeg' })}
+                    onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'image/jpeg' })}
                   />
                 )}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
