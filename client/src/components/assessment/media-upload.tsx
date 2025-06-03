@@ -55,8 +55,12 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       if (!assessmentId) throw new Error("No assessment ID");
       
       const formData = new FormData();
-      files.forEach(file => {
-        formData.append('files', file);
+      files.forEach((file, index) => {
+        // Rename file to match the variable name it's being uploaded for
+        const fileExtension = file.name.split('.').pop() || '';
+        const newFileName = `${fieldName}${files.length > 1 ? `_${index + 1}` : ''}.${fileExtension}`;
+        const renamedFile = new File([file], newFileName, { type: file.type });
+        formData.append('files', renamedFile);
       });
       formData.append('sectionType', sectionType);
       formData.append('fieldName', fieldName);
@@ -189,7 +193,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         context.drawImage(video, 0, 0);
         canvas.toBlob((blob) => {
           if (blob) {
-            const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+            const file = new File([blob], `${fieldName}.jpg`, { type: 'image/jpeg' });
             handleFiles([file]);
             stopCamera();
           }
@@ -228,7 +232,7 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
-        const file = new File([blob], `video-${Date.now()}.webm`, { type: 'video/webm' });
+        const file = new File([blob], `${fieldName}.webm`, { type: 'video/webm' });
         handleFiles([file]);
         stopCamera();
       };
