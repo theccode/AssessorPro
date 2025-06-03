@@ -387,11 +387,6 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         [variableId]: value,
       }
     }));
-    
-    // Auto-save section data when scoring variables change
-    if (dataLoaded) {
-      debouncedSave();
-    }
   };
 
   const handleLocationChange = (variableId: string, location: { lat: number; lng: number; address: string } | null) => {
@@ -403,11 +398,6 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         [variableId]: location,
       }
     }));
-    
-    // Auto-save section data when location data changes
-    if (dataLoaded) {
-      debouncedSave();
-    }
   };
 
   const handleSaveDraft = () => {

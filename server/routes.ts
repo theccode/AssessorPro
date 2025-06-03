@@ -5,7 +5,7 @@ import { setupCustomAuth, isCustomAuthenticated } from "./custom-auth";
 import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
-import { insertAssessmentSchema, insertAssessmentSectionSchema, assessmentMedia, assessments, users, assessmentSections } from "@shared/schema";
+import { insertAssessmentSchema, insertAssessmentSectionSchema, assessmentMedia, assessments, users } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import multer from "multer";
@@ -814,35 +814,56 @@ For security reasons, we recommend using a strong, unique password and not shari
 
 
 
-  // Direct media access endpoint - Allow public access for media files
+  // Direct media access endpoint
   app.get('/api/media/:id', async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
       
       console.log('Media access request for ID:', mediaId);
+      console.log('Session data:', req.session);
+      console.log('User data:', req.user);
       
-      // Get all media files to find the requested one
-      // For assessment media, we'll allow access without strict user validation
-      const [media] = await db.select().from(assessmentMedia).where(eq(assessmentMedia.id, mediaId));
+      // Check for custom authentication first
+      let userId = null;
+      if (req.session && req.session.customUserId) {
+        userId = req.session.customUserId;
+        console.log('Found custom user ID:', userId);
+      } else if (req.user && req.user.claims && req.user.claims.sub) {
+        userId = req.user.claims.sub;
+        console.log('Found Replit user ID:', userId);
+      }
       
-      if (!media) {
+      if (!userId) {
+        console.log('No valid user ID found, returning 401');
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Get the media file details
+      const assessments = await storage.getUserAssessments(userId);
+      const clientAssessments = await storage.getClientAssessments(userId);
+      const allAccessibleAssessments = [...assessments, ...clientAssessments];
+      
+      let targetMedia = null;
+      
+      for (const assessment of allAccessibleAssessments) {
+        const media = await storage.getAssessmentMedia(assessment.id);
+        targetMedia = media.find(m => m.id === mediaId);
+        if (targetMedia) break;
+      }
+      
+      if (!targetMedia) {
         return res.status(404).json({ message: "Media not found" });
       }
 
       // Check if file exists
-      const filePath = path.resolve(media.filePath);
+      const filePath = path.resolve(targetMedia.filePath);
       if (!fs.existsSync(filePath)) {
-        console.log(`File not found on disk: ${filePath}`);
-        return res.status(404).json({ 
-          message: "File not found on disk",
-          fileName: media.fileName,
-          mediaId: media.id 
-        });
+        return res.status(404).json({ message: "File not found on disk" });
       }
 
       // Set appropriate headers
-      res.setHeader('Content-Type', media.mimeType || 'application/octet-stream');
-      res.setHeader('Content-Disposition', `inline; filename="${media.fileName}"`);
+      res.setHeader('Content-Type', targetMedia.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${targetMedia.fileName}"`);
       res.setHeader('Cache-Control', 'public, max-age=31536000');
       
       // Stream the file
