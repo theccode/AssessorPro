@@ -654,14 +654,17 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {existingMedia.map((media: any) => (
               <div key={media.id} className="relative group">
-                {(media.fileType?.startsWith('video/') || media.fileType === 'video' || media.mimeType?.startsWith('video/')) ? (
+                {(media.fileType?.startsWith('video/') || media.fileType === 'video' || media.mimeType?.startsWith('video/') || media.mimeType === 'video/quicktime') ? (
                   <video
                     src={`/api/media/${media.id}`}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'video/mp4' })}
+                    onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.mimeType || media.fileType || 'video/mp4' })}
                     muted
                     preload="metadata"
-                  />
+                  >
+                    <source src={`/api/media/${media.id}`} type="video/mp4" />
+                    <source src={`/api/media/${media.id}`} type="video/quicktime" />
+                  </video>
                 ) : (media.fileType?.startsWith('audio/') || media.fileType === 'audio' || media.mimeType?.startsWith('audio/')) ? (
                   <div 
                     className="w-full h-24 bg-green-50 border rounded-lg cursor-pointer hover:bg-green-100 transition-colors flex flex-col items-center justify-center"
@@ -738,12 +741,16 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
           </div>
           {previewMedia && (
             <div className="flex flex-col items-center space-y-4 p-6 pt-0">
-              {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
+              {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video' || previewMedia.type === 'video/quicktime') ? (
                 <video
                   src={previewMedia.url}
                   controls
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                  preload="metadata"
                 >
+                  <source src={previewMedia.url} type="video/mp4" />
+                  <source src={previewMedia.url} type="video/quicktime" />
+                  <source src={previewMedia.url} type="video/mov" />
                   Your browser does not support the video tag.
                 </video>
               ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
