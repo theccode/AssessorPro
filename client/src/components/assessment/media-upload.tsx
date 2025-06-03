@@ -36,6 +36,14 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
   const audioRef = useRef<HTMLAudioElement>(null);
   const queryClient = useQueryClient();
 
+  // Helper function to convert camelCase/PascalCase to Title Case
+  const toTitleCase = (str: string) => {
+    return str
+      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+      .replace(/^./, (match) => match.toUpperCase()) // Capitalize first letter
+      .trim(); // Remove any leading/trailing spaces
+  };
+
   // Fetch existing media for this field
   const { data: existingMedia = [] } = useQuery({
     queryKey: ["/api/assessments", assessmentId, "media", sectionType, fieldName],
@@ -56,9 +64,10 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       
       const formData = new FormData();
       files.forEach((file, index) => {
-        // Rename file to match the variable name it's being uploaded for
+        // Rename file to match the variable name in Title Case
         const fileExtension = file.name.split('.').pop() || '';
-        const newFileName = `${fieldName}${files.length > 1 ? `_${index + 1}` : ''}.${fileExtension}`;
+        const titleCaseName = toTitleCase(fieldName);
+        const newFileName = `${titleCaseName}${files.length > 1 ? ` ${index + 1}` : ''}.${fileExtension}`;
         const renamedFile = new File([file], newFileName, { type: file.type });
         formData.append('files', renamedFile);
       });
@@ -193,7 +202,8 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
         context.drawImage(video, 0, 0);
         canvas.toBlob((blob) => {
           if (blob) {
-            const file = new File([blob], `${fieldName}.jpg`, { type: 'image/jpeg' });
+            const titleCaseName = toTitleCase(fieldName);
+            const file = new File([blob], `${titleCaseName}.jpg`, { type: 'image/jpeg' });
             handleFiles([file]);
             stopCamera();
           }
@@ -232,7 +242,8 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
-        const file = new File([blob], `${fieldName}.webm`, { type: 'video/webm' });
+        const titleCaseName = toTitleCase(fieldName);
+        const file = new File([blob], `${titleCaseName}.webm`, { type: 'video/webm' });
         handleFiles([file]);
         stopCamera();
       };
@@ -277,7 +288,8 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        const file = new File([blob], `${fieldName}.webm`, { type: 'audio/webm' });
+        const titleCaseName = toTitleCase(fieldName);
+        const file = new File([blob], `${titleCaseName}.webm`, { type: 'audio/webm' });
         handleFiles([file]);
         stopCamera();
       };
