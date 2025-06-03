@@ -98,6 +98,23 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     },
   });
 
+  // Auto-save mutations (without cache invalidation)
+  const autoSaveAssessmentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}`, "PATCH", data);
+      return response.json();
+    },
+    // No onSuccess to prevent cache invalidation
+  });
+
+  const autoSaveSectionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest(`/api/assessments/${assessmentId}/sections`, "POST", data);
+      return response.json();
+    },
+    // No onSuccess to prevent cache invalidation
+  });
+
   // Submit assessment mutation
   const submitAssessmentMutation = useMutation({
     mutationFn: async () => {
@@ -122,10 +139,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     try {
       // Only save building information section for section 0
       if (currentSectionIndex === 0) {
-        // Update main assessment data
-        await updateAssessmentMutation.mutateAsync(formData);
+        // Update main assessment data using auto-save mutation
+        await autoSaveAssessmentMutation.mutateAsync(formData);
         
-        // Save building information section
+        // Save building information section using auto-save mutation
         const buildingInfoSection = {
           sectionType: "building-information",
           sectionName: "Building Information",
@@ -135,7 +152,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           locationData: {},
           isCompleted: true,
         };
-        await saveSectionMutation.mutateAsync(buildingInfoSection);
+        await autoSaveSectionMutation.mutateAsync(buildingInfoSection);
         
         setShowSavedState(true);
         setTimeout(() => setShowSavedState(false), 2000);
@@ -143,7 +160,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
     } catch (error) {
       console.error('Auto-save failed:', error);
     }
-  }, [assessmentId, formData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked, dataLoaded]);
+  }, [assessmentId, formData, currentSectionIndex, autoSaveAssessmentMutation, autoSaveSectionMutation, isAssessmentLocked, dataLoaded]);
 
   // Debounced version of auto-save
   const debouncedSave = useCallback(() => {
