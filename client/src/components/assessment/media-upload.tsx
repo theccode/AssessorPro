@@ -676,6 +676,16 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                     alt={media.fileName}
                     className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
                     onClick={() => setPreviewMedia({ url: `/api/media/${media.id}`, type: media.fileType || 'image/jpeg' })}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.parentElement!.innerHTML = `
+                        <div class="w-full h-24 bg-red-50 border border-red-200 rounded-lg flex flex-col items-center justify-center">
+                          <span class="text-red-600 text-xs font-medium">File Missing</span>
+                          <span class="text-red-500 text-xs">${media.fileName}</span>
+                        </div>
+                      `;
+                    }}
                   />
                 )}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
