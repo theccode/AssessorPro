@@ -247,8 +247,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   }, [assessment, assessmentId, user, hasLoggedView]);
 
   useEffect(() => {
-    // Initialize section data from fetched sections
-    if (sections && sections.length > 0) {
+    // Initialize section data from fetched sections (only on first load)
+    if (sections && sections.length > 0 && !dataLoaded) {
       const initialSectionData: Record<string, any> = {};
       const initialLocationData: Record<string, any> = {};
       sections.forEach((section: AssessmentSection) => {
@@ -260,7 +260,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       setSectionData(initialSectionData);
       setLocationData(initialLocationData);
       
-      // Update formData with building information section data if it exists
+      // Update formData with building information section data if it exists (only on first load)
       const buildingInfoSection = initialSectionData['building-information'];
       if (buildingInfoSection) {
         setFormData(prev => ({
@@ -313,7 +313,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         }, 500);
       }
     }
-  }, [sections, hasSetInitialSection]);
+  }, [sections, hasSetInitialSection, dataLoaded]);
 
 
 
