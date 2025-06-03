@@ -723,7 +723,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="numberOfWindows"
                         type="number"
                         value={formData.numberOfWindows || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfWindows: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, numberOfWindows: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter number of windows"
                         min="0"
                         step="1"
@@ -736,7 +739,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="numberOfDoors"
                         type="number"
                         value={formData.numberOfDoors || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfDoors: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, numberOfDoors: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter number of doors"
                         min="0"
                         step="1"
@@ -749,7 +755,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="averageWindowSize"
                         type="number"
                         value={formData.averageWindowSize || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, averageWindowSize: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, averageWindowSize: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter average window size"
                         min="0"
                         step="0.01"
@@ -762,7 +771,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="numberOfFloors"
                         type="number"
                         value={formData.numberOfFloors || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, numberOfFloors: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, numberOfFloors: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Enter number of floors"
                         min="1"
                         step="1"
@@ -775,7 +787,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                         id="totalGreenArea"
                         type="number"
                         value={formData.totalGreenArea || ""}
-                        onChange={(e) => setFormData(prev => ({ ...prev, totalGreenArea: e.target.value }))}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, totalGreenArea: e.target.value }));
+                          if (dataLoaded) debouncedSave();
+                        }}
                         placeholder="Green area vs hard landscaping"
                         min="0"
                         step="0.01"
@@ -793,7 +808,10 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                   <Textarea
                     id="additionalNotes"
                     value={formData.additionalNotes || ""}
-                    onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, additionalNotes: e.target.value }));
+                      if (dataLoaded) debouncedSave();
+                    }}
                     placeholder="Enter any additional notes"
                     rows={4}
                     disabled={isAssessmentLocked}
