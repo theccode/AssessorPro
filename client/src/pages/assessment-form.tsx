@@ -119,8 +119,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       clearTimeout(saveTimeoutRef.current);
     }
     
-    // Don't auto-save if assessment is locked
-    if (isAssessmentLocked) {
+    // Don't auto-save if assessment is locked or data is still loading
+    if (isAssessmentLocked || !dataLoaded || isTyping) {
       return;
     }
     
@@ -217,8 +217,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
         console.error('Auto-save failed:', error);
         setShowSavedState(true);
       }
-    }, 2000); // Save after 2 seconds of no changes
-  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked]);
+    }, 5000); // Save after 5 seconds of no changes (increased to reduce interference)
+  }, [assessmentId, formData, sectionData, locationData, currentSectionIndex, updateAssessmentMutation, saveSectionMutation, isAssessmentLocked, dataLoaded, isTyping]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -364,6 +364,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
   // Track if data has been loaded to prevent auto-save on initial load
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Note: Auto-save is now triggered only by explicit user actions, not by useEffect hooks
 
@@ -638,6 +639,8 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
                       value={formData.clientName || ""}
                       onChange={(e) => {
                         setFormData(prev => ({ ...prev, clientName: e.target.value }));
+                        setIsTyping(true);
+                        setTimeout(() => setIsTyping(false), 1000);
                         if (dataLoaded) debouncedSave();
                       }}
                       placeholder="Enter client's name"
