@@ -719,23 +719,25 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
 
       {/* Media Preview Modal */}
       <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogTitle>{toTitleCase(fieldName)}</DialogTitle>
-          <DialogDescription>
-            Assessment media for {toTitleCase(fieldName)}
-          </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <div className="p-6">
+            <DialogTitle className="text-center mb-2">{toTitleCase(fieldName)}</DialogTitle>
+            <DialogDescription className="text-center mb-4">
+              Assessment media for {toTitleCase(fieldName)}
+            </DialogDescription>
+          </div>
           {previewMedia && (
-            <div className="space-y-4">
+            <div className="flex flex-col items-center space-y-4 p-6 pt-0">
               {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
                 <video
                   src={previewMedia.url}
                   controls
-                  className="w-full h-auto max-h-[80vh] object-contain"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
                 >
                   Your browser does not support the video tag.
                 </video>
               ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
-                <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                <div className="flex flex-col items-center justify-center space-y-4 py-8">
                   <Music className="h-16 w-16 text-green-600" />
                   <h3 className="text-lg font-medium text-center">Audio File</h3>
                   <audio
@@ -747,13 +749,15 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
                   </audio>
                 </div>
               ) : (
-                <img
-                  src={previewMedia.url}
-                  alt={toTitleCase(fieldName)}
-                  className="w-full h-auto max-h-[80vh] object-contain"
-                />
+                <div className="flex justify-center w-full">
+                  <img
+                    src={previewMedia.url}
+                    alt={toTitleCase(fieldName)}
+                    className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                  />
+                </div>
               )}
-              <div className="text-center">
+              <div className="text-center mt-4">
                 <p className="text-sm text-muted-foreground font-medium">
                   {toTitleCase(fieldName)}
                 </p>
