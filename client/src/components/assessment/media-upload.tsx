@@ -720,38 +720,45 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
       {/* Media Preview Modal */}
       <Dialog open={!!previewMedia} onOpenChange={() => setPreviewMedia(null)}>
         <DialogContent className="max-w-3xl">
-          <DialogTitle className="sr-only">Media Preview</DialogTitle>
-          <DialogDescription className="sr-only">
-            Full size preview of uploaded assessment media
+          <DialogTitle>{toTitleCase(fieldName)}</DialogTitle>
+          <DialogDescription>
+            Assessment media for {toTitleCase(fieldName)}
           </DialogDescription>
           {previewMedia && (
-            (previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
-              <video
-                src={previewMedia.url}
-                controls
-                className="w-full h-auto max-h-[80vh] object-contain"
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
-              <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                <Music className="h-16 w-16 text-green-600" />
-                <h3 className="text-lg font-medium text-center">Audio File</h3>
-                <audio
+            <div className="space-y-4">
+              {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video') ? (
+                <video
                   src={previewMedia.url}
                   controls
-                  className="w-full max-w-md"
+                  className="w-full h-auto max-h-[80vh] object-contain"
                 >
-                  Your browser does not support the audio tag.
-                </audio>
+                  Your browser does not support the video tag.
+                </video>
+              ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
+                <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                  <Music className="h-16 w-16 text-green-600" />
+                  <h3 className="text-lg font-medium text-center">Audio File</h3>
+                  <audio
+                    src={previewMedia.url}
+                    controls
+                    className="w-full max-w-md"
+                  >
+                    Your browser does not support the audio tag.
+                  </audio>
+                </div>
+              ) : (
+                <img
+                  src={previewMedia.url}
+                  alt={toTitleCase(fieldName)}
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                />
+              )}
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground font-medium">
+                  {toTitleCase(fieldName)}
+                </p>
               </div>
-            ) : (
-              <img
-                src={previewMedia.url}
-                alt="Preview"
-                className="w-full h-auto max-h-[80vh] object-contain"
-              />
-            )
+            </div>
           )}
         </DialogContent>
       </Dialog>
