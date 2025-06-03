@@ -783,12 +783,21 @@ For security reasons, we recommend using a strong, unique password and not shari
         const fileName = `${Date.now()}-${file.originalname}`;
         const filePath = path.join(uploadDir, fileName);
         
-        await fs.promises.rename(file.path, filePath);
+        try {
+          await fs.promises.rename(file.path, filePath);
+          console.log(`File saved successfully: ${filePath}`);
+        } catch (error) {
+          console.error(`Error saving file ${fileName}:`, error);
+          // Try copying instead of renaming if rename fails
+          await fs.promises.copyFile(file.path, filePath);
+          await fs.promises.unlink(file.path);
+          console.log(`File copied successfully: ${filePath}`);
+        }
 
         // Determine file type
         let fileType = 'document';
         if (file.mimetype.startsWith('image/')) fileType = 'image';
-        else if (file.mimetype.startsWith('video/')) fileType = 'video';
+        else if (file.mimetype.startsWith('video/') || file.mimetype === 'video/quicktime') fileType = 'video';
         else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
 
         const media = await storage.createAssessmentMedia({

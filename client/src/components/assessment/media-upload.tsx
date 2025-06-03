@@ -743,15 +743,18 @@ export function MediaUpload({ assessmentId, sectionType, fieldName, className, m
             <div className="flex flex-col items-center space-y-4 p-6 pt-0">
               {(previewMedia.type.startsWith('video/') || previewMedia.type === 'video' || previewMedia.type === 'video/quicktime') ? (
                 <video
-                  src={previewMedia.url}
                   controls
                   className="max-w-full max-h-[70vh] object-contain rounded-lg"
                   preload="metadata"
+                  onError={(e) => {
+                    console.error('Video playback error:', e);
+                  }}
                 >
                   <source src={previewMedia.url} type="video/mp4" />
                   <source src={previewMedia.url} type="video/quicktime" />
-                  <source src={previewMedia.url} type="video/mov" />
-                  Your browser does not support the video tag.
+                  <source src={previewMedia.url} type="video/x-msvideo" />
+                  <source src={previewMedia.url} type="video/webm" />
+                  Your browser does not support this video format. Please try uploading the video in MP4 format for better compatibility.
                 </video>
               ) : (previewMedia.type.startsWith('audio/') || previewMedia.type === 'audio') ? (
                 <div className="flex flex-col items-center justify-center space-y-4 py-8">
