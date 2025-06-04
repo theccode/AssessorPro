@@ -518,9 +518,13 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.get('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
+      console.log(`[DEBUG] Individual assessment request for publicId: ${publicId}`);
+      
       const assessment = await storage.getAssessmentByPublicId(publicId);
+      console.log(`[DEBUG] Found assessment:`, assessment ? { id: assessment.id, buildingName: assessment.buildingName, publicId: assessment.publicId } : 'null');
       
       if (!assessment) {
+        console.log(`[DEBUG] Assessment not found for publicId: ${publicId}`);
         return res.status(404).json({ message: "Assessment not found" });
       }
 
@@ -532,6 +536,7 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(403).json({ message: "Access denied" });
       }
 
+      console.log(`[DEBUG] Sending assessment response:`, { id: assessment.id, buildingName: assessment.buildingName, publicId: assessment.publicId });
       res.json(assessment);
     } catch (error) {
       console.error("Error fetching assessment:", error);
