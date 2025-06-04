@@ -689,14 +689,14 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4">
           <div className="bg-card rounded-lg shadow-sm border">
-            <div className="flex justify-between items-center px-6 py-4">
-              <div className="flex items-center">
-                <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
-                <span className="ml-3 text-xl font-medium text-foreground">GREDA-GBC Assessment Preview</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 py-3 sm:py-4 gap-3 sm:gap-4">
+              <div className="flex items-center min-w-0 flex-1">
+                <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto flex-shrink-0" />
+                <span className="ml-2 sm:ml-3 text-lg sm:text-xl font-medium text-foreground truncate">GREDA-GBC Assessment Preview</span>
               </div>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link href="/">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
@@ -707,11 +707,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Assessment Preview</h1>
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className={`px-4 py-2 rounded-full text-sm font-medium ${
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">Assessment Preview</h1>
+          <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4">
+            <div className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium ${
               assessmentData.status === 'completed' 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-yellow-100 text-yellow-800'
@@ -719,7 +719,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               {assessmentData.status === 'completed' ? '✓ Submitted' : 'Draft'}
             </div>
           </div>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 px-4">
             {assessmentData.status === 'completed' 
               ? 'This assessment has been successfully submitted' 
               : 'Review your building assessment before final submission'}
@@ -727,58 +727,65 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         </div>
 
         {/* Overall Score Card */}
-        <Card className="mb-8 shadow-lg">
-          <CardContent className="p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-              <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold text-white mb-2">
+        <Card className="mb-6 sm:mb-8 shadow-lg">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8 lg:items-center">
+              <div className="lg:col-span-2 order-2 lg:order-1">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
                   {assessmentData.buildingName || "Building Assessment"}
                 </h2>
-                <p className="text-white/80 mb-4">{assessmentData.buildingLocation || assessmentData.detailedAddress || "Location not specified"}</p>
+                <p className="text-white/80 mb-4 text-sm sm:text-base">{assessmentData.buildingLocation || assessmentData.detailedAddress || "Location not specified"}</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <div>
-                    <div className="text-sm text-white/70">Conducted Date</div>
-                    <div className="font-medium text-white">
+                    <div className="text-xs sm:text-sm text-white/70">Conducted Date</div>
+                    <div className="font-medium text-white text-sm sm:text-base">
                       {assessmentData?.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : "Not specified"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm text-white/70">Conducted By</div>
-                    <div className="font-medium text-white">
+                    <div className="text-xs sm:text-sm text-white/70">Conducted By</div>
+                    <div className="font-medium text-white text-sm sm:text-base">
                       {user?.firstName && user?.lastName 
                         ? `${user.firstName} ${user.lastName}` 
                         : user?.email || "Assessment Team"}
                     </div>
                     <div className="text-xs text-white/60">Professional Assessor</div>
                   </div>
-                  <div>
-                    <div className="text-sm text-white/70">Status</div>
-                    <div className="font-medium text-white capitalize">{assessmentData.status || "Completed"}</div>
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <div className="text-xs sm:text-sm text-white/70">Status</div>
+                    <div className="font-medium text-white capitalize text-sm sm:text-base">{assessmentData.status || "Completed"}</div>
                   </div>
                 </div>
               </div>
               
-              <div className="text-center">
+              <div className="text-center order-1 lg:order-2">
+                <ProgressRing
+                  value={calculatedPercentage}
+                  max={100}
+                  size={120}
+                  strokeWidth={8}
+                  className="mb-3 sm:mb-4 mx-auto sm:hidden"
+                />
                 <ProgressRing
                   value={calculatedPercentage}
                   max={100}
                   size={160}
                   strokeWidth={10}
-                  className="mb-4 mx-auto"
+                  className="mb-3 sm:mb-4 mx-auto hidden sm:block"
                 />
-                <div className="text-3xl font-bold text-white mb-2">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-2">
                   {totalScore}/{maxScore} Points
                 </div>
-                <div className="text-lg font-medium text-white">
+                <div className="text-base sm:text-lg font-medium text-white mb-2">
                   {getPerformanceLevel(totalScore)}
                 </div>
-                <div className="flex justify-center mt-2">
+                <div className="flex justify-center">
                   <div className="flex space-x-1">
                     {Array.from({ length: 5 }, (_, i) => (
                       <span
                         key={i}
-                        className={`text-lg ${
+                        className={`text-base sm:text-lg ${
                           i < getStarRating(totalScore) ? "text-accent" : "text-gray-300"
                         }`}
                       >
@@ -793,21 +800,21 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         </Card>
 
         {/* Section Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {assessment.sections?.map((section: AssessmentSection) => {
             const sectionPercentage = section.maxScore > 0 ? (section.score / section.maxScore) * 100 : 0;
             const stars = getStarRating(sectionPercentage);
 
             return (
               <Card key={section.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{section.sectionName}</span>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span className="text-sm sm:text-base font-medium leading-tight">{section.sectionName}</span>
                     <div className="flex space-x-1">
                       {Array.from({ length: 5 }, (_, i) => (
                         <span
                           key={i}
-                          className={`text-sm ${i < stars ? "text-accent" : "text-gray-300"}`}
+                          className={`text-xs sm:text-sm ${i < stars ? "text-accent" : "text-gray-300"}`}
                         >
                           ★
                         </span>
@@ -815,23 +822,23 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-xl sm:text-2xl font-bold text-primary">
                       {Math.round(section.score || 0)}
                     </span>
-                    <span className="text-gray-500">/ {Math.round(section.maxScore || 0)} max</span>
+                    <span className="text-gray-500 text-sm sm:text-base">/ {Math.round(section.maxScore || 0)} max</span>
                   </div>
-                  <Progress value={sectionPercentage} className="h-3 mb-3" />
-                  <div className="text-sm text-gray-600">
+                  <Progress value={sectionPercentage} className="h-2 sm:h-3 mb-3" />
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {section.isCompleted ? "Completed" : "In Progress"}
                   </div>
                   
                   {/* Variables breakdown */}
                   {section.variables && typeof section.variables === 'object' && (
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
                       {Object.entries(section.variables).map(([key, value]) => (
-                        <div key={key} className="flex justify-between text-sm">
+                        <div key={key} className="flex justify-between text-xs sm:text-sm">
                           <span className="text-gray-600 capitalize">
                             {key.replace(/([A-Z])/g, ' $1').trim()}
                           </span>
@@ -847,16 +854,16 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
           {(user?.role === "admin" || user?.role === "assessor") && assessmentData.status !== 'completed' && (
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <Link href={`/assessments/${publicId}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Assessment
               </Link>
             </Button>
           )}
-          <Button variant="outline" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+          <Button variant="outline" onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="w-full sm:w-auto">
             {isGeneratingPDF ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -869,7 +876,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               </>
             )}
           </Button>
-          <Button variant="outline" onClick={handleDownloadExcel} disabled={isGeneratingExcel}>
+          <Button variant="outline" onClick={handleDownloadExcel} disabled={isGeneratingExcel} className="w-full sm:w-auto">
             {isGeneratingExcel ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -887,7 +894,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
               size="lg" 
               onClick={handleSubmitAssessment}
               disabled={submitAssessmentMutation.isPending}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
             >
               <Check className="h-4 w-4 mr-2" />
               {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
