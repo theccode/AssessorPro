@@ -751,9 +751,16 @@ For security reasons, we recommend using a strong, unique password and not shari
           }
         }
 
-        // Assessment submitted notification
-        if (updateData.status === 'submitted' && existing.status !== 'submitted' && assessor) {
-          if (client) {
+        // Assessment submitted notification and auto-lock
+        if (updateData.status === 'submitted' && existing.status !== 'submitted') {
+          // Auto-lock assessment when submitted to prevent further editing
+          await storage.updateAssessment(existing.id, { 
+            isLocked: true, 
+            lockedBy: assessor?.id,
+            lockedAt: new Date()
+          });
+          
+          if (assessor && client) {
             console.log('Sending assessment submitted notification to client and admin');
             await notificationService.notifyAssessmentSubmitted(updated, assessor, client);
           } else {
@@ -761,9 +768,16 @@ For security reasons, we recommend using a strong, unique password and not shari
           }
         }
 
-        // Assessment completed notification
-        if (updateData.status === 'completed' && existing.status !== 'completed' && assessor) {
-          if (client) {
+        // Assessment completed notification and auto-lock
+        if (updateData.status === 'completed' && existing.status !== 'completed') {
+          // Auto-lock assessment when completed to prevent further editing
+          await storage.updateAssessment(existing.id, { 
+            isLocked: true, 
+            lockedBy: assessor?.id,
+            lockedAt: new Date()
+          });
+          
+          if (assessor && client) {
             console.log('Sending assessment completed notification to client and admin');
             await notificationService.notifyAssessmentCompleted(updated, assessor, client);
             // Also send report ready notification
