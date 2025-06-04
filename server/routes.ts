@@ -1486,7 +1486,8 @@ For security reasons, we recommend using a strong, unique password and not shari
       const { hashPassword } = await import('./custom-auth');
 
       // Create test assessor
-      const testAssessor = await storage.createUser({
+      const testAssessor = await storage.upsertUser({
+        id: 'test-assessor-' + Date.now(),
         email: 'test.assessor@greda.com',
         firstName: 'Test',
         lastName: 'Assessor',
@@ -1498,7 +1499,8 @@ For security reasons, we recommend using a strong, unique password and not shari
       });
 
       // Create test client  
-      const testClient = await storage.createUser({
+      const testClient = await storage.upsertUser({
+        id: 'test-client-' + Date.now(),
         email: 'test.client@greda.com',
         firstName: 'Test',
         lastName: 'Client',
