@@ -97,21 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/assessments/:id', async (req: any, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const assessment = await storage.getAssessmentWithSections(id);
-      
-      if (!assessment) {
-        return res.status(404).json({ message: "Assessment not found" });
-      }
-
-      res.json(assessment);
-    } catch (error) {
-      console.error("Error fetching assessment:", error);
-      res.status(500).json({ message: "Failed to fetch assessment" });
-    }
-  });
+  // Note: Individual assessment route moved to routes.ts to support UUID-based routing
 
   app.patch('/api/assessments/:id', async (req: any, res) => {
     try {
