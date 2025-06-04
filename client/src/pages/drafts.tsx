@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building, Calendar, Edit, FileText, User, Search, Filter, ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+import { Building, Calendar, Edit, FileText, User, Search, Filter, ChevronDown, ChevronRight, Folder, FolderOpen, Menu, X } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -31,6 +31,7 @@ export default function Drafts() {
   const [progressFilter, setProgressFilter] = useState("all");
   const [sortBy, setSortBy] = useState("updated");
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -144,13 +145,52 @@ export default function Drafts() {
                 <Button variant="outline">Logout</Button>
               </Link>
             </div>
-            <div className="md:hidden flex items-center">
-              <Link href="/">
-                <Button variant="ghost" size="sm">Dashboard</Button>
-              </Link>
+            <div className="md:hidden flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            <div className="px-4 py-2 space-y-2">
+              <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/assessments" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start">
+                  Assessments
+                </Button>
+              </Link>
+              <Link href="/drafts" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="default" className="w-full justify-start">
+                  Drafts
+                </Button>
+              </Link>
+              {user?.role === "admin" && (
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    Admin
+                  </Button>
+                </Link>
+              )}
+              <Link href="/api/logout" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="w-full justify-start">
+                  Logout
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content */}
