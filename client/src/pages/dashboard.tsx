@@ -167,19 +167,21 @@ export default function Dashboard() {
                           <h3 className="font-medium text-foreground mb-1">{assessment.buildingName}</h3>
                           <p className="text-sm text-muted-foreground">{assessment.buildingLocation || "No location specified"}</p>
                         </div>
-                        <div className="flex items-center gap-3 ml-4">
+                        <div className="flex items-center gap-3 ml-4 min-w-0">
                           {assessment.overallScore && (
                             <div className="flex items-center">
                               <Star className="h-4 w-4 text-yellow-500 mr-1" />
                               <span className="text-sm font-medium">{assessment.overallScore}%</span>
                             </div>
                           )}
-                          {assessment.isLocked && (
-                            <div className="flex items-center">
-                              <Lock className="h-3 w-3 text-red-500 mr-1" />
-                              <span className="text-xs text-red-600">Locked</span>
-                            </div>
-                          )}
+                          <div className="flex items-center min-w-[60px]">
+                            {assessment.isLocked && (
+                              <>
+                                <Lock className="h-3 w-3 text-red-500 mr-1" />
+                                <span className="text-xs text-red-600">Locked</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center mt-2">
