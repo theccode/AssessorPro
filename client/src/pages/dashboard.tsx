@@ -18,6 +18,9 @@ export default function Dashboard() {
     queryKey: ["/api/assessments"],
   });
 
+  // Debug logging to see what assessments are being loaded
+  console.log('Dashboard assessments data:', assessments);
+
   // Lock/unlock assessment mutation
   const lockMutation = useMutation({
     mutationFn: async ({ assessmentId, isLocked }: { assessmentId: number; isLocked: boolean }) => {
@@ -198,7 +201,13 @@ export default function Dashboard() {
                         </Button>
                       )}
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assessment/${assessment.publicId}`}>
+                        <Link href={`/assessment/${assessment.publicId}`} 
+                              onClick={() => console.log('Clicking View Details for:', { 
+                                id: assessment.id, 
+                                buildingName: assessment.buildingName, 
+                                publicId: assessment.publicId,
+                                url: `/assessment/${assessment.publicId}`
+                              })}>
                           View Details
                         </Link>
                       </Button>
