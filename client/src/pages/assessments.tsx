@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +32,37 @@ export default function Assessments() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
   });
+
+  // Filter and search assessments
+  const filteredAssessments = useMemo(() => {
+    return allAssessments.filter((assessment: Assessment) => {
+      // Status filter
+      if (statusFilter !== "all" && assessment.status !== statusFilter) {
+        return false;
+      }
+      
+      // Search term filter (building name, client name, or publisher name)
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const buildingName = assessment.buildingName?.toLowerCase() || "";
+        const clientName = assessment.clientName?.toLowerCase() || "";
+        const publisherName = assessment.publisherName?.toLowerCase() || "";
+        
+        return buildingName.includes(searchLower) || 
+               clientName.includes(searchLower) || 
+               publisherName.includes(searchLower);
+      }
+      
+      return true;
+    });
+  }, [allAssessments, statusFilter, searchTerm]);
 
   // Lock/unlock mutations for admins
   const lockMutation = useMutation({
@@ -123,16 +152,48 @@ export default function Assessments() {
           )}
         </div>
 
-        {/* Completed Assessments */}
+        {/* Search and Filter Controls */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search by building name, client, or assessor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assessments</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-gray-600">
+              Showing {filteredAssessments.length} of {allAssessments.length} assessments
+            </div>
+          </div>
+        </div>
+
+        {/* Assessments List */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 flex items-center">
             <Building className="h-6 w-6 mr-2" />
-            Completed Assessments
+            {statusFilter === "all" ? "All Assessments" : 
+             statusFilter === "completed" ? "Completed Assessments" : "Draft Assessments"}
           </h2>
           
-          {completedAssessments.length > 0 ? (
+          {filteredAssessments.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {completedAssessments.map((assessment: Assessment) => (
+              {filteredAssessments.map((assessment: Assessment) => (
                 <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start mb-2">
@@ -286,11 +347,16 @@ export default function Assessments() {
           ) : (
             <div className="text-center py-12">
               <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No completed assessments</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                {searchTerm ? `No assessments found for "${searchTerm}"` : 
+                 statusFilter === "completed" ? "No completed assessments" :
+                 statusFilter === "draft" ? "No draft assessments" : "No assessments found"}
+              </h3>
               <p className="text-muted-foreground mb-6">
-                {user?.role === "client" 
-                  ? "No completed assessments are available for your account yet."
-                  : "Complete assessments from your drafts to see them here, or create new assessments."
+                {searchTerm ? "Try adjusting your search terms or filters" : 
+                 user?.role === "client" 
+                  ? "No assessments are available for your account yet."
+                  : "Create your first assessment to get started."
                 }
               </p>
               {(user?.role === "admin" || user?.role === "assessor") && (
