@@ -143,11 +143,41 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Notifications for assessment-related events
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  type: varchar("type", { 
+    enum: [
+      "assessment_completed", 
+      "assessment_submitted", 
+      "edit_request_created", 
+      "edit_request_approved", 
+      "edit_request_denied",
+      "report_ready",
+      "assessment_locked",
+      "assessment_unlocked"
+    ] 
+  }).notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  assessmentId: integer("assessment_id").references(() => assessments.id),
+  assessmentPublicId: varchar("assessment_public_id"),
+  buildingName: varchar("building_name"),
+  clientName: varchar("client_name"),
+  isRead: boolean("is_read").notNull().default(false),
+  priority: varchar("priority", { enum: ["low", "medium", "high"] }).notNull().default("medium"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   assessments: many(assessments),
   sentInvitations: many(userInvitations, { relationName: "inviter" }),
   auditLogs: many(auditLogs),
+  notifications: many(notifications),
 }));
 
 export const userInvitationsRelations = relations(userInvitations, ({ one }) => ({
@@ -166,6 +196,17 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   targetUser: one(users, {
     fields: [auditLogs.targetUserId],
     references: [users.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  assessment: one(assessments, {
+    fields: [notifications.assessmentId],
+    references: [assessments.id],
   }),
 }));
 
@@ -224,6 +265,12 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   createdAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
 export const updateUserSchema = createInsertSchema(users).partial().omit({
   id: true,
   createdAt: true,
@@ -242,4 +289,6 @@ export type UserInvitation = typeof userInvitations.$inferSelect;
 export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;

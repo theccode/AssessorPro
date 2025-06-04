@@ -5,6 +5,7 @@ import {
   assessmentMedia,
   userInvitations,
   auditLogs,
+  notifications,
   type User,
   type UpsertUser,
   type Assessment,
@@ -17,6 +18,8 @@ import {
   type InsertUserInvitation,
   type AuditLog,
   type InsertAuditLog,
+  type Notification,
+  type InsertNotification,
   type UpdateUser,
 } from "@shared/schema";
 import { eq, desc, and, lt } from "drizzle-orm";
