@@ -14,6 +14,7 @@ import Dashboard from "@/pages/dashboard";
 import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
 import AssessmentDetail from "@/pages/assessment-detail";
+import AssessmentRedirect from "@/pages/assessment-redirect";
 import Assessments from "@/pages/assessments";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AssessorDashboard from "@/pages/assessor-dashboard";
@@ -64,7 +65,7 @@ function Router() {
               <Route path="/assessments/:id/edit" component={AssessmentForm} />
               <Route path="/assessments/:id/preview" component={AssessmentPreview} />
               <Route path="/assessments" component={Assessments} />
-              <Route path="/assessment/:id" component={AssessmentDetail} />
+              <Route path="/assessment/:id" component={AssessmentRedirect} />
               <Route path="/drafts" component={Drafts} />
               <Route path="/reports" component={Reports} />
               <Route path="/profile" component={Profile} />
