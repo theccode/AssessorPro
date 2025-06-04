@@ -340,13 +340,14 @@ export default function Assessments() {
     }
   };
 
-  // Excel Download functionality
+  // Excel Download functionality - using the same comprehensive data pattern as Assessment Preview
   const handleDownloadExcel = async (assessment: Assessment) => {
     setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch full assessment data with sections using the public ID
-      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
-      const assessmentData = await fullAssessmentResponse.json();
+      // Use TanStack Query to fetch comprehensive assessment data (same as Assessment Preview)
+      const assessmentData = await queryClient.fetchQuery({
+        queryKey: ["/api/assessments", assessment.publicId],
+      });
       
       // Create a new workbook
       const workbook = XLSX.utils.book_new();
@@ -425,6 +426,38 @@ export default function Assessments() {
       const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
       sectionsSheet['!cols'] = [{ width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }, { width: 15 }];
       XLSX.utils.book_append_sheet(workbook, sectionsSheet, 'Section Details');
+
+      // Sheet 3: Media Files (now using comprehensive data that includes all media)
+      const mediaFilesData = [
+        ['Media Files'],
+        [''],
+        ['Section', 'Field Name', 'File Name', 'File Type', 'File Size', 'Upload Date']
+      ];
+
+      // Use media data from the comprehensive assessment data
+      if (assessmentData.media && assessmentData.media.length > 0) {
+        assessmentData.media.forEach((media: any) => {
+          const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
+          const fieldName = formatVariableName(media.fieldName || 'File');
+          const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
+          const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
+          
+          mediaFilesData.push([
+            sectionName,
+            fieldName,
+            media.fileName || 'Unknown',
+            media.fileType || 'Unknown',
+            fileSize,
+            uploadDate
+          ]);
+        });
+      } else {
+        mediaFilesData.push(['No media files found', '', '', '', '', '']);
+      }
+
+      const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
+      mediaSheet['!cols'] = [{ width: 25 }, { width: 20 }, { width: 30 }, { width: 15 }, { width: 15 }, { width: 15 }];
+      XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
 
       // Generate and download the Excel file
       const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
