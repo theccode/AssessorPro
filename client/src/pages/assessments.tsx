@@ -13,8 +13,6 @@ import {
   Calendar,
   MapPin,
   TrendingUp,
-  FileText,
-  Table,
   Loader2,
   Lock,
   Unlock
@@ -22,17 +20,10 @@ import {
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
-import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import * as XLSX from 'xlsx';
-import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 
 export default function Assessments() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState<{ [key: number]: boolean }>({});
-  const [isGeneratingExcel, setIsGeneratingExcel] = useState<{ [key: number]: boolean }>({});
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -42,6 +33,16 @@ export default function Assessments() {
   const lockMutation = useMutation({
     mutationFn: async (assessmentPublicId: string) => {
       return await apiRequest(`/api/assessments/${assessmentPublicId}/lock`, "POST");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+  });
+
+  // Request edit mutation for assessors on completed assessments
+  const requestEditMutation = useMutation({
+    mutationFn: async (assessmentPublicId: string) => {
+      return await apiRequest(`/api/assessments/${assessmentPublicId}/request-edit`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
@@ -70,13 +71,14 @@ export default function Assessments() {
       .trim();
   };
 
-  // PDF Download functionality
+  // PDF Download functionality - using the same comprehensive data pattern as Assessment Preview
   const handleDownloadPDF = async (assessment: Assessment) => {
     setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch full assessment data with sections using the public ID
-      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
-      const assessmentData = await fullAssessmentResponse.json();
+      // Use TanStack Query to fetch comprehensive assessment data (same as Assessment Preview)
+      const assessmentData = await queryClient.fetchQuery({
+        queryKey: ["/api/assessments", assessment.publicId],
+      });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -692,46 +694,29 @@ export default function Assessments() {
                       </div>
                     )}
 
-                    {/* Download Buttons */}
+                    {/* Action Buttons */}
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="flex-1" 
-                        onClick={() => handleDownloadExcel(assessment)}
-                        disabled={isGeneratingExcel[assessment.id]}
-                      >
-                        {isGeneratingExcel[assessment.id] ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Table className="h-3 w-3 mr-1" />
-                            Excel
-                          </>
-                        )}
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="flex-1" 
-                        onClick={() => handleDownloadPDF(assessment)}
-                        disabled={isGeneratingPDF[assessment.id]}
-                      >
-                        {isGeneratingPDF[assessment.id] ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="h-3 w-3 mr-1" />
-                            PDF
-                          </>
-                        )}
-                      </Button>
+                      {(user?.role === "assessor" || user?.role === "admin") && assessment.status === 'completed' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => requestEditMutation.mutate(assessment.publicId)}
+                          disabled={requestEditMutation.isPending}
+                        >
+                          {requestEditMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Requesting...
+                            </>
+                          ) : (
+                            <>
+                              <Edit className="h-3 w-3 mr-1" />
+                              Request Edit
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
