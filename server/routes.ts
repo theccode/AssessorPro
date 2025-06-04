@@ -485,7 +485,9 @@ For security reasons, we recommend using a strong, unique password and not shari
       
       if (currentUser?.role === 'admin') {
         // Admin users see all assessments
+        console.log('Admin user detected, fetching all assessments...');
         const allAssessments = await storage.getAllAssessments();
+        console.log(`Found ${allAssessments.length} assessments for admin:`, allAssessments.map(a => ({ id: a.id, buildingName: a.buildingName, userId: a.userId })));
         res.json(allAssessments);
       } else {
         // Regular users see only their own assessments
