@@ -188,7 +188,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                       <SelectContent>
                         {users.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
-                            {user.firstName} {user.lastName} ({user.role})
+                            {user.firstName || 'N/A'} {user.lastName || 'N/A'} ({user.role})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -258,8 +258,8 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Badge className={getPriorityColor(note.priority)}>
-                        {note.priority.toUpperCase()}
+                      <Badge className={getPriorityColor(note.priority || 'medium')}>
+                        {(note.priority || 'medium').toUpperCase()}
                       </Badge>
                       {!note.isRead && user?.id === note.assignedUserId && (
                         <Badge variant="outline" className="text-blue-600 border-blue-600">
@@ -282,7 +282,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                   </div>
                   
                   <p className="text-gray-900 dark:text-gray-100 mb-3 whitespace-pre-wrap">
-                    {note.content}
+                    {note.content || note.noteContent || 'No content'}
                   </p>
                   
                   <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
@@ -290,14 +290,14 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         <span>
-                          By: {note.admin?.firstName} {note.admin?.lastName}
+                          By: {note.admin?.firstName || 'N/A'} {note.admin?.lastName || 'N/A'}
                         </span>
                       </div>
                       {note.assignedUser && (
                         <div className="flex items-center gap-1">
                           <span>→</span>
                           <span>
-                            For: {note.assignedUser.firstName} {note.assignedUser.lastName}
+                            For: {note.assignedUser?.firstName || 'N/A'} {note.assignedUser?.lastName || 'N/A'}
                           </span>
                         </div>
                       )}
