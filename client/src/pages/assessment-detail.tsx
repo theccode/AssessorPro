@@ -118,35 +118,35 @@ function formatSectionName(sectionType: string): string {
 }
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
-  const assessmentId = parseInt(params.id);
+  const publicId = params.id; // Now using UUID instead of integer
   const { user } = useAuth();
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<any>(null);
   
-  // Don't render if ID is not a valid number
-  if (isNaN(assessmentId) || !params.id) {
+  // Don't render if no ID provided
+  if (!params.id) {
     return null;
   }
 
   const { data: assessment, isLoading } = useQuery({
-    queryKey: [`/api/assessments/${assessmentId}`],
+    queryKey: ["/api/assessments", publicId],
   });
 
   const { data: media = [] } = useQuery({
-    queryKey: [`/api/assessments/${assessmentId}/media`],
-    enabled: !!assessmentId,
+    queryKey: [`/api/assessments/${publicId}/media`],
+    enabled: !!publicId,
   });
 
   const { data: sections = [] } = useQuery({
-    queryKey: [`/api/assessments/${assessmentId}/sections`],
-    enabled: !!assessmentId,
+    queryKey: [`/api/assessments/${publicId}/sections`],
+    enabled: !!publicId,
   });
 
   // PDF Download functionality
   const downloadPDFMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/assessments/${assessmentId}/pdf`, "GET");
+      const response = await apiRequest(`/api/assessments/${publicId}/pdf`, "GET");
       return response.blob();
     },
     onSuccess: (blob) => {
@@ -203,7 +203,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
               {(user?.role === "admin" || user?.role === "assessor") && (
                 <Button variant="outline" size="sm" asChild className="hidden lg:flex">
-                  <Link href={`/assessments/${assessmentId}/edit`}>
+                  <Link href={`/assessments/${publicId}/edit`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Assessment
                   </Link>
