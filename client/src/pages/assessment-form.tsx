@@ -70,7 +70,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
       return response.json();
     },
     onSuccess: (data) => {
-      navigate(`/assessments/${data.id}/form`);
+      navigate(`/assessments/${data.publicId}/form`);
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
     },
   });

@@ -776,7 +776,7 @@ export default function Assessments() {
                   <div className="space-y-2 pt-2">
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" className="flex-1" asChild>
-                        <Link href={`/assessment/${assessment.id}`}>
+                        <Link href={`/assessments/${assessment.publicId}/preview`}>
                           <Eye className="h-3 w-3 mr-1" />
                           View
                         </Link>
@@ -789,7 +789,7 @@ export default function Assessments() {
                           asChild
                           disabled={assessment.isLocked && user?.role !== "admin"}
                         >
-                          <Link href={`/assessments/${assessment.id}/edit`}>
+                          <Link href={`/assessments/${assessment.publicId}/edit`}>
                             <Edit className="h-3 w-3 mr-1" />
                             {assessment.isLocked && user?.role !== "admin" ? "Locked" : "Edit"}
                           </Link>

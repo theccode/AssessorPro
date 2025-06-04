@@ -217,7 +217,7 @@ export default function AssessorDashboard() {
                           </Button>
                         )}
                         <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/assessments/${assessment.id}/preview`}>
+                          <Link href={`/assessments/${assessment.publicId}/preview`}>
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
@@ -281,14 +281,14 @@ export default function AssessorDashboard() {
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm" asChild>
-                              <Link href={`/assessments/${assessment.id}/preview`}>
+                              <Link href={`/assessments/${assessment.publicId}/preview`}>
                                 <Eye className="w-4 h-4 mr-1" />
                                 View
                               </Link>
                             </Button>
                             {assessment.status !== "completed" && !assessment.isLocked && (
                               <Button size="sm" asChild>
-                                <Link href={`/assessments/${assessment.id}/edit`}>
+                                <Link href={`/assessments/${assessment.publicId}/edit`}>
                                   Edit
                                 </Link>
                               </Button>
@@ -349,7 +349,7 @@ export default function AssessorDashboard() {
                             </div>
                             <div className="flex gap-2">
                               <Button variant="outline" size="sm" asChild>
-                                <Link href={`/assessments/${assessment.id}/preview`}>
+                                <Link href={`/assessments/${assessment.publicId}/preview`}>
                                   <Eye className="w-4 h-4 mr-1" />
                                   View
                                 </Link>
