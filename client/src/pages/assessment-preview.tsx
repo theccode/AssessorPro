@@ -908,7 +908,8 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
           <div className="mt-8">
             <AdminNotes 
               assessmentId={assessmentData.id} 
-              assessmentStatus={assessmentData.status} 
+              assessmentStatus={assessmentData.status}
+              assessmentData={assessmentData}
             />
           </div>
         )}

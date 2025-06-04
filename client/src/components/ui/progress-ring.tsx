@@ -25,11 +25,11 @@ export function ProgressRing({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
+    <div className={cn("relative", className)} style={{ width: size, height: size }}>
       <svg
         width={size}
         height={size}
-        className="transform -rotate-90"
+        className="transform -rotate-90 absolute inset-0"
       >
         {/* Background circle */}
         <circle
@@ -55,11 +55,11 @@ export function ProgressRing({
         />
       </svg>
       {showValue && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-primary">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-2xl font-bold text-primary leading-none">
             {Math.round(percentage)}
           </span>
-          <span className="text-sm text-muted-foreground">%</span>
+          <span className="text-sm text-muted-foreground leading-none">%</span>
         </div>
       )}
     </div>

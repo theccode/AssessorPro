@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -231,7 +231,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus, assessmentD
                         <SelectValue placeholder="Select a user" />
                       </SelectTrigger>
                       <SelectContent>
-                        {users.map((user) => (
+                        {relevantUsers.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.firstName || 'N/A'} {user.lastName || 'N/A'} ({user.role})
                           </SelectItem>
