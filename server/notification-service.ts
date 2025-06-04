@@ -394,6 +394,43 @@ export class NotificationService {
       });
     }
   }
+
+  // Create notification for admin notes
+  async notifyAdminNoteCreated(assessment: Assessment, admin: User, assignedUser: User, noteContent: string) {
+    await storage.createNotification({
+      userId: assignedUser.id,
+      type: "admin_note_created",
+      title: "New Admin Note",
+      message: `${admin.firstName} ${admin.lastName} has left a note for you regarding assessment "${assessment.buildingName}".`,
+      assessmentId: assessment.id,
+      assessmentPublicId: assessment.publicId,
+      buildingName: assessment.buildingName,
+      clientName: assessment.clientName,
+      priority: "high",
+      metadata: {
+        adminName: `${admin.firstName} ${admin.lastName}`,
+        notePreview: noteContent.substring(0, 100) + (noteContent.length > 100 ? '...' : ''),
+        action: "note_created"
+      }
+    });
+
+    // Send real-time notification
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(assignedUser.id, {
+        type: 'new_notification',
+        notification: {
+          type: "admin_note_created",
+          title: "New Admin Note",
+          message: `${admin.firstName} ${admin.lastName} has left a note for you regarding assessment "${assessment.buildingName}".`,
+          priority: "high",
+          isRead: false,
+          createdAt: new Date()
+        },
+        count: await storage.getUnreadNotificationCount(assignedUser.id)
+      });
+    }
+  }
 }
 
 export const notificationService = new NotificationService();

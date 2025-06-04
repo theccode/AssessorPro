@@ -6,6 +6,7 @@ import {
   userInvitations,
   auditLogs,
   notifications,
+  assessmentNotes,
   type User,
   type UpsertUser,
   type Assessment,
@@ -20,6 +21,8 @@ import {
   type InsertAuditLog,
   type Notification,
   type InsertNotification,
+  type AssessmentNote,
+  type InsertAssessmentNote,
   type UpdateUser,
 } from "@shared/schema";
 import { eq, desc, and, lt } from "drizzle-orm";
@@ -83,6 +86,13 @@ export interface IStorage {
   createAssessmentMedia(media: InsertAssessmentMedia): Promise<AssessmentMedia>;
   getAssessmentMedia(assessmentId: number, sectionType?: string): Promise<AssessmentMedia[]>;
   deleteAssessmentMedia(id: number): Promise<void>;
+
+  // Assessment notes operations
+  createAssessmentNote(note: InsertAssessmentNote): Promise<AssessmentNote>;
+  getAssessmentNote(id: number): Promise<AssessmentNote | undefined>;
+  getAssessmentNotes(assessmentId: number): Promise<AssessmentNote[]>;
+  getAssessmentNotesForUser(assessmentId: number, userId: string): Promise<AssessmentNote[]>;
+  markAssessmentNoteAsRead(id: number): Promise<void>;
 }
 
 // Temporary in-memory storage for development

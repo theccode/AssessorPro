@@ -1425,6 +1425,114 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Assessment Notes routes
+  app.post('/api/assessments/:id/notes', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can create assessment notes" });
+      }
+
+      const { content, assignedUserId } = req.body;
+      
+      if (!content || !assignedUserId) {
+        return res.status(400).json({ message: "Content and assigned user ID are required" });
+      }
+
+      // Verify assessment exists and is completed
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      if (assessment.status !== 'completed') {
+        return res.status(400).json({ message: "Notes can only be added to completed assessments" });
+      }
+
+      // Verify assigned user exists
+      const assignedUser = await storage.getUser(assignedUserId);
+      if (!assignedUser) {
+        return res.status(404).json({ message: "Assigned user not found" });
+      }
+
+      // Create the note
+      const note = await storage.createAssessmentNote({
+        assessmentId,
+        adminId: userId,
+        assignedUserId,
+        content,
+        priority: req.body.priority || 'medium'
+      });
+
+      // Send notification to assigned user
+      await notificationService.notifyAdminNoteCreated(assessment, user, assignedUser, content);
+
+      res.json({ message: "Assessment note created successfully", note });
+    } catch (error) {
+      console.error("Error creating assessment note:", error);
+      res.status(500).json({ message: "Failed to create assessment note" });
+    }
+  });
+
+  app.get('/api/assessments/:id/notes', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Verify assessment exists
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Get notes based on user role
+      let notes;
+      if (user.role === 'admin') {
+        // Admins can see all notes for the assessment
+        notes = await storage.getAssessmentNotes(assessmentId);
+      } else {
+        // Non-admins can only see notes assigned to them
+        notes = await storage.getAssessmentNotesForUser(assessmentId, userId);
+      }
+
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching assessment notes:", error);
+      res.status(500).json({ message: "Failed to fetch assessment notes" });
+    }
+  });
+
+  app.patch('/api/assessment-notes/:id/read', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const userId = req.session.customUserId;
+      
+      // Verify user can mark this note as read (must be assigned to them)
+      const note = await storage.getAssessmentNote(noteId);
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      if (note.assignedUserId !== userId) {
+        return res.status(403).json({ message: "You can only mark notes assigned to you as read" });
+      }
+
+      await storage.markAssessmentNoteAsRead(noteId);
+      res.json({ message: "Note marked as read" });
+    } catch (error) {
+      console.error("Error marking note as read:", error);
+      res.status(500).json({ message: "Failed to mark note as read" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server
