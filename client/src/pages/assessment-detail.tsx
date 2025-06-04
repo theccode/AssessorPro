@@ -130,7 +130,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   }
 
   const { data: assessment, isLoading } = useQuery({
-    queryKey: ["/api/assessments", publicId],
+    queryKey: [`/api/assessments/${publicId}`],
   });
 
   const { data: media = [] } = useQuery({
