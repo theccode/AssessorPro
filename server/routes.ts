@@ -5,12 +5,13 @@ import { setupCustomAuth, isCustomAuthenticated } from "./custom-auth";
 import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
 import { requireAuth, requireAdminOrAssessor, requireAssessmentAccess, requireFeature } from "./middleware";
 import { registerAdminRoutes } from "./admin-routes";
-import { insertAssessmentSchema, insertAssessmentSectionSchema, assessmentMedia, assessments, users, assessmentSections } from "@shared/schema";
+import { insertAssessmentSchema, insertAssessmentSectionSchema, insertNotificationSchema, assessmentMedia, assessments, users, assessmentSections } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { notificationService } from "./notification-service";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -1167,6 +1168,69 @@ For security reasons, we recommend using a strong, unique password and not shari
         transferredCount: 0, 
         message: "Failed to transfer media files" 
       });
+    }
+  });
+
+  // Notification routes
+  app.get('/api/notifications', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const isRead = req.query.isRead === 'true' ? true : req.query.isRead === 'false' ? false : undefined;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const notifications = await storage.getUserNotifications(userId, isRead, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get('/api/notifications/count', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching notification count:", error);
+      res.status(500).json({ message: "Failed to fetch notification count" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const notificationId = parseInt(req.params.id);
+      
+      await storage.markNotificationAsRead(notificationId, userId);
+      res.json({ message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch('/api/notifications/read-all', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      await storage.markAllNotificationsAsRead(userId);
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.delete('/api/notifications/:id', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const notificationId = parseInt(req.params.id);
+      
+      await storage.deleteNotification(notificationId, userId);
+      res.json({ message: "Notification deleted" });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
     }
   });
 

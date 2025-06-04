@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Menu, X, User, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 export default function Header() {
   const { user } = useAuth();
@@ -70,6 +71,7 @@ export default function Header() {
             <span className="hidden sm:inline text-xs sm:text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
               {(user as any)?.firstName && (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : (user as any)?.email || (user as any)?.role}
             </span>
+            <NotificationCenter />
             <Button 
               variant="ghost" 
               size="sm" 
