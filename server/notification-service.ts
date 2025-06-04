@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { emailService } from "./email-service";
 import { 
   type InsertNotification,
   type Assessment,
@@ -12,6 +13,23 @@ function getWSManager() {
 
 export class NotificationService {
   
+  // Helper method to send email notification
+  private async sendEmailNotification(user: User, subject: string, htmlContent: string) {
+    try {
+      if (user.email) {
+        await emailService.sendEmail({
+          to: user.email,
+          subject: subject,
+          html: htmlContent
+        });
+        console.log(`Email notification sent to ${user.email}: ${subject}`);
+      }
+    } catch (error) {
+      console.error(`Failed to send email to ${user.email}:`, error);
+      // Don't throw error - email failure shouldn't break the notification flow
+    }
+  }
+
   // Create notification for assessment completion
   async notifyAssessmentCompleted(assessment: Assessment, assessor: User, client: User) {
     // Notify admin
@@ -51,10 +69,28 @@ export class NotificationService {
           count: await storage.getUnreadNotificationCount(admin.id)
         });
       }
+
+      // Send email notification to admin
+      const adminEmailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2E7D32;">Assessment Completed - GREDA GBC</h2>
+          <p>Dear ${admin.firstName} ${admin.lastName},</p>
+          <p>An assessment has been completed and requires your review:</p>
+          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+            <strong>Building:</strong> ${assessment.buildingName}<br>
+            <strong>Client:</strong> ${assessment.clientName}<br>
+            <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
+            <strong>Overall Score:</strong> ${assessment.overallScore || 'Pending'}%
+          </div>
+          <p>Please log in to the GREDA GBC platform to review the assessment details.</p>
+          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+        </div>
+      `;
+      await this.sendEmailNotification(admin, "Assessment Completed - Action Required", adminEmailHtml);
     }
 
     // Notify client
-    await storage.createNotification({
+    const clientNotification = await storage.createNotification({
       userId: client.id,
       type: "assessment_completed",
       title: "Your Assessment is Complete",
@@ -69,6 +105,45 @@ export class NotificationService {
         assessorName: `${assessor.firstName} ${assessor.lastName}`
       }
     });
+
+    // Send real-time notification to client
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(client.id, {
+        type: 'new_notification',
+        notification: {
+          id: clientNotification.id,
+          type: clientNotification.type,
+          title: clientNotification.title,
+          message: clientNotification.message,
+          priority: clientNotification.priority,
+          isRead: false,
+          createdAt: clientNotification.createdAt
+        },
+        count: await storage.getUnreadNotificationCount(client.id)
+      });
+    }
+
+    // Send email notification to client
+    const clientEmailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2E7D32;">Your Building Assessment is Complete!</h2>
+        <p>Dear ${client.firstName} ${client.lastName},</p>
+        <p>Great news! Your building assessment has been completed.</p>
+        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+          <strong>Building:</strong> ${assessment.buildingName}<br>
+          <strong>Location:</strong> ${assessment.buildingLocation}<br>
+          <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
+          ${assessment.overallScore ? `<strong>Overall Score:</strong> ${assessment.overallScore}%<br>` : ''}
+          <strong>Completion Date:</strong> ${new Date().toLocaleDateString()}
+        </div>
+        <p>Your detailed assessment report is now available for review in your dashboard.</p>
+        <p>Please log in to the GREDA GBC platform to view your complete assessment results and recommendations.</p>
+        <p>Thank you for choosing GREDA Green Building Certification!</p>
+        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      </div>
+    `;
+    await this.sendEmailNotification(client, "Your Building Assessment is Complete! 🏗️", clientEmailHtml);
   }
 
   // Create notification for assessment submission
@@ -185,6 +260,26 @@ export class NotificationService {
         count: await storage.getUnreadNotificationCount(client.id)
       });
     }
+
+    // Send email notification to client
+    const clientEmailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2E7D32;">Your Building Assessment Has Started!</h2>
+        <p>Dear ${client.firstName} ${client.lastName},</p>
+        <p>Good news! Your building assessment has been initiated by our certified assessor.</p>
+        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+          <strong>Building:</strong> ${assessment.buildingName}<br>
+          <strong>Location:</strong> ${assessment.buildingLocation}<br>
+          <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
+          <strong>Start Date:</strong> ${new Date().toLocaleDateString()}
+        </div>
+        <p>Your assessor will now begin the comprehensive evaluation of your building's sustainability features.</p>
+        <p>You can track the progress of your assessment in your dashboard. We'll notify you when the assessment is complete.</p>
+        <p>Thank you for choosing GREDA Green Building Certification!</p>
+        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      </div>
+    `;
+    await this.sendEmailNotification(client, "Your Building Assessment Has Started!", clientEmailHtml);
 
     // Also notify admin for tracking purposes
     const adminUsers = await storage.getUsersByRole("admin");
@@ -397,7 +492,7 @@ export class NotificationService {
 
   // Create notification for admin notes
   async notifyAdminNoteCreated(assessment: Assessment, admin: User, assignedUser: User, noteContent: string) {
-    await storage.createNotification({
+    const notification = await storage.createNotification({
       userId: assignedUser.id,
       type: "admin_note_created",
       title: "New Admin Note",
@@ -420,16 +515,37 @@ export class NotificationService {
       wsManager.sendToUser(assignedUser.id, {
         type: 'new_notification',
         notification: {
-          type: "admin_note_created",
-          title: "New Admin Note",
-          message: `${admin.firstName} ${admin.lastName} has left a note for you regarding assessment "${assessment.buildingName}".`,
-          priority: "high",
+          id: notification.id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          priority: notification.priority,
           isRead: false,
-          createdAt: new Date()
+          createdAt: notification.createdAt
         },
         count: await storage.getUnreadNotificationCount(assignedUser.id)
       });
     }
+
+    // Send email notification to assigned user
+    const userEmailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2E7D32;">New Admin Note - GREDA GBC</h2>
+        <p>Dear ${assignedUser.firstName} ${assignedUser.lastName},</p>
+        <p>An administrator has left an important note for you regarding one of your assessments:</p>
+        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+          <strong>Assessment:</strong> ${assessment.buildingName}<br>
+          <strong>Admin:</strong> ${admin.firstName} ${admin.lastName}<br>
+          <strong>Note:</strong><br>
+          <div style="background-color: white; padding: 10px; margin-top: 10px; border-radius: 4px; font-style: italic;">
+            "${noteContent}"
+          </div>
+        </div>
+        <p>Please log in to the GREDA GBC platform to view the complete note and take any necessary action.</p>
+        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      </div>
+    `;
+    await this.sendEmailNotification(assignedUser, "New Admin Note - Action Required", userEmailHtml);
   }
 }
 
