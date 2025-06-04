@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,10 +19,12 @@ import {
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import type { Assessment } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Assessments() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -36,6 +37,10 @@ export default function Assessments() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      toast({
+        title: "Assessment Locked",
+        description: "Assessment has been locked for editing.",
+      });
     },
   });
 
@@ -46,6 +51,17 @@ export default function Assessments() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      toast({
+        title: "Edit Request Sent",
+        description: "Your request to edit this completed assessment has been submitted to administrators.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Request Failed",
+        description: error.message || "Failed to submit edit request.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -55,13 +71,26 @@ export default function Assessments() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      toast({
+        title: "Assessment Unlocked",
+        description: "Assessment has been unlocked for editing.",
+      });
     },
   });
 
-  // Filter to show only completed assessments (exclude drafts)
-  const assessments = allAssessments.filter((assessment: Assessment) => 
-    assessment.status === "completed"
-  );
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 text-white">
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  const assessments = Array.isArray(allAssessments) ? allAssessments : [];
+  const completedAssessments = assessments.filter((assessment: Assessment) => assessment.status === 'completed');
+  const draftAssessments = assessments.filter((assessment: Assessment) => assessment.status !== 'completed');
 
   // Helper function to format camelCase to readable text
   const formatVariableName = (camelCase: string) => {
