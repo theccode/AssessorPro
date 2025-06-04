@@ -202,9 +202,9 @@ export default function Dashboard() {
                           disabled={lockMutation.isPending}
                         >
                           {assessment.isLocked ? (
-                            <Unlock className="h-4 w-4 text-green-600" />
+                            <Unlock className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <Lock className="h-4 w-4 text-red-600" />
+                            <Lock className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
                       )}
