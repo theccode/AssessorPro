@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+import { validateAndCleanupFiles } from "./file-validator";
 
 const app = express();
 app.use(express.json());
@@ -54,6 +55,9 @@ app.use((req, res, next) => {
   
   // Run cleanup immediately on startup
   cleanupExpiredInvitations();
+  
+  // Run file validation and cleanup on startup
+  validateAndCleanupFiles();
   
   // Schedule daily cleanup
   setInterval(cleanupExpiredInvitations, DAILY_CLEANUP_INTERVAL);

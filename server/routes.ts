@@ -789,9 +789,22 @@ For security reasons, we recommend using a strong, unique password and not shari
         } catch (error) {
           console.error(`Error saving file ${fileName}:`, error);
           // Try copying instead of renaming if rename fails
-          await fs.promises.copyFile(file.path, filePath);
-          await fs.promises.unlink(file.path);
-          console.log(`File copied successfully: ${filePath}`);
+          try {
+            await fs.promises.copyFile(file.path, filePath);
+            await fs.promises.unlink(file.path);
+            console.log(`File copied successfully: ${filePath}`);
+          } catch (copyError) {
+            console.error(`Failed to copy file ${fileName}:`, copyError);
+            throw new Error(`File upload failed: ${copyError instanceof Error ? copyError.message : 'Unknown error'}`);
+          }
+        }
+
+        // Verify file was actually saved
+        try {
+          await fs.promises.access(filePath);
+        } catch (verifyError) {
+          console.error(`File verification failed for ${fileName}:`, verifyError);
+          throw new Error(`File upload verification failed`);
         }
 
         // Determine file type
