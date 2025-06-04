@@ -20,7 +20,12 @@ import {
   Unlock,
   ArrowLeft,
   Search,
-  Filter
+  Filter,
+  Folder,
+  FolderOpen,
+  ChevronDown,
+  ChevronRight,
+  User
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +40,7 @@ export default function Assessments() {
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -48,21 +54,58 @@ export default function Assessments() {
         return false;
       }
       
-      // Search term filter (building name, client name, or publisher name)
+      // Search term filter (building name, client name, or assessor name)
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const buildingName = assessment.buildingName?.toLowerCase() || "";
         const clientName = assessment.clientName?.toLowerCase() || "";
-        const publisherName = assessment.publisherName?.toLowerCase() || "";
+        const assessorName = assessment.assessorName?.toLowerCase() || "";
         
         return buildingName.includes(searchLower) || 
                clientName.includes(searchLower) || 
-               publisherName.includes(searchLower);
+               assessorName.includes(searchLower);
       }
       
       return true;
     });
   }, [allAssessments, statusFilter, searchTerm]);
+
+  // Group assessments by client
+  const groupedAssessments = useMemo(() => {
+    const grouped = filteredAssessments.reduce((acc: any, assessment: Assessment) => {
+      const clientName = assessment.clientName || "Unknown Client";
+      if (!acc[clientName]) {
+        acc[clientName] = [];
+      }
+      acc[clientName].push(assessment);
+      return acc;
+    }, {});
+    
+    // Sort clients alphabetically and sort assessments within each client by creation date
+    const sortedGrouped: any = {};
+    Object.keys(grouped)
+      .sort()
+      .forEach(clientName => {
+        sortedGrouped[clientName] = grouped[clientName].sort((a: Assessment, b: Assessment) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+      });
+    
+    return sortedGrouped;
+  }, [filteredAssessments]);
+
+  // Function to toggle client folder expansion
+  const toggleClientExpansion = (clientName: string) => {
+    setExpandedClients(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(clientName)) {
+        newSet.delete(clientName);
+      } else {
+        newSet.add(clientName);
+      }
+      return newSet;
+    });
+  };
 
   // Lock/unlock mutations for admins
   const lockMutation = useMutation({
@@ -191,9 +234,41 @@ export default function Assessments() {
              statusFilter === "completed" ? "Completed Assessments" : "Draft Assessments"}
           </h2>
           
-          {filteredAssessments.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredAssessments.map((assessment: Assessment) => (
+          {Object.keys(groupedAssessments).length > 0 ? (
+            <div className="space-y-6">
+              {Object.entries(groupedAssessments).map(([clientName, clientAssessments]) => (
+                <div key={clientName} className="border border-white/20 rounded-lg bg-white/5 backdrop-blur-sm">
+                  {/* Client Folder Header */}
+                  <button
+                    onClick={() => toggleClientExpansion(clientName)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-white/10 transition-colors rounded-t-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {expandedClients.has(clientName) ? (
+                        <FolderOpen className="h-5 w-5 text-green-400" />
+                      ) : (
+                        <Folder className="h-5 w-5 text-green-400" />
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-white/70" />
+                        <span className="text-lg font-semibold text-white">{clientName}</span>
+                      </div>
+                      <Badge variant="secondary" className="bg-white/20 text-white">
+                        {clientAssessments.length} assessment{clientAssessments.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    {expandedClients.has(clientName) ? (
+                      <ChevronDown className="h-5 w-5 text-white/70" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-white/70" />
+                    )}
+                  </button>
+                  
+                  {/* Client Assessments */}
+                  {expandedClients.has(clientName) && (
+                    <div className="p-4 pt-0">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {clientAssessments.map((assessment: Assessment) => (
                 <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start mb-2">
@@ -341,7 +416,12 @@ export default function Assessments() {
                       )}
                     </div>
                   </CardContent>
-                </Card>
+                        </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           ) : (
@@ -370,27 +450,10 @@ export default function Assessments() {
             </div>
           )}
         </div>
-
-        {/* Draft Assessments */}
-        {(user?.role === "admin" || user?.role === "assessor") && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-6">Draft Assessments</h2>
-            
-            {draftAssessments.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {draftAssessments.map((assessment: Assessment) => (
-                  <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <CardTitle className="text-lg font-semibold text-white">
-                          {assessment.buildingName || "Untitled Assessment"}
-                        </CardTitle>
-                        <Badge variant="outline" className="border-yellow-500/30 text-yellow-200">
-                          Draft
-                        </Badge>
-                      </div>
-                      <div className="space-y-1 text-sm text-gray-300">
-                        <div className="flex items-center">
+      </div>
+    </div>
+  );
+}
                           <MapPin className="h-3 w-3 mr-1" />
                           {assessment.buildingLocation || "Location not specified"}
                         </div>
