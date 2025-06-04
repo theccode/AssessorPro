@@ -69,11 +69,6 @@ export const domainRoleMiddleware: RequestHandler = async (req, res, next) => {
     const currentDomain = req.hostname;
     const expectedDomain = getUserDomain(userRole);
     
-    // Allow admins to access any domain (they have elevated privileges)
-    if (userRole === 'admin') {
-      return next();
-    }
-    
     // Check if user is on wrong domain
     if (currentDomain !== expectedDomain) {
       const protocol = req.secure ? 'https' : 'http';
@@ -126,11 +121,6 @@ export const validateDomainAccess: RequestHandler = async (req, res, next) => {
       return next();
     }
 
-    // Allow admins to access any domain (they have elevated privileges)
-    if (user.role === 'admin') {
-      return next();
-    }
-    
     // Check if user's role matches domain
     if (user.role !== expectedRole) {
       const correctDomain = getUserDomain(user.role);
