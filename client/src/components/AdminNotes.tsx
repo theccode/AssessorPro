@@ -310,7 +310,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                   </div>
                   
                   {note.isRead && note.readAt && (
-                    <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                    <div className="mt-2 text-xs text-primary">
                       Read on {formatDate(note.readAt)}
                     </div>
                   )}
