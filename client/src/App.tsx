@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
+import LoadingScreen from "@/components/loading-screen";
 import Dashboard from "@/pages/dashboard";
 import AssessmentForm from "@/pages/assessment-form";
 import AssessmentPreview from "@/pages/assessment-preview";
@@ -48,7 +49,9 @@ function Router() {
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/login" component={Login} />
       
-      {isLoading || !isAuthenticated ? (
+      {isLoading ? (
+        <Route path="*" component={LoadingScreen} />
+      ) : !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
         <>
