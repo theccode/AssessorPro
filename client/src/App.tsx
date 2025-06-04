@@ -82,7 +82,8 @@ function Router() {
             <>
               {currentDomainRole === "admin" && user?.role === "admin" ? (
                 <>
-                  <Route path="/" component={AdminDashboard} />
+                  <Route path="/" component={Dashboard} />
+                  <Route path="/admin" component={AdminDashboard} />
                   <Route path="/assessments/select-client" component={ClientSelection} />
                   <Route path="/assessments/new" component={AssessmentForm} />
                   <Route path="/assessments/:id/edit" component={AssessmentForm} />
