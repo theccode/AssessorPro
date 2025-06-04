@@ -732,21 +732,38 @@ For security reasons, we recommend using a strong, unique password and not shari
         const assessor = await storage.getUser(existing.userId);
         const client = existing.clientId ? await storage.getUser(existing.clientId) : null;
 
+        console.log(`Notification check: assessor=${assessor?.id}, client=${client?.id}, status change: ${existing.status} -> ${updateData.status}`);
+
         // Assessment started notification
-        if (updateData.status === 'in_progress' && existing.status === 'draft' && assessor && client) {
-          await notificationService.notifyAssessmentStarted(updated, assessor, client);
+        if (updateData.status === 'in_progress' && existing.status === 'draft' && assessor) {
+          if (client) {
+            console.log('Sending assessment started notification to client and admin');
+            await notificationService.notifyAssessmentStarted(updated, assessor, client);
+          } else {
+            console.log('No client found for assessment started notification');
+          }
         }
 
         // Assessment submitted notification
-        if (updateData.status === 'submitted' && existing.status !== 'submitted' && assessor && client) {
-          await notificationService.notifyAssessmentSubmitted(updated, assessor, client);
+        if (updateData.status === 'submitted' && existing.status !== 'submitted' && assessor) {
+          if (client) {
+            console.log('Sending assessment submitted notification to client and admin');
+            await notificationService.notifyAssessmentSubmitted(updated, assessor, client);
+          } else {
+            console.log('No client found for assessment submitted notification');
+          }
         }
 
         // Assessment completed notification
-        if (updateData.status === 'completed' && existing.status !== 'completed' && assessor && client) {
-          await notificationService.notifyAssessmentCompleted(updated, assessor, client);
-          // Also send report ready notification
-          await notificationService.notifyReportReady(updated, client);
+        if (updateData.status === 'completed' && existing.status !== 'completed' && assessor) {
+          if (client) {
+            console.log('Sending assessment completed notification to client and admin');
+            await notificationService.notifyAssessmentCompleted(updated, assessor, client);
+            // Also send report ready notification
+            await notificationService.notifyReportReady(updated, client);
+          } else {
+            console.log('No client found for assessment completed notification');
+          }
         }
       } catch (notificationError) {
         console.error("Error sending notifications:", notificationError);

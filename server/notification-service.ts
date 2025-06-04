@@ -32,8 +32,12 @@ export class NotificationService {
 
   // Create notification for assessment completion
   async notifyAssessmentCompleted(assessment: Assessment, assessor: User, client: User) {
+    console.log(`Starting assessment completed notifications for assessment ${assessment.id}, assessor: ${assessor.id}, client: ${client.id}`);
+    
     // Notify admin
     const adminUsers = await storage.getUsersByRole("admin");
+    console.log(`Found ${adminUsers.length} admin users to notify`);
+    
     for (const admin of adminUsers) {
       const notification = await storage.createNotification({
         userId: admin.id,
@@ -52,10 +56,12 @@ export class NotificationService {
         }
       });
 
+      console.log(`Created admin notification ${notification.id} for admin ${admin.id}`);
+
       // Send real-time notification via WebSocket
       const wsManager = getWSManager();
       if (wsManager) {
-        wsManager.sendToUser(admin.id, {
+        const wsResult = wsManager.sendToUser(admin.id, {
           type: 'new_notification',
           notification: {
             id: notification.id,
@@ -68,6 +74,9 @@ export class NotificationService {
           },
           count: await storage.getUnreadNotificationCount(admin.id)
         });
+        console.log(`WebSocket notification sent to admin ${admin.id}: ${wsResult}`);
+      } else {
+        console.log('WebSocket manager not available for admin notification');
       }
 
       // Send email notification to admin
