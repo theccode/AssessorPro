@@ -34,8 +34,9 @@ function Router() {
     (getCurrentHostname() === 'www.assessorpro.app' || getCurrentHostname().includes('www.assessorpro.app'));
 
   // Handle domain-based redirects when user is authenticated
+  // Skip automatic redirects for admin users to allow access to main dashboard
   useEffect(() => {
-    if (isAuthenticated && user?.role && !isDevelopmentMode()) {
+    if (isAuthenticated && user?.role && !isDevelopmentMode() && user.role !== 'admin') {
       redirectToUserDomain(user.role, domains);
     }
   }, [isAuthenticated, user?.role, domains]);

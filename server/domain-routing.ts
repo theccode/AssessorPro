@@ -69,8 +69,9 @@ export const domainRoleMiddleware: RequestHandler = async (req, res, next) => {
     const currentDomain = req.hostname;
     const expectedDomain = getUserDomain(userRole);
     
-    // Check if user is on wrong domain
-    if (currentDomain !== expectedDomain) {
+    // Allow admins to access any domain without redirecting
+    // Only redirect non-admin users if they're on wrong domain
+    if (userRole !== 'admin' && currentDomain !== expectedDomain) {
       const protocol = req.secure ? 'https' : 'http';
       const redirectUrl = `${protocol}://${expectedDomain}${req.originalUrl}`;
       
