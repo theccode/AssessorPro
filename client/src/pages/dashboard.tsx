@@ -198,7 +198,7 @@ export default function Dashboard() {
                         </Button>
                       )}
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assessment/${assessment.id}`}>
+                        <Link href={`/assessment/${assessment.publicId}`}>
                           View Details
                         </Link>
                       </Button>
