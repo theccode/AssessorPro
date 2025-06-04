@@ -595,6 +595,28 @@ For security reasons, we recommend using a strong, unique password and not shari
       });
 
       const updated = await storage.updateAssessment(existing.id, updateData);
+
+      // Send notifications for status changes
+      try {
+        const assessor = await storage.getUser(existing.userId);
+        const client = existing.clientId ? await storage.getUser(existing.clientId) : null;
+
+        // Assessment submitted notification
+        if (updateData.status === 'submitted' && existing.status !== 'submitted' && assessor && client) {
+          await notificationService.notifyAssessmentSubmitted(updated, assessor, client);
+        }
+
+        // Assessment completed notification
+        if (updateData.status === 'completed' && existing.status !== 'completed' && assessor && client) {
+          await notificationService.notifyAssessmentCompleted(updated, assessor, client);
+          // Also send report ready notification
+          await notificationService.notifyReportReady(updated, client);
+        }
+      } catch (notificationError) {
+        console.error("Error sending notifications:", notificationError);
+        // Don't fail the request if notifications fail
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Error updating assessment:", error);
@@ -645,6 +667,16 @@ For security reasons, we recommend using a strong, unique password and not shari
         lockedBy: userId,
         lockedAt: new Date()
       });
+
+      // Send lock notification
+      try {
+        const assessor = await storage.getUser(assessment.userId);
+        if (assessor) {
+          await notificationService.notifyAssessmentLocked(updated, currentUser);
+        }
+      } catch (notificationError) {
+        console.error("Error sending lock notification:", notificationError);
+      }
       
       res.json(updated);
     } catch (error) {
@@ -672,6 +704,23 @@ For security reasons, we recommend using a strong, unique password and not shari
         lockedBy: isLocked ? userId : null,
         lockedAt: isLocked ? new Date() : null
       });
+
+      // Send lock/unlock notifications
+      try {
+        const assessment = await storage.getAssessment(id);
+        if (assessment) {
+          const assessor = await storage.getUser(assessment.userId);
+          if (assessor) {
+            if (isLocked) {
+              await notificationService.notifyAssessmentLocked(updated, currentUser);
+            } else {
+              await notificationService.notifyAssessmentUnlocked(updated, currentUser);
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error("Error sending lock/unlock notification:", notificationError);
+      }
       
       res.json(updated);
     } catch (error) {
@@ -704,6 +753,16 @@ For security reasons, we recommend using a strong, unique password and not shari
         lockedBy: null,
         lockedAt: null
       });
+
+      // Send unlock notification
+      try {
+        const assessor = await storage.getUser(assessment.userId);
+        if (assessor) {
+          await notificationService.notifyAssessmentUnlocked(updated, currentUser);
+        }
+      } catch (notificationError) {
+        console.error("Error sending unlock notification:", notificationError);
+      }
       
       res.json(updated);
     } catch (error) {
