@@ -1484,7 +1484,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       }
 
       // Get a completed assessment for testing
-      const assessments = await storage.getAssessments();
+      const assessments = await storage.getAllAssessments();
       const completedAssessment = assessments.find((a: any) => a.status === 'completed');
       
       if (!completedAssessment) {
