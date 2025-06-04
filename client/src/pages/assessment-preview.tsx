@@ -848,7 +848,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {(user?.role === "admin" || user?.role === "assessor") && (
+          {(user?.role === "admin" || user?.role === "assessor") && assessmentData.status !== 'completed' && (
             <Button variant="outline" asChild>
               <Link href={`/assessments/${publicId}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />
