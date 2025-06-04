@@ -64,10 +64,15 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
   });
 
   // Fetch users for assignment (only for admins)
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: user?.role === "admin",
   });
+
+  // Debug log for users data
+  console.log("Users data:", users);
+  console.log("Users loading:", usersLoading);
+  console.log("Users error:", usersError);
 
   // Create note mutation
   const createNoteMutation = useMutation({
