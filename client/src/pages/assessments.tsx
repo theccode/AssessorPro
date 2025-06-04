@@ -25,6 +25,7 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   User
 } from "lucide-react";
 import { Link } from "wouter";
@@ -41,6 +42,10 @@ export default function Assessments() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   
   const { data: allAssessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -93,6 +98,49 @@ export default function Assessments() {
     
     return sortedGrouped;
   }, [filteredAssessments]);
+
+  // Pagination calculations
+  const totalAssessments = filteredAssessments.length;
+  const totalPages = Math.ceil(totalAssessments / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  // Apply pagination to grouped assessments
+  const paginatedGroupedAssessments = useMemo(() => {
+    const allAssessmentsFlat = Object.entries(groupedAssessments).flatMap(([clientName, assessments]) =>
+      (assessments as Assessment[]).map(assessment => ({ ...assessment, clientName }))
+    );
+    
+    const paginatedFlat = allAssessmentsFlat.slice(startIndex, endIndex);
+    
+    // Regroup paginated assessments
+    const regrouped: any = {};
+    paginatedFlat.forEach(assessment => {
+      const clientName = assessment.clientName;
+      if (!regrouped[clientName]) {
+        regrouped[clientName] = [];
+      }
+      regrouped[clientName].push(assessment);
+    });
+    
+    return regrouped;
+  }, [groupedAssessments, startIndex, endIndex]);
+
+  // Reset to first page when filters change
+  const resetPagination = () => {
+    setCurrentPage(1);
+  };
+
+  // Update search and filter handlers to reset pagination
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    resetPagination();
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    resetPagination();
+  };
 
   // Function to toggle client folder expansion
   const toggleClientExpansion = (clientName: string) => {
@@ -204,7 +252,7 @@ export default function Assessments() {
                 <Input
                   placeholder="Search by building name, client, or assessor..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                 />
               </div>
