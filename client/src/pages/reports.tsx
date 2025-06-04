@@ -42,18 +42,18 @@ export default function Reports() {
       {/* Header */}
       <div className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
-              <img src={gredaLogo} alt="GREDA-GBC" className="h-12 w-auto" />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Assessment Reports</h1>
-                <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 sm:py-6 gap-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <img src={gredaLogo} alt="GREDA-GBC" className="h-10 sm:h-12 w-auto flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Assessment Reports</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {user?.role === "client" ? "Your building assessment reports" : "All assessment reports"}
                 </p>
               </div>
             </div>
-            <Link to="/">
-              <Button variant="outline">
+            <Link to="/" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
                 Back to Dashboard
               </Button>
             </Link>
@@ -61,26 +61,26 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Reports</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">{completedAssessments.length}</div>
+            <CardContent className="pt-2">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">{completedAssessments.length}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
+              <Star className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
+            <CardContent className="pt-2">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {completedAssessments.length > 0
                   ? Math.round(
                       completedAssessments.reduce((sum: number, a: any) => sum + (a.overallScore || 0), 0) /
@@ -91,13 +91,13 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="sm:col-span-2 lg:col-span-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
+            <CardContent className="pt-2">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {completedAssessments.filter((a: any) => {
                   const assessmentDate = new Date(a.conductedAt || a.createdAt);
                   const now = new Date();
@@ -135,36 +135,38 @@ export default function Reports() {
                 {completedAssessments.map((assessment: any) => (
                   <div
                     key={assessment.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3 sm:gap-4"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <Building className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-semibold text-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start space-x-3">
+                        <Building className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">
                             {assessment.buildingName || "Unnamed Building"}
                           </h3>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
                             {assessment.buildingLocation || "No location specified"}
                           </p>
                         </div>
                       </div>
-                      <div className="mt-2 flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 130}</span>
-                        <span>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                        <span className="whitespace-nowrap">
+                          Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 130}
+                        </span>
+                        <span className="font-medium">
                           {assessment.maxPossibleScore > 0
                             ? `${Math.round((assessment.overallScore / assessment.maxPossibleScore) * 100)}%`
                             : "0%"}
                         </span>
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="text-xs">
                           {assessment.status}
                         </Badge>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Link to={`/assessments/${assessment.publicId}/preview`}>
-                        <Button size="sm" variant="outline">
+                    <div className="flex items-center justify-end sm:justify-start">
+                      <Link to={`/assessments/${assessment.publicId}/preview`} className="w-full sm:w-auto">
+                        <Button size="sm" variant="outline" className="w-full sm:w-auto">
                           <Download className="h-4 w-4 mr-2" />
                           View Report
                         </Button>
