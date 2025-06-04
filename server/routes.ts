@@ -488,6 +488,12 @@ For security reasons, we recommend using a strong, unique password and not shari
         console.log('Admin user detected, fetching all assessments...');
         const allAssessments = await storage.getAllAssessments();
         console.log(`Found ${allAssessments.length} assessments for admin:`, allAssessments.map(a => ({ id: a.id, buildingName: a.buildingName, userId: a.userId })));
+        
+        // Disable caching for admin users to ensure fresh data
+        res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        
         res.json(allAssessments);
       } else {
         // Regular users see only their own assessments
