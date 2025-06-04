@@ -160,26 +160,32 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {recentAssessments.map((assessment: Assessment) => (
-                  <div key={assessment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                  <div key={assessment.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="font-medium text-foreground">{assessment.buildingName}</h3>
-                      <p className="text-sm text-muted-foreground">{assessment.buildingLocation || "No location specified"}</p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-foreground mb-1">{assessment.buildingName}</h3>
+                          <p className="text-sm text-muted-foreground">{assessment.buildingLocation || "No location specified"}</p>
+                        </div>
+                        <div className="flex items-center gap-3 ml-4">
+                          {assessment.overallScore && (
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                              <span className="text-sm font-medium">{assessment.overallScore}%</span>
+                            </div>
+                          )}
+                          {assessment.isLocked && (
+                            <div className="flex items-center">
+                              <Lock className="h-3 w-3 text-red-500 mr-1" />
+                              <span className="text-xs text-red-600">Locked</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-2 py-1 rounded-full">
                           {assessment.status}
                         </span>
-                        {assessment.overallScore && (
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                            <span className="text-sm font-medium">{assessment.overallScore}%</span>
-                          </div>
-                        )}
-                        {assessment.isLocked && (
-                          <div className="flex items-center">
-                            <Lock className="h-3 w-3 text-red-500 mr-1" />
-                            <span className="text-xs text-red-600">Locked</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -201,13 +207,7 @@ export default function Dashboard() {
                         </Button>
                       )}
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/assessment/${assessment.publicId}`} 
-                              onClick={() => console.log('Clicking View Details for:', { 
-                                id: assessment.id, 
-                                buildingName: assessment.buildingName, 
-                                publicId: assessment.publicId,
-                                url: `/assessment/${assessment.publicId}`
-                              })}>
+                        <Link href={`/assessment/${assessment.publicId}`}>
                           View Details
                         </Link>
                       </Button>
