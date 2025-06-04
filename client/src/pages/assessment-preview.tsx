@@ -15,6 +15,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import * as XLSX from 'xlsx';
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
+import AdminNotes from "@/components/AdminNotes";
 
 export default function AssessmentPreview({ params }: { params: { id: string } }) {
   const [, navigate] = useLocation();
@@ -901,6 +902,16 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
             </Button>
           )}
         </div>
+
+        {/* Admin Notes Section - Only for completed assessments */}
+        {assessmentData.status === 'completed' && (
+          <div className="mt-8">
+            <AdminNotes 
+              assessmentId={assessmentData.id} 
+              assessmentStatus={assessmentData.status} 
+            />
+          </div>
+        )}
       </div>
     </div>
   );

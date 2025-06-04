@@ -749,6 +749,69 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(assessments.publicId, publicId));
   }
+
+  // Assessment notes operations
+  async createAssessmentNote(note: InsertAssessmentNote): Promise<AssessmentNote> {
+    const { db } = await import("./db");
+    const { assessmentNotes } = await import("@shared/schema");
+    
+    const [created] = await db
+      .insert(assessmentNotes)
+      .values(note)
+      .returning();
+    return created;
+  }
+
+  async getAssessmentNote(id: number): Promise<AssessmentNote | undefined> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessmentNotes } = await import("@shared/schema");
+    
+    const [note] = await db.select().from(assessmentNotes).where(eq(assessmentNotes.id, id));
+    return note;
+  }
+
+  async getAssessmentNotes(assessmentId: number): Promise<AssessmentNote[]> {
+    const { db } = await import("./db");
+    const { eq, desc } = await import("drizzle-orm");
+    const { assessmentNotes } = await import("@shared/schema");
+    
+    return await db
+      .select()
+      .from(assessmentNotes)
+      .where(eq(assessmentNotes.assessmentId, assessmentId))
+      .orderBy(desc(assessmentNotes.createdAt));
+  }
+
+  async getAssessmentNotesForUser(assessmentId: number, userId: string): Promise<AssessmentNote[]> {
+    const { db } = await import("./db");
+    const { eq, and, desc } = await import("drizzle-orm");
+    const { assessmentNotes } = await import("@shared/schema");
+    
+    return await db
+      .select()
+      .from(assessmentNotes)
+      .where(and(
+        eq(assessmentNotes.assessmentId, assessmentId),
+        eq(assessmentNotes.assignedUserId, userId)
+      ))
+      .orderBy(desc(assessmentNotes.createdAt));
+  }
+
+  async markAssessmentNoteAsRead(id: number): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessmentNotes } = await import("@shared/schema");
+    
+    await db
+      .update(assessmentNotes)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(assessmentNotes.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();
