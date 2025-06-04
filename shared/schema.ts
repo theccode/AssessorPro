@@ -158,6 +158,7 @@ export const notifications = pgTable("notifications", {
       "report_ready",
       "assessment_locked",
       "assessment_unlocked",
+      "admin_note_created",
       "test_notification"
     ] 
   }).notNull(),
@@ -172,6 +173,19 @@ export const notifications = pgTable("notifications", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   readAt: timestamp("read_at"),
+});
+
+// Admin notes on assessments that can only be seen by assigned users
+export const assessmentNotes = pgTable("assessment_notes", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").notNull().references(() => assessments.id, { onDelete: "cascade" }),
+  adminId: varchar("admin_id").notNull().references(() => users.id), // admin who created the note
+  assignedUserId: varchar("assigned_user_id").notNull().references(() => users.id), // user who can see the note
+  noteContent: text("note_content").notNull(),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relations
@@ -223,6 +237,7 @@ export const assessmentsRelations = relations(assessments, ({ one, many }) => ({
   }),
   sections: many(assessmentSections),
   media: many(assessmentMedia),
+  notes: many(assessmentNotes),
 }));
 
 export const assessmentSectionsRelations = relations(assessmentSections, ({ one }) => ({
@@ -236,6 +251,21 @@ export const assessmentMediaRelations = relations(assessmentMedia, ({ one }) => 
   assessment: one(assessments, {
     fields: [assessmentMedia.assessmentId],
     references: [assessments.id],
+  }),
+}));
+
+export const assessmentNotesRelations = relations(assessmentNotes, ({ one }) => ({
+  assessment: one(assessments, {
+    fields: [assessmentNotes.assessmentId],
+    references: [assessments.id],
+  }),
+  admin: one(users, {
+    fields: [assessmentNotes.adminId],
+    references: [users.id],
+  }),
+  assignedUser: one(users, {
+    fields: [assessmentNotes.assignedUserId],
+    references: [users.id],
   }),
 }));
 
@@ -273,6 +303,14 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   readAt: true,
 });
 
+export const insertAssessmentNoteSchema = createInsertSchema(assessmentNotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  isRead: true,
+  readAt: true,
+});
+
 export const updateUserSchema = createInsertSchema(users).partial().omit({
   id: true,
   createdAt: true,
@@ -293,4 +331,6 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type AssessmentNote = typeof assessmentNotes.$inferSelect;
+export type InsertAssessmentNote = z.infer<typeof insertAssessmentNoteSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
