@@ -529,9 +529,8 @@ For security reasons, we recommend using a strong, unique password and not shari
       const userId = req.session.customUserId;
       const user = await storage.getUser(userId);
       
-      if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      // Allow all authenticated users to view assessment details
+      // (Editing permissions are still controlled separately)
 
       res.json(assessment);
     } catch (error) {
@@ -597,13 +596,9 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      // Check if user has access to this assessment
+      // Allow all authenticated users to download assessment reports
       const userId = req.session.customUserId;
       const user = await storage.getUser(userId);
-      
-      if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
-        return res.status(403).json({ message: "Access denied" });
-      }
 
       // Generate PDF content
       const jsPDF = (await import('jspdf')).default;
