@@ -778,70 +778,119 @@ For security reasons, we recommend using a strong, unique password and not shari
       const userId = req.session.customUserId;
       const { sectionType, fieldName } = req.body;
       
+      console.log(`Media upload started - Assessment: ${publicId}, Section: ${sectionType}, Field: ${fieldName}`);
+      
       // Verify ownership using public ID
       const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment || assessment.userId !== userId) {
+        console.error(`Assessment access denied - ID: ${publicId}, User: ${userId}`);
         return res.status(404).json({ message: "Assessment not found" });
       }
 
       const files = req.files as Express.Multer.File[];
-      const uploadedMedia = [];
-
-      for (const file of files) {
-        // Move file to permanent location using internal assessment ID
-        const uploadDir = path.join('uploads', 'assessments', assessment.id.toString(), sectionType);
-        await fs.promises.mkdir(uploadDir, { recursive: true });
-        
-        const fileName = `${Date.now()}-${file.originalname}`;
-        const filePath = path.join(uploadDir, fileName);
-        
-        try {
-          await fs.promises.rename(file.path, filePath);
-          console.log(`File saved successfully: ${filePath}`);
-        } catch (error) {
-          console.error(`Error saving file ${fileName}:`, error);
-          // Try copying instead of renaming if rename fails
-          try {
-            await fs.promises.copyFile(file.path, filePath);
-            await fs.promises.unlink(file.path);
-            console.log(`File copied successfully: ${filePath}`);
-          } catch (copyError) {
-            console.error(`Failed to copy file ${fileName}:`, copyError);
-            throw new Error(`File upload failed: ${copyError instanceof Error ? copyError.message : 'Unknown error'}`);
-          }
-        }
-
-        // Verify file was actually saved
-        try {
-          await fs.promises.access(filePath);
-        } catch (verifyError) {
-          console.error(`File verification failed for ${fileName}:`, verifyError);
-          throw new Error(`File upload verification failed`);
-        }
-
-        // Determine file type
-        let fileType = 'document';
-        if (file.mimetype.startsWith('image/')) fileType = 'image';
-        else if (file.mimetype.startsWith('video/') || file.mimetype === 'video/quicktime') fileType = 'video';
-        else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
-
-        const media = await storage.createAssessmentMedia({
-          assessmentId: assessment.id,
-          sectionType,
-          fieldName,
-          fileName: file.originalname,
-          fileType,
-          fileSize: file.size,
-          filePath,
-          mimeType: file.mimetype,
-        });
-
-        uploadedMedia.push(media);
+      console.log(`Processing ${files.length} files for upload`);
+      
+      if (!files || files.length === 0) {
+        console.error("No files received in upload request");
+        return res.status(400).json({ message: "No files provided" });
       }
 
-      res.json(uploadedMedia);
+      const uploadedMedia = [];
+      const failedUploads = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`Processing file ${i + 1}/${files.length}: ${file.originalname} (${file.size} bytes)`);
+        
+        try {
+          // Move file to permanent location using internal assessment ID
+          const uploadDir = path.join('uploads', 'assessments', assessment.id.toString(), sectionType);
+          await fs.promises.mkdir(uploadDir, { recursive: true });
+          
+          const fileName = `${Date.now()}-${i}-${file.originalname}`;
+          const filePath = path.join(uploadDir, fileName);
+          
+          // Save file with enhanced error handling
+          try {
+            await fs.promises.rename(file.path, filePath);
+            console.log(`File saved successfully: ${filePath}`);
+          } catch (error) {
+            console.error(`Error saving file ${fileName}:`, error);
+            // Try copying instead of renaming if rename fails
+            try {
+              await fs.promises.copyFile(file.path, filePath);
+              await fs.promises.unlink(file.path);
+              console.log(`File copied successfully: ${filePath}`);
+            } catch (copyError) {
+              console.error(`Failed to copy file ${fileName}:`, copyError);
+              throw new Error(`File upload failed: ${copyError instanceof Error ? copyError.message : 'Unknown error'}`);
+            }
+          }
+
+          // Verify file was actually saved
+          try {
+            await fs.promises.access(filePath);
+            const stats = await fs.promises.stat(filePath);
+            console.log(`File verification successful: ${filePath} (${stats.size} bytes)`);
+          } catch (verifyError) {
+            console.error(`File verification failed for ${fileName}:`, verifyError);
+            throw new Error(`File upload verification failed`);
+          }
+
+          // Determine file type
+          let fileType = 'document';
+          if (file.mimetype.startsWith('image/')) fileType = 'image';
+          else if (file.mimetype.startsWith('video/') || file.mimetype === 'video/quicktime') fileType = 'video';
+          else if (file.mimetype.startsWith('audio/')) fileType = 'audio';
+
+          console.log(`Creating database record for: ${file.originalname}`);
+          const media = await storage.createAssessmentMedia({
+            assessmentId: assessment.id,
+            sectionType,
+            fieldName,
+            fileName: file.originalname,
+            fileType,
+            fileSize: file.size,
+            filePath,
+            mimeType: file.mimetype,
+          });
+
+          console.log(`Database record created successfully with ID: ${media.id}`);
+          uploadedMedia.push(media);
+          
+        } catch (fileError) {
+          console.error(`Failed to process file ${file.originalname}:`, fileError);
+          failedUploads.push({
+            fileName: file.originalname,
+            error: fileError instanceof Error ? fileError.message : 'Unknown error'
+          });
+        }
+      }
+
+      console.log(`Upload completed - Success: ${uploadedMedia.length}, Failed: ${failedUploads.length}`);
+      
+      if (uploadedMedia.length === 0) {
+        return res.status(500).json({ 
+          message: "All file uploads failed", 
+          failures: failedUploads 
+        });
+      }
+
+      // Return success response with any failures noted
+      const response = {
+        uploadedMedia,
+        successCount: uploadedMedia.length,
+        totalCount: files.length
+      };
+      
+      if (failedUploads.length > 0) {
+        response.failures = failedUploads;
+        response.message = `${uploadedMedia.length} files uploaded successfully, ${failedUploads.length} failed`;
+      }
+
+      res.json(response);
     } catch (error) {
-      console.error("Error uploading media:", error);
+      console.error("Critical error in media upload:", error);
       res.status(500).json({ message: "Failed to upload media" });
     }
   });
