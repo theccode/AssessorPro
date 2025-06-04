@@ -701,11 +701,31 @@ For security reasons, we recommend using a strong, unique password and not shari
         updateData.lockedAt = new Date();
       }
 
-      // Track edit history if someone other than the original conductor is editing
+      // Track edit history if someone other than the original conductor is making actual changes
       if (existing.userId !== userId) {
-        updateData.lastEditedBy = userId;
-        updateData.lastEditedByName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.email;
-        updateData.lastEditedAt = new Date();
+        // Check if any actual data changes are being made
+        const fieldsToCheck = [
+          'buildingName', 'clientName', 'buildingLocation', 'digitalAddress', 
+          'detailedAddress', 'phoneNumber', 'additionalNotes', 'buildingFootprint',
+          'roomHeight', 'numberOfBedrooms', 'siteArea', 'numberOfWindows', 
+          'numberOfDoors', 'averageWindowSize', 'numberOfFloors', 'totalGreenArea',
+          'overallScore', 'status'
+        ];
+        
+        let hasActualChanges = false;
+        for (const field of fieldsToCheck) {
+          if (req.body.hasOwnProperty(field) && req.body[field] !== existing[field]) {
+            hasActualChanges = true;
+            break;
+          }
+        }
+        
+        // Only track edit if there are actual data changes
+        if (hasActualChanges) {
+          updateData.lastEditedBy = userId;
+          updateData.lastEditedByName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.email;
+          updateData.lastEditedAt = new Date();
+        }
       }
 
       // Convert empty strings to null for numeric fields to prevent database errors
