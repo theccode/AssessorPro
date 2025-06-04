@@ -70,6 +70,7 @@ export interface IStorage {
   // Assessment operations
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   getAssessment(id: number): Promise<Assessment | undefined>;
+  getAllAssessments(): Promise<Assessment[]>;
   getAssessmentByPublicId(publicId: string): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getAssessmentWithSections(id: number): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined>;
   getUserAssessments(userId: string): Promise<Assessment[]>;
@@ -569,6 +570,13 @@ export class DatabaseStorage implements IStorage {
     
     const [assessment] = await db.select().from(assessments).where(eq(assessments.id, id));
     return assessment;
+  }
+
+  async getAllAssessments(): Promise<Assessment[]> {
+    const { db } = await import("./db");
+    const { assessments } = await import("@shared/schema");
+    
+    return await db.select().from(assessments);
   }
 
   async getAssessmentByPublicId(publicId: string): Promise<(Assessment & { sections: AssessmentSection[]; media: AssessmentMedia[] }) | undefined> {
