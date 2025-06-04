@@ -74,8 +74,8 @@ export default function Assessments() {
   const handleDownloadPDF = async (assessment: Assessment) => {
     setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch full assessment data with sections using the integer ID
-      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.id}`);
+      // Fetch full assessment data with sections using the public ID
+      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
       const assessmentData = await fullAssessmentResponse.json();
       
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -344,8 +344,8 @@ export default function Assessments() {
   const handleDownloadExcel = async (assessment: Assessment) => {
     setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
     try {
-      // Fetch full assessment data with sections using the integer ID
-      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.id}`);
+      // Fetch full assessment data with sections using the public ID
+      const fullAssessmentResponse = await apiRequest(`/api/assessments/${assessment.publicId}`);
       const assessmentData = await fullAssessmentResponse.json();
       
       // Create a new workbook
@@ -412,34 +412,26 @@ export default function Assessments() {
         ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
       ];
 
-      // Get sections data from API call
-      try {
-        const sectionsResponse = await fetch(`/api/assessments/${assessment.id}`);
-        const fullAssessmentData = await sectionsResponse.json();
-        
-        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
-          fullAssessmentData.sections.forEach((section: any) => {
-            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-            const score = section.score || 0;
-            const maxScore = section.maxScore || 0;
-            const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-            const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
+      // Use sections data from the already fetched assessment data
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          const score = section.score || 0;
+          const maxScore = section.maxScore || 0;
+          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
 
-            sectionsData.push([
-              sectionName,
-              score,
-              maxScore,
-              `${percentage}%`,
-              status
-            ]);
-          });
-        } else {
-          sectionsData.push(['No section data available', '', '', '', '']);
-        }
-      } catch (error) {
-        console.warn('Could not load sections for Excel export:', error);
-        sectionsData.push(['Error loading sections', '', '', '', '']);
+          sectionsData.push([
+            sectionName,
+            score,
+            maxScore,
+            `${percentage}%`,
+            status
+          ]);
+        });
+      } else {
+        sectionsData.push(['No section data available', '', '', '', '']);
       }
 
       const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
@@ -453,83 +445,74 @@ export default function Assessments() {
         ['Section', 'Variable Name', 'Score', 'Max Score', 'Percentage']
       ];
 
-      // Use the same full assessment data from the previous API call
-      try {
-        const sectionsResponse = await fetch(`/api/assessments/${assessment.id}`);
-        const fullAssessmentData = await sectionsResponse.json();
-        
-        if (fullAssessmentData.sections && fullAssessmentData.sections.length > 0) {
-          fullAssessmentData.sections.forEach((section: any) => {
-            const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-            const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-            
-            if (section.variables) {
-              try {
-                // Handle both string and object formats
-                let variables;
-                if (typeof section.variables === 'string') {
-                  variables = JSON.parse(section.variables);
-                } else {
-                  variables = section.variables;
-                }
-                
-                const sectionVars = sectionVariables[section.sectionType] || [];
-                
-                if (sectionVars.length > 0) {
-                  sectionVars.forEach(variable => {
-                    const score = variables[variable.id] || 0;
-                    const maxScore = variable.maxScore;
-                    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-
-                    variablesData.push([
-                      sectionName,
-                      formatVariableName(variable.name),
-                      score,
-                      maxScore,
-                      `${percentage}%`
-                    ]);
-                  });
-                } else {
-                  // If no predefined variables, try to extract from the variables object itself
-                  Object.keys(variables).forEach(variableKey => {
-                    const score = variables[variableKey] || 0;
-                    variablesData.push([
-                      sectionName,
-                      formatVariableName(variableKey),
-                      score,
-                      'N/A', // Max score not available in this case
-                      'N/A'
-                    ]);
-                  });
-                }
-              } catch (parseError) {
-                console.warn('Could not parse variables for section:', section.sectionType, parseError);
-                // Still add the section but with no variable breakdown
-                variablesData.push([
-                  sectionName,
-                  'Data parsing error',
-                  section.score || 0,
-                  section.maxScore || 0,
-                  section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
-                ]);
+      // Use assessment data from the already fetched comprehensive data
+      if (assessmentData.sections && assessmentData.sections.length > 0) {
+        assessmentData.sections.forEach((section: any) => {
+          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
+          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
+          
+          if (section.variables) {
+            try {
+              // Handle both string and object formats
+              let variables;
+              if (typeof section.variables === 'string') {
+                variables = JSON.parse(section.variables);
+              } else {
+                variables = section.variables;
               }
-            } else {
-              // No variables data, just show section totals
+              
+              const sectionVars = sectionVariables[section.sectionType] || [];
+              
+              if (sectionVars.length > 0) {
+                sectionVars.forEach(variable => {
+                  const score = variables[variable.id] || 0;
+                  const maxScore = variable.maxScore;
+                  const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+                  variablesData.push([
+                    sectionName,
+                    formatVariableName(variable.name),
+                    score,
+                    maxScore,
+                    `${percentage}%`
+                  ]);
+                });
+              } else {
+                // If no predefined variables, try to extract from the variables object itself
+                Object.keys(variables).forEach(variableKey => {
+                  const score = variables[variableKey] || 0;
+                  variablesData.push([
+                    sectionName,
+                    formatVariableName(variableKey),
+                    score,
+                    'N/A',
+                    'N/A'
+                  ]);
+                });
+              }
+            } catch (parseError) {
+              console.warn('Could not parse variables for section:', section.sectionType, parseError);
               variablesData.push([
                 sectionName,
-                'Section Total Only',
+                'Data parsing error',
                 section.score || 0,
                 section.maxScore || 0,
                 section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
               ]);
             }
-          });
-        } else {
-          variablesData.push(['No variable data available', '', '', '', '']);
-        }
-      } catch (error) {
-        console.warn('Could not load variables for Excel export:', error);
-        variablesData.push(['Error loading variables', '', '', '', '']);
+          } else {
+            // No variables data, just show section totals
+            variablesData.push([
+              sectionName,
+              'Section Total Only',
+              section.score || 0,
+              section.maxScore || 0,
+              section.maxScore > 0 ? `${Math.round((section.score / section.maxScore) * 100)}%` : '0%'
+            ]);
+          }
+        });
+      } else {
+        variablesData.push(['No variable data available', '', '', '', '']);
       }
 
       const variablesSheet = XLSX.utils.aoa_to_sheet(variablesData);
