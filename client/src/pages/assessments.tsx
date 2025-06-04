@@ -256,7 +256,7 @@ export default function Assessments() {
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                 <SelectTrigger className="w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by status" />
@@ -282,9 +282,9 @@ export default function Assessments() {
              statusFilter === "completed" ? "Completed Assessments" : "Draft Assessments"}
           </h2>
           
-          {Object.keys(groupedAssessments).length > 0 ? (
+          {Object.keys(paginatedGroupedAssessments).length > 0 ? (
             <div className="space-y-6">
-              {Object.entries(groupedAssessments).map(([clientName, clientAssessments]) => (
+              {Object.entries(paginatedGroupedAssessments).map(([clientName, clientAssessments]) => (
                 <div key={clientName} className="border border-white/20 rounded-lg bg-white/5 backdrop-blur-sm">
                   {/* Client Folder Header */}
                   <button
@@ -495,6 +495,108 @@ export default function Assessments() {
                   </Button>
                 </Link>
               )}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalAssessments > 0 && (
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-lg border border-white/20">
+              {/* Items per page selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-white/70">Show:</span>
+                <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  resetPagination();
+                }}>
+                  <SelectTrigger className="w-16">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6">6</SelectItem>
+                    <SelectItem value="12">12</SelectItem>
+                    <SelectItem value="24">24</SelectItem>
+                    <SelectItem value="48">48</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-white/70">per page</span>
+              </div>
+
+              {/* Page information */}
+              <div className="text-sm text-white/70">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalAssessments)} of {totalAssessments} assessments
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="text-white border-white/20"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 -ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="text-white border-white/20"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages = [];
+                    const maxVisiblePages = 5;
+                    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                    
+                    if (endPage - startPage < maxVisiblePages - 1) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                    }
+
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <Button
+                          key={i}
+                          variant={i === currentPage ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(i)}
+                          className={i === currentPage ? "" : "text-white border-white/20"}
+                        >
+                          {i}
+                        </Button>
+                      );
+                    }
+                    return pages;
+                  })()}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="text-white border-white/20"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="text-white border-white/20"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 -ml-2" />
+                </Button>
+              </div>
             </div>
           )}
         </div>
