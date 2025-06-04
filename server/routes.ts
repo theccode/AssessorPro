@@ -1052,6 +1052,35 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Media transfer endpoint for fixing misplaced files
+  app.post('/api/assessments/:id/transfer-media', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const { transferUserMediaFiles } = await import('./media-transfer');
+      const toPublicId = req.params.id;
+      const { fromPublicId } = req.body;
+      const userId = req.session.customUserId;
+
+      if (!fromPublicId) {
+        return res.status(400).json({ message: "Source assessment ID required" });
+      }
+
+      const result = await transferUserMediaFiles(userId, fromPublicId, toPublicId);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error("Error in media transfer:", error);
+      res.status(500).json({ 
+        success: false, 
+        transferredCount: 0, 
+        message: "Failed to transfer media files" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
