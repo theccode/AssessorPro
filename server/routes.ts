@@ -623,7 +623,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Lock assessment (admin only)
   app.post('/api/assessments/:id/lock', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const publicId = req.params.id;
       const userId = req.session.customUserId;
       
       // Get current user to check admin role
@@ -632,8 +632,14 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(403).json({ message: "Only administrators can lock assessments" });
       }
       
+      // Get assessment by public ID to get internal ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
       // Update assessment with lock
-      const updated = await storage.updateAssessment(id, {
+      const updated = await storage.updateAssessment(assessment.id, {
         isLocked: true,
         lockedBy: userId,
         lockedAt: new Date()
@@ -676,7 +682,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Unlock assessment (admin only)
   app.post('/api/assessments/:id/unlock', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const publicId = req.params.id;
       const userId = req.session.customUserId;
       
       // Get current user to check admin role
@@ -685,8 +691,14 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(403).json({ message: "Only administrators can unlock assessments" });
       }
       
+      // Get assessment by public ID to get internal ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+      
       // Update assessment to remove lock
-      const updated = await storage.updateAssessment(id, {
+      const updated = await storage.updateAssessment(assessment.id, {
         isLocked: false,
         lockedBy: null,
         lockedAt: null

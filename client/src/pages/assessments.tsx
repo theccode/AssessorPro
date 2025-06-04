@@ -40,8 +40,8 @@ export default function Assessments() {
 
   // Lock/unlock mutations for admins
   const lockMutation = useMutation({
-    mutationFn: async (assessmentId: number) => {
-      return await apiRequest(`/api/assessments/${assessmentId}/lock`, "POST");
+    mutationFn: async (assessmentPublicId: string) => {
+      return await apiRequest(`/api/assessments/${assessmentPublicId}/lock`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
@@ -49,8 +49,8 @@ export default function Assessments() {
   });
 
   const unlockMutation = useMutation({
-    mutationFn: async (assessmentId: number) => {
-      return await apiRequest(`/api/assessments/${assessmentId}/unlock`, "POST");
+    mutationFn: async (assessmentPublicId: string) => {
+      return await apiRequest(`/api/assessments/${assessmentPublicId}/unlock`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
@@ -805,7 +805,7 @@ export default function Assessments() {
                             variant="outline" 
                             size="sm" 
                             className="flex-1" 
-                            onClick={() => unlockMutation.mutate(assessment.id)}
+                            onClick={() => unlockMutation.mutate(assessment.publicId)}
                             disabled={unlockMutation.isPending}
                           >
                             {unlockMutation.isPending ? (
@@ -825,7 +825,7 @@ export default function Assessments() {
                             variant="outline" 
                             size="sm" 
                             className="flex-1" 
-                            onClick={() => lockMutation.mutate(assessment.id)}
+                            onClick={() => lockMutation.mutate(assessment.publicId)}
                             disabled={lockMutation.isPending}
                           >
                             {lockMutation.isPending ? (

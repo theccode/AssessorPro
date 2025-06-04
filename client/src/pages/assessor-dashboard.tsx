@@ -204,7 +204,7 @@ export default function AssessorDashboard() {
                             variant="ghost" 
                             size="sm"
                             onClick={() => lockMutation.mutate({ 
-                              assessmentId: assessment.id, 
+                              assessmentId: assessment.publicId, 
                               isLocked: !assessment.isLocked 
                             })}
                             disabled={lockMutation.isPending}
