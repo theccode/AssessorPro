@@ -29,6 +29,7 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUsersByRole(role: string): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Enterprise user management
@@ -51,6 +52,14 @@ export interface IStorage {
   // Audit logging
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(userId?: string, limit?: number): Promise<AuditLog[]>;
+  
+  // Notification operations
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: string, isRead?: boolean, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
+  markNotificationAsRead(id: number, userId: string): Promise<void>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  deleteNotification(id: number, userId: string): Promise<void>;
   
   // Feature access control
   hasFeatureAccess(userId: string, feature: string): Promise<boolean>;
@@ -263,6 +272,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -413,6 +426,68 @@ export class DatabaseStorage implements IStorage {
     return await query
       .orderBy(desc(auditLogs.createdAt))
       .limit(limit);
+  }
+
+  // Notification operations
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [created] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
+    return created;
+  }
+
+  async getUserNotifications(userId: string, isRead?: boolean, limit: number = 50): Promise<Notification[]> {
+    if (isRead !== undefined) {
+      return await db
+        .select()
+        .from(notifications)
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, isRead)))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    }
+    
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: notifications.id })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    
+    return result.length;
+  }
+
+  async markNotificationAsRead(id: number, userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ 
+        isRead: true, 
+        readAt: new Date() 
+      })
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ 
+        isRead: true, 
+        readAt: new Date() 
+      })
+      .where(eq(notifications.userId, userId));
+  }
+
+  async deleteNotification(id: number, userId: string): Promise<void> {
+    await db
+      .delete(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
   }
 
   // Feature access control
