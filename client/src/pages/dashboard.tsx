@@ -161,7 +161,7 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {recentAssessments.map((assessment: Assessment) => (
                   <div key={assessment.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0 pr-4">
                       <h3 className="font-medium text-foreground">{assessment.buildingName}</h3>
                       <p className="text-sm text-muted-foreground">{assessment.buildingLocation || "No location specified"}</p>
                       <div className="flex items-center mt-2 space-x-4">
@@ -182,7 +182,7 @@ export default function Dashboard() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {(user as any)?.role === "admin" && (
                         <Button 
                           variant="ghost" 

@@ -118,12 +118,7 @@ function formatSectionName(sectionType: string): string {
 }
 
 export default function AssessmentDetail({ params }: { params: { id: string } }) {
-  console.log('=== ASSESSMENT DETAIL COMPONENT LOADED ===');
-  console.log('Raw params:', params);
-  
   const publicId = params.id; // Now using UUID instead of integer
-  console.log('Extracted publicId:', publicId);
-  
   const { user } = useAuth();
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -131,7 +126,6 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
   
   // Don't render if no ID provided
   if (!params.id) {
-    console.log('NO ID PROVIDED - RETURNING NULL');
     return null;
   }
 
@@ -149,10 +143,7 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
     refetchOnMount: 'always', // Always refetch on mount
   });
 
-  // Debug logging for the assessment data
-  console.log('Assessment Detail - publicId param:', publicId);
-  console.log('Assessment Detail - query key:', [`/api/assessments/${publicId}`]);
-  console.log('Assessment Detail - assessment data:', assessment);
+
 
   const { data: media = [] } = useQuery({
     queryKey: [`/api/assessments/${publicId}/media`],

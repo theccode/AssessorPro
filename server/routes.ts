@@ -515,23 +515,13 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
-  // Test route to verify routing is working
-  app.get('/api/assessments/:id/test', isCustomAuthenticated, async (req: any, res) => {
-    console.log(`[TEST] Test route hit for ID: ${req.params.id}`);
-    res.json({ message: "Test route working", id: req.params.id });
-  });
-
   app.get('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      console.log(`[ROUTES.TS DEBUG] Individual assessment request for publicId: ${publicId}`);
-      console.log(`[ROUTES.TS DEBUG] Request URL: ${req.url}, Method: ${req.method}`);
       
       const assessment = await storage.getAssessmentByPublicId(publicId);
-      console.log(`[ROUTES.TS DEBUG] Found assessment:`, assessment ? { id: assessment.id, buildingName: assessment.buildingName, publicId: assessment.publicId } : 'null');
       
       if (!assessment) {
-        console.log(`[ROUTES.TS DEBUG] Assessment not found for publicId: ${publicId}`);
         return res.status(404).json({ message: "Assessment not found" });
       }
 
@@ -543,7 +533,6 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(403).json({ message: "Access denied" });
       }
 
-      console.log(`[ROUTES.TS DEBUG] Sending assessment response:`, { id: assessment.id, buildingName: assessment.buildingName, publicId: assessment.publicId });
       res.json(assessment);
     } catch (error) {
       console.error("Error fetching assessment:", error);
