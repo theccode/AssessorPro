@@ -99,6 +99,7 @@ export class NotificationService {
     }
 
     // Notify client
+    console.log(`Creating client notification for user ${client.id}`);
     const clientNotification = await storage.createNotification({
       userId: client.id,
       type: "assessment_completed",
@@ -115,10 +116,12 @@ export class NotificationService {
       }
     });
 
+    console.log(`Created client notification ${clientNotification.id} for client ${client.id}`);
+
     // Send real-time notification to client
     const wsManager = getWSManager();
     if (wsManager) {
-      wsManager.sendToUser(client.id, {
+      const wsResult = wsManager.sendToUser(client.id, {
         type: 'new_notification',
         notification: {
           id: clientNotification.id,
@@ -131,6 +134,9 @@ export class NotificationService {
         },
         count: await storage.getUnreadNotificationCount(client.id)
       });
+      console.log(`WebSocket notification sent to client ${client.id}: ${wsResult}`);
+    } else {
+      console.log('WebSocket manager not available for client notification');
     }
 
     // Send email notification to client

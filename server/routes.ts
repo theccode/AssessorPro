@@ -43,17 +43,24 @@ class WebSocketManager {
   }
 
   sendToUser(userId: string, message: any) {
+    console.log(`[WebSocket] Attempting to send message to user ${userId}`);
     const userConnections = this.connections.get(userId);
     if (userConnections) {
+      console.log(`[WebSocket] Found ${userConnections.size} connections for user ${userId}`);
       const messageStr = JSON.stringify(message);
+      let sentCount = 0;
       userConnections.forEach(ws => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(messageStr);
+          sentCount++;
         }
       });
+      console.log(`[WebSocket] Sent message to ${sentCount} connections for user ${userId}`);
       return true;
+    } else {
+      console.log(`[WebSocket] No connections found for user ${userId}`);
+      return false;
     }
-    return false;
   }
 
   broadcastToRole(role: string, message: any) {
