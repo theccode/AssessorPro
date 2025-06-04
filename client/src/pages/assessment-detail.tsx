@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -129,9 +129,24 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
     return null;
   }
 
+  const queryClient = useQueryClient();
+
+  // Clear cache when component mounts to ensure fresh data
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: [`/api/assessments/${publicId}`] });
+  }, [publicId, queryClient]);
+
   const { data: assessment, isLoading } = useQuery({
     queryKey: [`/api/assessments/${publicId}`],
+    staleTime: 0, // Disable caching
+    gcTime: 0, // Disable garbage collection time (v5 syntax)
+    refetchOnMount: 'always', // Always refetch on mount
   });
+
+  // Debug logging for the assessment data
+  console.log('Assessment Detail - publicId param:', publicId);
+  console.log('Assessment Detail - query key:', [`/api/assessments/${publicId}`]);
+  console.log('Assessment Detail - assessment data:', assessment);
 
   const { data: media = [] } = useQuery({
     queryKey: [`/api/assessments/${publicId}/media`],
