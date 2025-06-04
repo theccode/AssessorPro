@@ -732,6 +732,11 @@ For security reasons, we recommend using a strong, unique password and not shari
         const assessor = await storage.getUser(existing.userId);
         const client = existing.clientId ? await storage.getUser(existing.clientId) : null;
 
+        // Assessment started notification
+        if (updateData.status === 'in_progress' && existing.status === 'draft' && assessor && client) {
+          await notificationService.notifyAssessmentStarted(updated, assessor, client);
+        }
+
         // Assessment submitted notification
         if (updateData.status === 'submitted' && existing.status !== 'submitted' && assessor && client) {
           await notificationService.notifyAssessmentSubmitted(updated, assessor, client);

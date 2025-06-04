@@ -5,7 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
-import { Building, Edit, Download, Check, ArrowLeft, Loader2, FileSpreadsheet } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Building, Edit, Download, Check, ArrowLeft, Loader2, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import type { Assessment, AssessmentSection } from "@shared/schema";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
@@ -25,6 +35,7 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
 
   const { data: assessment, isLoading } = useQuery({
     queryKey: ["/api/assessments", publicId],
@@ -68,6 +79,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
   });
 
   const handleSubmitAssessment = () => {
+    setShowSubmitDialog(true);
+  };
+
+  const confirmSubmitAssessment = () => {
+    setShowSubmitDialog(false);
     submitAssessmentMutation.mutate();
   };
 
@@ -919,6 +935,47 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
           </div>
         )}
       </div>
+
+      {/* Submit Confirmation Dialog */}
+      <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Submit Assessment for Review
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Are you sure you want to submit this assessment for final review?
+              </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm text-orange-800 font-medium">
+                  ⚠️ Important: Once submitted, this assessment will be locked and cannot be edited without administrator approval.
+                </p>
+              </div>
+              <p className="text-sm text-gray-600">
+                After submission:
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1 ml-4">
+                <li>• The client and administrators will be notified</li>
+                <li>• Assessment will be automatically locked for editing</li>
+                <li>• You will need to request edit access from an administrator to make changes</li>
+                <li>• The assessment will be available for download and final review</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmSubmitAssessment}
+              disabled={submitAssessmentMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {submitAssessmentMutation.isPending ? "Submitting..." : "Submit Assessment"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
