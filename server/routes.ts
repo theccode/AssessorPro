@@ -1473,6 +1473,53 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Create test users for role verification (admin only)
+  app.post('/api/create-test-users', isCustomAuthenticated, requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can create test users" });
+      }
+
+      const { hashPassword } = await import('./custom-auth');
+
+      // Create test assessor
+      const testAssessor = await storage.createUser({
+        email: 'test.assessor@greda.com',
+        firstName: 'Test',
+        lastName: 'Assessor',
+        role: 'assessor',
+        passwordHash: await hashPassword('password123'),
+        status: 'active',
+        subscriptionTier: 'basic',
+        subscriptionStatus: 'active'
+      });
+
+      // Create test client  
+      const testClient = await storage.createUser({
+        email: 'test.client@greda.com',
+        firstName: 'Test',
+        lastName: 'Client',
+        role: 'client',
+        passwordHash: await hashPassword('password123'),
+        status: 'active',
+        subscriptionTier: 'basic',
+        subscriptionStatus: 'active'
+      });
+
+      res.json({ 
+        message: "Test users created successfully",
+        assessor: { email: testAssessor.email, password: 'password123' },
+        client: { email: testClient.email, password: 'password123' }
+      });
+    } catch (error) {
+      console.error("Error creating test users:", error);
+      res.status(500).json({ message: "Failed to create test users" });
+    }
+  });
+
   // Test email notification endpoint
   app.post("/api/test-email-notification", isCustomAuthenticated, async (req: any, res) => {
     try {
