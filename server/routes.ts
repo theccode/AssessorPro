@@ -1363,6 +1363,56 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Test WebSocket notification endpoint (for development/testing)
+  app.post('/api/test-notification', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Create a test notification
+      const notification = await storage.createNotification({
+        userId: user.id,
+        type: "test_notification",
+        title: "Test Notification",
+        message: "This is a test notification to verify real-time updates are working.",
+        priority: "low"
+      });
+
+      // Send real-time notification via WebSocket
+      const wsManager = getWSManager();
+      if (wsManager) {
+        const sent = wsManager.sendToUser(user.id, {
+          type: 'new_notification',
+          notification: {
+            id: notification.id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            priority: notification.priority,
+            isRead: false,
+            createdAt: notification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(user.id)
+        });
+        
+        console.log(`[WebSocket] Test notification sent to user ${user.id}: ${sent}`);
+      }
+
+      res.json({ 
+        message: "Test notification created and sent",
+        notification: notification,
+        websocketSent: !!wsManager
+      });
+    } catch (error) {
+      console.error("Error creating test notification:", error);
+      res.status(500).json({ message: "Failed to create test notification" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server

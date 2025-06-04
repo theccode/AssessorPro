@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface Notification {
   id: number;
@@ -48,6 +49,9 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Initialize WebSocket connection for real-time notifications
+  const { isConnected, connectionStatus } = useWebSocket();
 
   // Fetch unread notification count
   const { data: countData } = useQuery({
