@@ -286,12 +286,18 @@ export default function AssessorDashboard() {
                                 View
                               </Link>
                             </Button>
-                            {assessment.status !== "completed" && (
+                            {assessment.status !== "completed" && !assessment.isLocked && (
                               <Button size="sm" asChild>
                                 <Link href={`/assessments/${assessment.id}/edit`}>
                                   Edit
                                 </Link>
                               </Button>
+                            )}
+                            {assessment.isLocked && (
+                              <div className="flex items-center text-xs text-red-600">
+                                <Lock className="h-3 w-3 mr-1" />
+                                Locked
+                              </div>
                             )}
                           </div>
                         </CardContent>

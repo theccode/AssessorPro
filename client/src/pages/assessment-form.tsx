@@ -549,6 +549,23 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
           </Card>
         )}
 
+        {/* Lock Warning Banner */}
+        {isAssessmentLocked && (
+          <Card className="mb-6 border-amber-200 bg-amber-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <Lock className="h-5 w-5 text-amber-600" />
+                <div>
+                  <h3 className="font-semibold text-amber-800">Assessment Locked</h3>
+                  <p className="text-sm text-amber-700">
+                    This assessment has been submitted and is now locked for editing. You can view the assessment but cannot make changes.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
