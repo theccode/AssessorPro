@@ -92,692 +92,265 @@ export default function Assessments() {
   const completedAssessments = assessments.filter((assessment: Assessment) => assessment.status === 'completed');
   const draftAssessments = assessments.filter((assessment: Assessment) => assessment.status !== 'completed');
 
-  // Helper function to format camelCase to readable text
-  const formatVariableName = (camelCase: string) => {
-    return camelCase
-      .replace(/([A-Z])/g, ' $1') // Add space before capitals
-      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
-      .trim();
-  };
-
-  // PDF Download functionality - using the same comprehensive data pattern as Assessment Preview
-  const handleDownloadPDF = async (assessment: Assessment) => {
-    setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: true }));
-    try {
-      // Use TanStack Query to fetch comprehensive assessment data (same as Assessment Preview)
-      const assessmentData = await queryClient.fetchQuery({
-        queryKey: ["/api/assessments", assessment.publicId],
-      });
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      let yPosition = 20;
-
-      // Add GREDA logo
-      const logoImg = new Image();
-      logoImg.crossOrigin = 'anonymous';
-      logoImg.src = gredaLogo;
-      
-      await new Promise((resolve) => {
-        logoImg.onload = () => {
-          pdf.addImage(logoImg, 'PNG', 20, yPosition, 40, 20);
-          resolve(true);
-        };
-        logoImg.onerror = () => {
-          console.warn('Could not load logo');
-          resolve(true);
-        };
-      });
-
-      // Title
-      pdf.setFontSize(20);
-      pdf.setTextColor(0, 102, 51); // Green color
-      pdf.text('GREDA Green Building Assessment Report', 70, yPosition + 15);
-      
-      yPosition += 40;
-
-      // Building Information
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Building Information', 20, yPosition);
-      yPosition += 10;
-
-      pdf.setFontSize(12);
-      const buildingInfo = [
-        `Building Name: ${assessmentData.buildingName || 'Not specified'}`,
-        `Location: ${assessmentData.buildingLocation || assessmentData.detailedAddress || 'Not specified'}`,
-        `Client: ${assessmentData.clientName || 'Not specified'}`,
-        `Phone: ${assessmentData.phoneNumber || 'Not specified'}`,
-        `Digital Address: ${assessmentData.digitalAddress || 'Not specified'}`,
-        `Status: ${assessmentData.status}`,
-        `Conducted Date: ${assessmentData.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : 'Not specified'}`,
-        `Conducted By: ${user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || 'Assessment Team'}`,
-        '',
-        'Building Specifications:',
-        `Building Footprint: ${assessmentData.buildingFootprint ? assessmentData.buildingFootprint + ' m²' : 'Not specified'}`,
-        `Room Height: ${assessmentData.roomHeight ? assessmentData.roomHeight + ' m' : 'Not specified'}`,
-        `Number of Bedrooms: ${assessmentData.numberOfBedrooms || 'Not specified'}`,
-        `Site Area: ${assessmentData.siteArea ? assessmentData.siteArea + ' m²' : 'Not specified'}`,
-        `Number of Windows: ${assessmentData.numberOfWindows || 'Not specified'}`,
-        `Number of Doors: ${assessmentData.numberOfDoors || 'Not specified'}`,
-        `Average Window Size: ${assessmentData.averageWindowSize ? assessmentData.averageWindowSize + ' m²' : 'Not specified'}`,
-        `Number of Floors: ${assessmentData.numberOfFloors || 'Not specified'}`,
-        `Total Green Area: ${assessmentData.totalGreenArea ? assessmentData.totalGreenArea + ' m²' : 'Not specified'}`
-      ];
-
-      buildingInfo.forEach(info => {
-        if (yPosition > pageHeight - 20) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        pdf.text(info, 20, yPosition);
-        yPosition += 7;
-      });
-
-      yPosition += 10;
-
-      // Overall Score
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 102, 51);
-      pdf.text('Overall Assessment Score', 20, yPosition);
-      yPosition += 10;
-
-      const totalScore = assessmentData?.overallScore || 0;
-      const maxScore = assessmentData?.maxPossibleScore || 130;
-      
-      pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text(`Total Score: ${totalScore} / ${maxScore} points`, 20, yPosition);
-      yPosition += 7;
-      
-      const percentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-      pdf.text(`Percentage: ${percentage}%`, 20, yPosition);
-      yPosition += 7;
-
-      // Calculate certification level
-      let certification = '';
-      if (totalScore >= 106) certification = 'Diamond/5★ (106-130 points)';
-      else if (totalScore >= 80) certification = '4★ (80-105 points)';
-      else if (totalScore >= 60) certification = '3★ (60-79 points)';
-      else if (totalScore >= 45) certification = '2★ (45-59 points)';
-      else certification = '1★ (Below 45 points)';
-
-      pdf.text(`GREDA-GBC Certification Level: ${certification}`, 20, yPosition);
-      yPosition += 15;
-
-      // Section Details
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        for (const section of assessmentData.sections) {
-          if (yPosition > pageHeight - 60) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-
-          // Section Header
-          pdf.setFontSize(14);
-          pdf.setTextColor(0, 102, 51);
-          pdf.text(`${section.sectionName} Section`, 20, yPosition);
-          yPosition += 10;
-
-          pdf.setFontSize(12);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(`Score: ${section.score || 0} / ${section.maxScore || 0} points`, 20, yPosition);
-          yPosition += 7;
-          pdf.text(`Status: ${section.isCompleted ? 'Completed' : 'Incomplete'}`, 20, yPosition);
-          yPosition += 10;
-
-          // Variables data
-          if (section.variables) {
-            const variables = typeof section.variables === 'string' ? JSON.parse(section.variables) : section.variables;
-            const sectionConfig = sectionVariables[section.sectionType];
-            
-            if (sectionConfig) {
-              pdf.setFontSize(11);
-              pdf.text('Variable Scores:', 25, yPosition);
-              yPosition += 7;
-
-              sectionConfig.forEach(variable => {
-                const score = variables[variable.id] || 0;
-                const formattedName = formatVariableName(variable.name);
-                pdf.text(`• ${formattedName}: ${score} / ${variable.maxScore} points`, 30, yPosition);
-                yPosition += 5;
-              });
-            }
-          }
-
-          yPosition += 10;
-        }
-      }
-
-      // Media Files section - with clickable links
-      try {
-        const mediaResponse = await fetch(`/api/assessments/${assessment.id}/media`);
-        const mediaData = await mediaResponse.json();
-
-        if (mediaData && mediaData.length > 0) {
-          if (yPosition > pageHeight - 80) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-          
-          pdf.setFontSize(16);
-          pdf.setTextColor(0, 102, 51);
-          pdf.text('Assessment Media Files', 20, yPosition);
-          yPosition += 15;
-
-          // Display media files as clickable links organized by section
-          const mediaBySection = {};
-          mediaData.forEach((media: any) => {
-            const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
-            if (!mediaBySection[sectionName]) {
-              mediaBySection[sectionName] = [];
-            }
-            mediaBySection[sectionName].push(media);
-          });
-
-          Object.entries(mediaBySection).forEach(([sectionName, files]: [string, any[]]) => {
-            // Check if we need a new page
-            if (yPosition > pageHeight - 60) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-
-            // Section header
-            pdf.setFontSize(12);
-            pdf.setTextColor(0, 102, 51);
-            pdf.text(`${sectionName}:`, 25, yPosition);
-            yPosition += 10;
-
-            files.forEach((media: any) => {
-              if (yPosition > pageHeight - 25) {
-                pdf.addPage();
-                yPosition = 20;
-              }
-
-              const variableName = formatVariableName(media.fieldName || 'File');
-              const fileName = media.fileName || 'Unknown file';
-              const fileType = media.fileType || 'Unknown';
-              const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'Unknown size';
-              
-              // Create clickable link
-              const authenticatedFileUrl = `${window.location.origin}/api/media/serve/${media.id}`;
-              
-              pdf.setFontSize(10);
-              pdf.setTextColor(0, 0, 255); // Blue color for links
-              pdf.textWithLink(`📎 ${variableName} - ${fileName}`, 30, yPosition, { url: authenticatedFileUrl });
-              
-              pdf.setFontSize(8);
-              pdf.setTextColor(100, 100, 100);
-              pdf.text(`   Type: ${fileType} | Size: ${fileSize}`, 30, yPosition + 5);
-              
-              yPosition += 12;
-            });
-
-            yPosition += 5;
-          });
-        } else {
-          if (yPosition > pageHeight - 40) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-          
-          pdf.setFontSize(16);
-          pdf.setTextColor(0, 102, 51);
-          pdf.text('Assessment Media Files', 20, yPosition);
-          yPosition += 15;
-          
-          pdf.setFontSize(12);
-          pdf.setTextColor(100, 100, 100);
-          pdf.text('No media files uploaded for this assessment.', 20, yPosition);
-        }
-      } catch (error) {
-        console.warn('Could not load media for PDF:', error);
-        
-        if (yPosition > pageHeight - 40) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        pdf.setFontSize(16);
-        pdf.setTextColor(0, 102, 51);
-        pdf.text('Assessment Media Files', 20, yPosition);
-        yPosition += 15;
-        
-        pdf.setFontSize(12);
-        pdf.setTextColor(150, 150, 150);
-        pdf.text('Error loading media files.', 20, yPosition);
-      }
-
-      // Footer
-      const totalPages = pdf.internal.pages.length - 1;
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(128, 128, 128);
-        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
-        pdf.text('Generated by GREDA-GBC Assessment Platform', 20, pageHeight - 10);
-      }
-
-      // Save the PDF
-      const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
-    } finally {
-      setIsGeneratingPDF(prev => ({ ...prev, [assessment.id]: false }));
-    }
-  };
-
-  // Excel Download functionality - using the same comprehensive data pattern as Assessment Preview
-  const handleDownloadExcel = async (assessment: Assessment) => {
-    setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: true }));
-    try {
-      // Use TanStack Query to fetch comprehensive assessment data (same as Assessment Preview)
-      const assessmentData = await queryClient.fetchQuery({
-        queryKey: ["/api/assessments", assessment.publicId],
-      });
-      
-      // Create a new workbook
-      const workbook = XLSX.utils.book_new();
-
-      // Sheet 1: Assessment Summary
-      const summaryData = [
-        ['GREDA Green Building Assessment Report'],
-        [''],
-        ['Assessment Information'],
-        ['Building Name', assessmentData.buildingName || 'N/A'],
-        ['Client Name', assessmentData.clientName || 'N/A'],
-        ['Building Location', assessmentData.buildingLocation || 'N/A'],
-        ['Digital Address', assessmentData.digitalAddress || 'N/A'],
-        ['Phone Number', assessmentData.phoneNumber || 'N/A'],
-        ['Status', assessmentData.status || 'N/A'],
-        [''],
-        ['Assessment Results'],
-        ['Total Score', `${assessmentData.overallScore || 0} / ${assessmentData.maxPossibleScore || 130} points`],
-        ['Percentage', `${assessmentData.maxPossibleScore > 0 ? Math.round((assessmentData.overallScore / assessmentData.maxPossibleScore) * 100) : 0}%`],
-        ['Status', assessmentData.status || 'draft'],
-        ['Completed Sections', `${assessmentData.completedSections || 0} / ${assessmentData.totalSections || 8}`],
-        [''],
-        ['Assessment Details'],
-        ['Assessor Name', assessmentData.assessorName || 'N/A'],
-        ['Assessor Role', assessmentData.assessorRole || 'N/A'],
-        ['Conducted At', assessmentData.conductedAt ? new Date(assessmentData.conductedAt).toLocaleDateString() : 'N/A'],
-        ['Created At', assessmentData.createdAt ? new Date(assessmentData.createdAt).toLocaleDateString() : 'N/A'],
-        ['Last Updated', assessmentData.updatedAt ? new Date(assessmentData.updatedAt).toLocaleDateString() : 'N/A'],
-      ];
-
-      // Calculate certification level
-      const totalScore = assessmentData.overallScore || 0;
-      let certification = '';
-      if (totalScore >= 106) certification = 'Diamond/5★ (106-130 points)';
-      else if (totalScore >= 85) certification = 'Platinum/4★ (85-105 points)';
-      else if (totalScore >= 64) certification = 'Gold/3★ (64-84 points)';
-      else if (totalScore >= 43) certification = 'Silver/2★ (43-63 points)';
-      else if (totalScore >= 22) certification = 'Bronze/1★ (22-42 points)';
-      else certification = 'Not Certified (Below 22 points)';
-
-      summaryData.push(['Certification Level', certification]);
-
-      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-      summarySheet['!cols'] = [{ width: 25 }, { width: 40 }];
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Assessment Summary');
-
-      // Sheet 2: Section Details
-      const sectionsData = [
-        ['Section Details'],
-        [''],
-        ['Section Name', 'Score', 'Max Score', 'Percentage', 'Status']
-      ];
-
-      // Use sections data from the already fetched assessment data
-      if (assessmentData.sections && assessmentData.sections.length > 0) {
-        assessmentData.sections.forEach((section: any) => {
-          const sectionConfig = assessmentSections.find(s => s.id === section.sectionType);
-          const sectionName = sectionConfig?.name || formatVariableName(section.sectionType || 'Unknown');
-          const score = section.score || 0;
-          const maxScore = section.maxScore || 0;
-          const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-          const status = score === maxScore ? 'Complete' : score > 0 ? 'Partial' : 'Not Started';
-
-          sectionsData.push([
-            sectionName,
-            score,
-            maxScore,
-            `${percentage}%`,
-            status
-          ]);
-        });
-      } else {
-        sectionsData.push(['No section data available', '', '', '', '']);
-      }
-
-      const sectionsSheet = XLSX.utils.aoa_to_sheet(sectionsData);
-      sectionsSheet['!cols'] = [{ width: 30 }, { width: 10 }, { width: 12 }, { width: 12 }, { width: 15 }];
-      XLSX.utils.book_append_sheet(workbook, sectionsSheet, 'Section Details');
-
-      // Sheet 3: Media Files (now using comprehensive data that includes all media)
-      const mediaFilesData = [
-        ['Media Files'],
-        [''],
-        ['Section', 'Field Name', 'File Name', 'File Type', 'File Size', 'Upload Date']
-      ];
-
-      // Use media data from the comprehensive assessment data
-      if (assessmentData.media && assessmentData.media.length > 0) {
-        assessmentData.media.forEach((media: any) => {
-          const sectionName = assessmentSections.find(s => s.id === media.sectionType)?.name || formatVariableName(media.sectionType || 'General');
-          const fieldName = formatVariableName(media.fieldName || 'File');
-          const uploadDate = media.createdAt ? new Date(media.createdAt).toLocaleDateString() : 'N/A';
-          const fileSize = media.fileSize ? `${Math.round(media.fileSize / 1024)} KB` : 'N/A';
-          
-          mediaFilesData.push([
-            sectionName,
-            fieldName,
-            media.fileName || 'Unknown',
-            media.fileType || 'Unknown',
-            fileSize,
-            uploadDate
-          ]);
-        });
-      } else {
-        mediaFilesData.push(['No media files found', '', '', '', '', '']);
-      }
-
-      const mediaSheet = XLSX.utils.aoa_to_sheet(mediaFilesData);
-      mediaSheet['!cols'] = [{ width: 25 }, { width: 20 }, { width: 30 }, { width: 15 }, { width: 15 }, { width: 15 }];
-      XLSX.utils.book_append_sheet(workbook, mediaSheet, 'Media Files');
-
-      // Generate and download the Excel file
-      const fileName = `GREDA_Assessment_${assessmentData.buildingName || 'Report'}_${new Date().toISOString().split('T')[0]}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-
-    } catch (error) {
-      console.error('Error generating Excel:', error);
-      alert('Error generating Excel file. Please try again.');
-    } finally {
-      setIsGeneratingExcel(prev => ({ ...prev, [assessment.id]: false }));
-    }
-  };
-
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading assessments...</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="bg-card shadow-sm sticky top-0 z-50 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Green Building" className="h-8 sm:h-10 w-auto" />
-            </div>
-            <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link href="/">Dashboard</Link>
-              </Button>
-              <Button variant="default" asChild>
-                <Link href="/assessments">Assessments</Link>
-              </Button>
-              <Button variant="ghost" asChild>
-                <Link href="/drafts">Drafts</Link>
-              </Button>
-              {(user?.role === "admin" || user?.role === "assessor") && (
-                <Button variant="ghost" asChild>
-                  <Link href="/profile">Profile</Link>
-                </Button>
-              )}
-              {user?.role === "admin" && (
-                <Button variant="ghost" asChild>
-                  <Link href="/admin">Admin</Link>
-                </Button>
-              )}
-              <Button variant="outline" asChild>
-                <Link href="/api/logout">Logout</Link>
-              </Button>
-            </div>
-            
-            {/* Mobile Navigation */}
-            <div className="md:hidden flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/">Dashboard</Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={async () => {
-                  await fetch("/api/auth/logout", { method: "POST" });
-                  window.location.href = "/";
-                }}
-              >
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Completed Assessments</h1>
-            <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-              View and manage all completed building assessments
-            </p>
+            <h1 className="text-4xl font-bold mb-2">Assessment Management</h1>
+            <p className="text-gray-300">Manage and review building assessments</p>
           </div>
           {(user?.role === "admin" || user?.role === "assessor") && (
-            <Button asChild className="w-full sm:w-auto">
-              <Link href="/assessments/select-client">
-                <Plus className="h-4 w-4 mr-2" />
+            <Link href="/assessments/new">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-5 w-5 mr-2" />
                 New Assessment
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           )}
         </div>
 
-        {/* Assessments Grid */}
-        {assessments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(assessments as Assessment[]).map((assessment) => (
-              <Card key={assessment.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg flex items-center">
-                        <Building className="h-5 w-5 mr-2 text-primary" />
-                        {assessment.buildingName || "Unnamed Building"}
+        {/* Completed Assessments */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center">
+            <Building className="h-6 w-6 mr-2" />
+            Completed Assessments
+          </h2>
+          
+          {completedAssessments.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {completedAssessments.map((assessment: Assessment) => (
+                <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <CardTitle className="text-lg font-semibold text-white">
+                        {assessment.buildingName || "Untitled Assessment"}
                       </CardTitle>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {assessment.buildingLocation || "Location not specified"}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {assessment.isLocked && (
-                        <Badge variant="destructive" className="flex items-center gap-1">
-                          <Lock className="h-3 w-3" />
-                          Locked
-                        </Badge>
-                      )}
-                      <Badge variant={assessment.status === "completed" ? "default" : "secondary"}>
-                        {assessment.status}
+                      <Badge variant="secondary" className="bg-green-600/20 text-green-100 border-green-500/30">
+                        Completed
                       </Badge>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Score and Progress */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Overall Score</span>
-                      <span className="text-sm font-bold text-primary">
-                        {Math.round(assessment.overallScore || 0)}/130
-                      </span>
-                    </div>
-                    <Progress 
-                      value={((assessment.overallScore || 0) / 130) * 100} 
-                      className="h-2"
-                    />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Performance: {Math.round(((assessment.overallScore || 0) / 130) * 100)}%</span>
-                      <TrendingUp className="h-3 w-3" />
-                    </div>
-                  </div>
-
-                  {/* Assessment Info */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Created</span>
-                      <span className="flex items-center">
+                    <div className="space-y-1 text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {assessment.buildingLocation || "Location not specified"}
+                      </div>
+                      <div className="flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(assessment.createdAt || "").toLocaleDateString()}
-                      </span>
+                        {assessment.createdAt ? new Date(assessment.createdAt).toLocaleDateString() : "Date not available"}
+                      </div>
                     </div>
-                    {assessment.assessorName && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Assessor</span>
-                        <span>{assessment.assessorName}</span>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Overall Score</span>
+                        <span className="font-medium">
+                          {assessment.overallScore || 0}/{assessment.maxPossibleScore || 130}
+                        </span>
                       </div>
-                    )}
-                    {assessment.clientName && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Client</span>
-                        <span>{assessment.clientName}</span>
+                      <Progress 
+                        value={assessment.maxPossibleScore && assessment.maxPossibleScore > 0 ? (assessment.overallScore || 0) / assessment.maxPossibleScore * 100 : 0} 
+                        className="h-2"
+                      />
+                      <div className="flex items-center mt-2 text-xs text-gray-400">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Performance: {assessment.maxPossibleScore && assessment.maxPossibleScore > 0 ? Math.round(((assessment.overallScore || 0) / assessment.maxPossibleScore) * 100) : 0}%
                       </div>
-                    )}
-                  </div>
+                    </div>
 
-                  {/* Action Buttons */}
-                  <div className="space-y-2 pt-2">
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1" asChild>
-                        <Link href={`/assessments/${assessment.publicId}/preview`}>
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Link>
-                      </Button>
-                      {(user?.role === "admin" || user?.role === "assessor") && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1" 
-                          asChild
-                          disabled={assessment.isLocked && user?.role !== "admin"}
-                        >
-                          <Link href={`/assessments/${assessment.publicId}/edit`}>
-                            <Edit className="h-3 w-3 mr-1" />
-                            {assessment.isLocked && user?.role !== "admin" ? "Locked" : "Edit"}
+                    <div className="space-y-2">
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                          <Link href={`/assessments/${assessment.publicId}/preview`}>
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
                           </Link>
                         </Button>
-                      )}
-                    </div>
-                    
-                    {/* Admin Lock Controls */}
-                    {user?.role === "admin" && (
-                      <div className="flex space-x-2">
-                        {assessment.isLocked ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1" 
-                            onClick={() => unlockMutation.mutate(assessment.publicId)}
-                            disabled={unlockMutation.isPending}
-                          >
-                            {unlockMutation.isPending ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Unlocking...
-                              </>
-                            ) : (
-                              <>
-                                <Unlock className="h-3 w-3 mr-1" />
-                                Unlock
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1" 
-                            onClick={() => lockMutation.mutate(assessment.publicId)}
-                            disabled={lockMutation.isPending}
-                          >
-                            {lockMutation.isPending ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Locking...
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="h-3 w-3 mr-1" />
-                                Lock
-                              </>
-                            )}
+                        {(user?.role === "admin" || user?.role === "assessor") && (
+                          <Button variant="outline" size="sm" className="flex-1" asChild>
+                            <Link href={`/assessments/${assessment.publicId}/edit`}>
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
+                            </Link>
                           </Button>
                         )}
                       </div>
-                    )}
 
-                    {/* Action Buttons */}
-                    <div className="flex space-x-2">
-                      {(user?.role === "assessor" || user?.role === "admin") && assessment.status === 'completed' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => requestEditMutation.mutate(assessment.publicId)}
-                          disabled={requestEditMutation.isPending}
-                        >
-                          {requestEditMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              Requesting...
-                            </>
+                      {user?.role === "admin" && (
+                        <div className="flex space-x-2">
+                          {assessment.isLocked ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1" 
+                              onClick={() => unlockMutation.mutate(assessment.publicId || "")}
+                              disabled={unlockMutation.isPending}
+                            >
+                              {unlockMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Unlocking...
+                                </>
+                              ) : (
+                                <>
+                                  <Unlock className="h-3 w-3 mr-1" />
+                                  Unlock
+                                </>
+                              )}
+                            </Button>
                           ) : (
-                            <>
-                              <Edit className="h-3 w-3 mr-1" />
-                              Request Edit
-                            </>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1" 
+                              onClick={() => lockMutation.mutate(assessment.publicId || "")}
+                              disabled={lockMutation.isPending}
+                            >
+                              {lockMutation.isPending ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Locking...
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="h-3 w-3 mr-1" />
+                                  Lock
+                                </>
+                              )}
+                            </Button>
                           )}
-                        </Button>
+                        </div>
+                      )}
+
+                      {(user?.role === "assessor") && assessment.status === 'completed' && (
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => requestEditMutation.mutate(assessment.publicId || "")}
+                            disabled={requestEditMutation.isPending}
+                          >
+                            {requestEditMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Requesting...
+                              </>
+                            ) : (
+                              <>
+                                <Edit className="h-3 w-3 mr-1" />
+                                Request Edit
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No completed assessments</h3>
-            <p className="text-muted-foreground mb-6">
-              {user?.role === "client" 
-                ? "No completed assessments are available for your account yet."
-                : "Complete assessments from your drafts to see them here, or create new assessments."
-              }
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button variant="outline" asChild>
-                <Link href="/drafts">
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Drafts
-                </Link>
-              </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No completed assessments</h3>
+              <p className="text-muted-foreground mb-6">
+                {user?.role === "client" 
+                  ? "No completed assessments are available for your account yet."
+                  : "Complete assessments from your drafts to see them here, or create new assessments."
+                }
+              </p>
               {(user?.role === "admin" || user?.role === "assessor") && (
-                <Button asChild>
-                  <Link href="/assessments/select-client">
+                <Link href="/assessments/new">
+                  <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Assessment
-                  </Link>
-                </Button>
+                    Create New Assessment
+                  </Button>
+                </Link>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Draft Assessments */}
+        {(user?.role === "admin" || user?.role === "assessor") && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">Draft Assessments</h2>
+            
+            {draftAssessments.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {draftAssessments.map((assessment: Assessment) => (
+                  <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <CardTitle className="text-lg font-semibold text-white">
+                          {assessment.buildingName || "Untitled Assessment"}
+                        </CardTitle>
+                        <Badge variant="outline" className="border-yellow-500/30 text-yellow-200">
+                          Draft
+                        </Badge>
+                      </div>
+                      <div className="space-y-1 text-sm text-gray-300">
+                        <div className="flex items-center">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {assessment.buildingLocation || "Location not specified"}
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {assessment.createdAt ? new Date(assessment.createdAt).toLocaleDateString() : "Date not available"}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Progress</span>
+                          <span className="font-medium">
+                            {assessment.completedSections || 0}/{assessment.totalSections || 8} sections
+                          </span>
+                        </div>
+                        <Progress 
+                          value={assessment.totalSections && assessment.totalSections > 0 ? ((assessment.completedSections || 0) / assessment.totalSections) * 100 : 0} 
+                          className="h-2"
+                        />
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                          <Link href={`/assessments/${assessment.publicId}/preview`}>
+                            <Eye className="h-3 w-3 mr-1" />
+                            Preview
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                          <Link href={`/assessments/${assessment.publicId}/edit`}>
+                            <Edit className="h-3 w-3 mr-1" />
+                            Continue
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No draft assessments</h3>
+                <p className="text-muted-foreground mb-6">
+                  Start a new assessment to begin evaluating building sustainability.
+                </p>
+                <Link href="/assessments/new">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Assessment
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

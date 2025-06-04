@@ -1101,6 +1101,46 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Request edit endpoint for assessors on completed assessments
+  app.post('/api/assessments/:publicId/request-edit', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const publicId = req.params.publicId;
+      const userId = req.session.customUserId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user role
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'assessor') {
+        return res.status(403).json({ message: "Only assessors can request edit access" });
+      }
+
+      // Get assessment
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      if (assessment.status !== 'completed') {
+        return res.status(400).json({ message: "Only completed assessments can be requested for editing" });
+      }
+
+      // Here you would typically create a notification/request record for admins
+      // For now, we'll just unlock the assessment temporarily
+      await storage.unlockAssessment(publicId);
+
+      res.json({ 
+        message: "Edit request submitted successfully. Assessment has been temporarily unlocked.",
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error requesting edit access:", error);
+      res.status(500).json({ message: "Failed to submit edit request" });
+    }
+  });
+
   // Media transfer endpoint for fixing misplaced files
   app.post('/api/assessments/:id/transfer-media', isCustomAuthenticated, async (req: any, res) => {
     try {
