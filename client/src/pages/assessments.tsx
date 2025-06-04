@@ -178,19 +178,30 @@ export default function Assessments() {
                           </Link>
                         </Button>
                         {(user?.role === "admin" || user?.role === "assessor") && (
-                          assessment.isLocked ? (
-                            <Button variant="outline" size="sm" className="flex-1" disabled>
-                              <Lock className="h-3 w-3 mr-1" />
-                              Locked
+                          <div className="flex items-center space-x-2 flex-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => {
+                                if (assessment.isLocked) {
+                                  toast({
+                                    title: "Assessment Locked",
+                                    description: "This assessment is locked. Use 'Request Edit' to unlock it for editing.",
+                                    variant: "destructive",
+                                  });
+                                } else {
+                                  window.location.href = `/assessments/${assessment.publicId}/edit`;
+                                }
+                              }}
+                            >
+                              <Edit className="h-3 w-3 mr-1" />
+                              Edit
                             </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" className="flex-1" asChild>
-                              <Link href={`/assessments/${assessment.publicId}/edit`}>
-                                <Edit className="h-3 w-3 mr-1" />
-                                Edit
-                              </Link>
-                            </Button>
-                          )
+                            {assessment.isLocked && (
+                              <Lock className="h-3 w-3 text-amber-600 flex-shrink-0" title="Assessment is locked" />
+                            )}
+                          </div>
                         )}
                       </div>
 
