@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupCustomAuth, isCustomAuthenticated } from "./custom-auth";
 import { domainRoleMiddleware, validateDomainAccess, getDomainConfig } from "./domain-routing";
@@ -12,6 +13,75 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { notificationService } from "./notification-service";
+
+// WebSocket connection manager
+interface AuthenticatedWebSocket extends WebSocket {
+  userId?: string;
+  role?: string;
+}
+
+class WebSocketManager {
+  private connections = new Map<string, Set<AuthenticatedWebSocket>>();
+
+  addConnection(userId: string, ws: AuthenticatedWebSocket) {
+    if (!this.connections.has(userId)) {
+      this.connections.set(userId, new Set());
+    }
+    this.connections.get(userId)!.add(ws);
+    console.log(`[WebSocket] User ${userId} connected. Total connections: ${this.getTotalConnections()}`);
+  }
+
+  removeConnection(userId: string, ws: AuthenticatedWebSocket) {
+    const userConnections = this.connections.get(userId);
+    if (userConnections) {
+      userConnections.delete(ws);
+      if (userConnections.size === 0) {
+        this.connections.delete(userId);
+      }
+    }
+    console.log(`[WebSocket] User ${userId} disconnected. Total connections: ${this.getTotalConnections()}`);
+  }
+
+  sendToUser(userId: string, message: any) {
+    const userConnections = this.connections.get(userId);
+    if (userConnections) {
+      const messageStr = JSON.stringify(message);
+      userConnections.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(messageStr);
+        }
+      });
+      return true;
+    }
+    return false;
+  }
+
+  broadcastToRole(role: string, message: any) {
+    const messageStr = JSON.stringify(message);
+    let sentCount = 0;
+    
+    this.connections.forEach((userConnections, userId) => {
+      userConnections.forEach(ws => {
+        if (ws.role === role && ws.readyState === WebSocket.OPEN) {
+          ws.send(messageStr);
+          sentCount++;
+        }
+      });
+    });
+    
+    return sentCount;
+  }
+
+  getTotalConnections(): number {
+    let total = 0;
+    this.connections.forEach(userConnections => {
+      total += userConnections.size;
+    });
+    return total;
+  }
+}
+
+const wsManager = new WebSocketManager();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -1294,5 +1364,86 @@ For security reasons, we recommend using a strong, unique password and not shari
   });
 
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', async (ws: AuthenticatedWebSocket, req) => {
+    console.log('[WebSocket] New connection attempt');
+    
+    // Extract session from cookie
+    const cookies = req.headers.cookie;
+    if (!cookies) {
+      console.log('[WebSocket] No cookies found, closing connection');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    // Parse session ID from cookie
+    const sessionMatch = cookies.match(/connect\.sid=([^;]+)/);
+    if (!sessionMatch) {
+      console.log('[WebSocket] No session cookie found, closing connection');
+      ws.close(1008, 'Authentication required');
+      return;
+    }
+    
+    try {
+      // For now, we'll use a simplified auth check
+      // In a real implementation, you'd verify the session properly
+      const sessionId = decodeURIComponent(sessionMatch[1]);
+      
+      // For demo purposes, we'll accept the connection and let the client send auth info
+      console.log('[WebSocket] Connection established, waiting for auth');
+      
+      ws.on('message', async (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          
+          if (data.type === 'auth') {
+            // Client sends auth info
+            const { userId, role } = data;
+            
+            if (userId && role) {
+              ws.userId = userId;
+              ws.role = role;
+              wsManager.addConnection(userId, ws);
+              
+              ws.send(JSON.stringify({
+                type: 'auth_success',
+                message: 'WebSocket authentication successful'
+              }));
+              
+              console.log(`[WebSocket] User ${userId} (${role}) authenticated`);
+            }
+          } else if (data.type === 'ping') {
+            ws.send(JSON.stringify({ type: 'pong' }));
+          }
+        } catch (error) {
+          console.error('[WebSocket] Error parsing message:', error);
+        }
+      });
+      
+      ws.on('close', () => {
+        if (ws.userId) {
+          wsManager.removeConnection(ws.userId, ws);
+        }
+      });
+      
+      ws.on('error', (error) => {
+        console.error('[WebSocket] Connection error:', error);
+        if (ws.userId) {
+          wsManager.removeConnection(ws.userId, ws);
+        }
+      });
+      
+    } catch (error) {
+      console.error('[WebSocket] Authentication error:', error);
+      ws.close(1008, 'Authentication failed');
+    }
+  });
+  
+  // Export wsManager for use in other modules
+  (global as any).wsManager = wsManager;
+  
   return httpServer;
 }

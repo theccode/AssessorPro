@@ -5,6 +5,11 @@ import {
   type User
 } from "@shared/schema";
 
+// Helper function to get WebSocket manager
+function getWSManager() {
+  return (global as any).wsManager;
+}
+
 export class NotificationService {
   
   // Create notification for assessment completion
@@ -12,7 +17,7 @@ export class NotificationService {
     // Notify admin
     const adminUsers = await storage.getUsersByRole("admin");
     for (const admin of adminUsers) {
-      await storage.createNotification({
+      const notification = await storage.createNotification({
         userId: admin.id,
         type: "assessment_completed",
         title: "Assessment Completed",
@@ -28,6 +33,24 @@ export class NotificationService {
           clientId: client.id
         }
       });
+
+      // Send real-time notification via WebSocket
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(admin.id, {
+          type: 'new_notification',
+          notification: {
+            id: notification.id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            priority: notification.priority,
+            isRead: false,
+            createdAt: notification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(admin.id)
+        });
+      }
     }
 
     // Notify client
