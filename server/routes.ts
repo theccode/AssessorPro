@@ -507,17 +507,26 @@ For security reasons, we recommend using a strong, unique password and not shari
         }
       }
       
-      // Get both assessments where user is the assessor and where user is the client
-      const assessorAssessments = await storage.getUserAssessments(userId);
-      const clientAssessments = await storage.getClientAssessments(userId);
+      // Get current user to check role
+      const currentUser = await storage.getUser(userId);
       
-      // Combine and remove duplicates (in case user is both assessor and client)
-      const allAssessments = [...assessorAssessments, ...clientAssessments];
-      const uniqueAssessments = allAssessments.filter((assessment, index, self) => 
-        index === self.findIndex(a => a.id === assessment.id)
-      );
-      
-      res.json(uniqueAssessments);
+      if (currentUser?.role === 'admin') {
+        // Admin users see all assessments
+        const allAssessments = await storage.getAllAssessments();
+        res.json(allAssessments);
+      } else {
+        // Regular users see only their own assessments
+        const assessorAssessments = await storage.getUserAssessments(userId);
+        const clientAssessments = await storage.getClientAssessments(userId);
+        
+        // Combine and remove duplicates (in case user is both assessor and client)
+        const allAssessments = [...assessorAssessments, ...clientAssessments];
+        const uniqueAssessments = allAssessments.filter((assessment, index, self) => 
+          index === self.findIndex(a => a.id === assessment.id)
+        );
+        
+        res.json(uniqueAssessments);
+      }
     } catch (error) {
       console.error("Error fetching assessments:", error);
       res.status(500).json({ message: "Failed to fetch assessments" });
