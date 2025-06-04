@@ -41,9 +41,10 @@ interface User {
 interface AdminNotesProps {
   assessmentId: number;
   assessmentStatus: string;
+  assessmentData?: any;
 }
 
-export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNotesProps) {
+export default function AdminNotes({ assessmentId, assessmentStatus, assessmentData }: AdminNotesProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -63,21 +64,53 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
     enabled: !!assessmentId,
   });
 
-  // Fetch users for assignment (only for admins)
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<User[]>({
-    queryKey: ["/api/users"],
-    enabled: user?.role === "admin",
-  });
+  // Generate relevant users from assessment data (assessor and client only)
+  const relevantUsers = useMemo(() => {
+    if (!assessmentData) return [];
+    
+    const users = [];
+    
+    // Add the assessor who conducted the assessment
+    if (assessmentData.userId) {
+      users.push({
+        id: assessmentData.userId,
+        firstName: assessmentData.assessorName?.split(' ')[0] || 'Assessor',
+        lastName: assessmentData.assessorName?.split(' ').slice(1).join(' ') || '',
+        role: 'assessor'
+      });
+    }
+    
+    // Add the client who owns the assessment
+    if (assessmentData.clientId) {
+      users.push({
+        id: assessmentData.clientId,
+        firstName: assessmentData.clientName?.split(' ')[0] || 'Client',
+        lastName: assessmentData.clientName?.split(' ').slice(1).join(' ') || '',
+        role: 'client'
+      });
+    }
+    
+    return users;
+  }, [assessmentData]);
 
 
 
   // Create note mutation
   const createNoteMutation = useMutation({
     mutationFn: async (noteData: { content: string; assignedUserId: string; priority: string }) => {
-      return apiRequest(`/api/assessments/${assessmentId}/notes`, {
+      const response = await fetch(`/api/assessments/${assessmentId}/notes`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(noteData),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create note: ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "notes"] });
@@ -102,9 +135,18 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
   // Mark note as read mutation
   const markReadMutation = useMutation({
     mutationFn: async (noteId: number) => {
-      return apiRequest(`/api/assessment-notes/${noteId}/read`, {
+      const response = await fetch(`/api/assessment-notes/${noteId}/read`, {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to mark note as read: ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/assessments", assessmentId, "notes"] });
