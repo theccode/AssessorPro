@@ -160,34 +160,36 @@ export default function Drafts() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card">
-            <div className="px-4 py-2 space-y-2">
+            <div className="px-4 py-4 space-y-1">
               <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start h-12 text-base">
                   Dashboard
                 </Button>
               </Link>
               <Link href="/assessments" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start h-12 text-base">
                   Assessments
                 </Button>
               </Link>
               <Link href="/drafts" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="default" className="w-full justify-start">
+                <Button variant="default" className="w-full justify-start h-12 text-base">
                   Drafts
                 </Button>
               </Link>
               {user?.role === "admin" && (
                 <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start h-12 text-base">
                     Admin
                   </Button>
                 </Link>
               )}
-              <Link href="/api/logout" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full justify-start">
-                  Logout
-                </Button>
-              </Link>
+              <div className="pt-2 border-t border-border/20 mt-2">
+                <Link href="/api/logout" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full justify-start h-12 text-base">
+                    Logout
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
