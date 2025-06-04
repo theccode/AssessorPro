@@ -1473,6 +1473,83 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Test email notification endpoint
+  app.post("/api/test-email-notification", isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can test email notifications" });
+      }
+
+      // Get a completed assessment for testing
+      const assessments = await storage.getAssessments();
+      const completedAssessment = assessments.find((a: any) => a.status === 'completed');
+      
+      if (!completedAssessment) {
+        return res.status(404).json({ message: "No completed assessment found for testing" });
+      }
+
+      // Get assessor and client users
+      const assessor = await storage.getUser(completedAssessment.userId);
+      const client = await storage.getUser(completedAssessment.clientId);
+      
+      if (!assessor || !client) {
+        return res.status(404).json({ message: "Assessor or client user not found" });
+      }
+
+      // Test different notification types based on request
+      const { notificationType } = req.body;
+      
+      let emailSent = false;
+      let message = "";
+      
+      switch (notificationType) {
+        case 'assessment_completed':
+          await notificationService.notifyAssessmentCompleted(completedAssessment, assessor, client);
+          message = "Assessment completion notifications sent to client and admins";
+          emailSent = true;
+          break;
+          
+        case 'assessment_started':
+          await notificationService.notifyAssessmentStarted(completedAssessment, assessor, client);
+          message = "Assessment started notification sent to client";
+          emailSent = true;
+          break;
+          
+        case 'admin_note':
+          const testNoteContent = "This is a test admin note to verify email notifications are working correctly.";
+          await notificationService.notifyAdminNoteCreated(completedAssessment, user, client, testNoteContent);
+          message = "Admin note notification sent to assigned user";
+          emailSent = true;
+          break;
+          
+        default:
+          return res.status(400).json({ 
+            message: "Invalid notification type. Use: assessment_completed, assessment_started, or admin_note" 
+          });
+      }
+
+      res.json({
+        message,
+        emailSent,
+        testData: {
+          assessment: completedAssessment.buildingName,
+          assessor: `${assessor.firstName} ${assessor.lastName}`,
+          client: `${client.firstName} ${client.lastName}`,
+          notificationType
+        }
+      });
+    } catch (error) {
+      console.error("Error testing email notification:", error);
+      res.status(500).json({ 
+        message: "Failed to test email notification", 
+        error: error.message 
+      });
+    }
+  });
+
   // Assessment Notes routes
   app.post('/api/assessments/:id/notes', isCustomAuthenticated, async (req: any, res) => {
     try {
