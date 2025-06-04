@@ -26,8 +26,20 @@ export default function Header() {
     onSuccess: () => {
       // Clear all cached data
       queryClient.clear();
-      // Force a full page reload to ensure clean state
-      window.location.replace("/");
+      // Redirect to the appropriate landing page based on current domain
+      const hostname = window.location.hostname;
+      
+      // Check if we're on a role-specific domain
+      if (hostname.includes('assessor.portal')) {
+        window.location.replace("/");
+      } else if (hostname.includes('client.portal')) {
+        window.location.replace("/");
+      } else if (hostname.includes('www.')) {
+        window.location.replace("/");
+      } else {
+        // For localhost or other development domains
+        window.location.replace("/");
+      }
     },
   });
 
