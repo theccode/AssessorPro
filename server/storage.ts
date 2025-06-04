@@ -629,6 +629,38 @@ export class DatabaseStorage implements IStorage {
     
     await db.delete(assessmentMedia).where(eq(assessmentMedia.id, id));
   }
+
+  // Assessment lock/unlock operations
+  async lockAssessment(publicId: string): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    await db
+      .update(assessments)
+      .set({
+        isLocked: true,
+        lockedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(assessments.publicId, publicId));
+  }
+
+  async unlockAssessment(publicId: string): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { assessments } = await import("@shared/schema");
+    
+    await db
+      .update(assessments)
+      .set({
+        isLocked: false,
+        lockedBy: null,
+        lockedAt: null,
+        updatedAt: new Date()
+      })
+      .where(eq(assessments.publicId, publicId));
+  }
 }
 
 export const storage = new DatabaseStorage();

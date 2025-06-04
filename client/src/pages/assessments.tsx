@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Loader2,
   Lock,
-  Unlock
+  Unlock,
+  ArrowLeft
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -96,9 +97,17 @@ export default function Assessments() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 text-white">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Assessment Management</h1>
-            <p className="text-gray-300">Manage and review building assessments</p>
+          <div className="flex items-center space-x-4">
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Assessment Management</h1>
+              <p className="text-gray-300">Manage and review building assessments</p>
+            </div>
           </div>
           {(user?.role === "admin" || user?.role === "assessor") && (
             <Link href="/assessments/new">
