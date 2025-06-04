@@ -69,10 +69,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
     enabled: user?.role === "admin",
   });
 
-  // Debug log for users data
-  console.log("Users data:", users);
-  console.log("Users loading:", usersLoading);
-  console.log("Users error:", usersError);
+
 
   // Create note mutation
   const createNoteMutation = useMutation({

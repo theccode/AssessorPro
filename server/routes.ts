@@ -405,6 +405,35 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Get all users for admin notes assignment
+  app.get('/api/users', isCustomAuthenticated, requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.customUserId;
+      const currentUser = await storage.getUser(userId);
+      
+      // Only admins can access user list
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const allUsers = await storage.getAllUsers();
+      
+      // Return users with basic info needed for assignment
+      const usersForAssignment = allUsers.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        email: user.email
+      }));
+      
+      res.json(usersForAssignment);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // Assessment routes
   app.post('/api/assessments', isCustomAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
