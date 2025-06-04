@@ -75,7 +75,7 @@ function Router() {
           ) : (
             /* In production, show content based on current domain */
             <>
-              {currentDomainRole === "admin" && user?.role === "admin" && (
+              {currentDomainRole === "admin" && user?.role === "admin" ? (
                 <>
                   <Route path="/" component={AdminDashboard} />
                   <Route path="/assessments/select-client" component={ClientSelection} />
@@ -87,8 +87,7 @@ function Router() {
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
                 </>
-              )}
-              {currentDomainRole === "assessor" && user?.role === "assessor" && (
+              ) : currentDomainRole === "assessor" && user?.role === "assessor" ? (
                 <>
                   <Route path="/" component={AssessorDashboard} />
                   <Route path="/assessments/select-client" component={ClientSelection} />
@@ -101,8 +100,7 @@ function Router() {
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
                 </>
-              )}
-              {currentDomainRole === "client" && user?.role === "client" && (
+              ) : currentDomainRole === "client" && user?.role === "client" ? (
                 <>
                   <Route path="/" component={Dashboard} />
                   <Route path="/assessments/:id/preview" component={AssessmentPreview} />
@@ -110,6 +108,49 @@ function Router() {
                   <Route path="/assessment/:id" component={AssessmentDetail} />
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
+                </>
+              ) : (
+                /* Fallback routes for authenticated users when domain/role don't match */
+                <>
+                  {user?.role === "admin" && (
+                    <>
+                      <Route path="/" component={AdminDashboard} />
+                      <Route path="/assessments/select-client" component={ClientSelection} />
+                      <Route path="/assessments/new" component={AssessmentForm} />
+                      <Route path="/assessments/:id/edit" component={AssessmentForm} />
+                      <Route path="/assessments/:id/preview" component={AssessmentPreview} />
+                      <Route path="/assessments" component={Assessments} />
+                      <Route path="/assessment/:id" component={AssessmentDetail} />
+                      <Route path="/reports" component={Reports} />
+                      <Route path="/profile" component={Profile} />
+                    </>
+                  )}
+                  {user?.role === "assessor" && (
+                    <>
+                      <Route path="/" component={AssessorDashboard} />
+                      <Route path="/assessments/select-client" component={ClientSelection} />
+                      <Route path="/assessments/new" component={AssessmentForm} />
+                      <Route path="/assessments/:id/edit" component={AssessmentForm} />
+                      <Route path="/assessments/:id/preview" component={AssessmentPreview} />
+                      <Route path="/assessments" component={Assessments} />
+                      <Route path="/assessment/:id" component={AssessmentDetail} />
+                      <Route path="/drafts" component={Drafts} />
+                      <Route path="/reports" component={Reports} />
+                      <Route path="/profile" component={Profile} />
+                    </>
+                  )}
+                  {user?.role === "client" && (
+                    <>
+                      <Route path="/" component={Dashboard} />
+                      <Route path="/assessments/:id/preview" component={AssessmentPreview} />
+                      <Route path="/assessments" component={Assessments} />
+                      <Route path="/assessment/:id" component={AssessmentDetail} />
+                      <Route path="/reports" component={Reports} />
+                      <Route path="/profile" component={Profile} />
+                    </>
+                  )}
+                  {/* Default fallback for authenticated users */}
+                  {!user?.role && <Route path="/" component={Dashboard} />}
                 </>
               )}
             </>
