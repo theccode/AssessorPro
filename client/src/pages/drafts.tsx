@@ -122,10 +122,10 @@ export default function Drafts() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <img src={gredaLogo} alt="GREDA Logo" className="h-8 w-8 mr-3" />
-              <span className="text-xl font-semibold text-foreground">GREDA-GBC Assessor Pro</span>
+              <img src={gredaLogo} alt="GREDA Logo" className="h-6 sm:h-8 w-6 sm:w-8 mr-2 sm:mr-3" />
+              <span className="text-sm sm:text-xl font-semibold text-foreground">GREDA-GBC Assessor Pro</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
               <Link href="/">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
@@ -144,6 +144,11 @@ export default function Drafts() {
                 <Button variant="outline">Logout</Button>
               </Link>
             </div>
+            <div className="md:hidden flex items-center">
+              <Link href="/">
+                <Button variant="ghost" size="sm">Dashboard</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -151,17 +156,17 @@ export default function Drafts() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Draft Assessments</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Draft Assessments</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Continue working on your assessments in progress
           </p>
         </div>
 
         {/* Search and Filter Controls */}
         <div className="mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-4">
             {/* Search Input */}
-            <div className="relative flex-1">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="Search by client, building, or location..."
@@ -171,34 +176,37 @@ export default function Drafts() {
               />
             </div>
 
-            {/* Progress Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <Select value={progressFilter} onValueChange={setProgressFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Filter by progress" />
+            {/* Filter and Sort Row */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Progress Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <Select value={progressFilter} onValueChange={setProgressFilter}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Filter by progress" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Progress</SelectItem>
+                    <SelectItem value="not-started">Not Started</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="almost-done">Almost Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sort Options */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Progress</SelectItem>
-                  <SelectItem value="not-started">Not Started</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="almost-done">Almost Done</SelectItem>
+                  <SelectItem value="updated">Last Updated</SelectItem>
+                  <SelectItem value="progress">Progress</SelectItem>
+                  <SelectItem value="client">Client Name</SelectItem>
+                  <SelectItem value="building">Building Name</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Sort Options */}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="updated">Last Updated</SelectItem>
-                <SelectItem value="progress">Progress</SelectItem>
-                <SelectItem value="client">Client Name</SelectItem>
-                <SelectItem value="building">Building Name</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Results Summary */}
@@ -328,13 +336,13 @@ export default function Drafts() {
 
                                 {/* Actions */}
                                 <div className="flex gap-2 pt-2">
-                                  <Link href={`/assessments/new?id=${assessment.publicId}`} className="flex-1">
+                                  <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
                                     <Button className="w-full" size="sm">
                                       <Edit className="w-3 h-3 mr-2" />
                                       Continue
                                     </Button>
                                   </Link>
-                                  <Link href={`/assessments/${assessment.publicId}/preview`}>
+                                  <Link href={`/assessments/${assessment.id}/preview`}>
                                     <Button variant="outline" size="sm">
                                       <FileText className="w-3 h-3" />
                                     </Button>

@@ -220,22 +220,22 @@ export default function Assessments() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
             <Link href="/">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
             </Link>
             <div>
-              <h1 className="text-4xl font-bold mb-2">Assessment Management</h1>
-              <p className="text-gray-300">Manage and review building assessments</p>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Assessment Management</h1>
+              <p className="text-gray-300 text-sm sm:text-base">Manage and review building assessments</p>
             </div>
           </div>
           {(user?.role === "admin" || user?.role === "assessor") && (
-            <Link href="/assessments/new">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700">
+            <Link href="/assessments/new" className="w-full lg:w-auto">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700 w-full lg:w-auto">
                 <Plus className="h-5 w-5 mr-2" />
                 New Assessment
               </Button>
@@ -245,9 +245,9 @@ export default function Assessments() {
 
         {/* Search and Filter Controls */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex flex-col md:flex-row gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search by building name, client, or assessor..."
@@ -257,7 +257,7 @@ export default function Assessments() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -268,7 +268,7 @@ export default function Assessments() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-sm text-white/90 font-medium">
+            <div className="text-sm text-white/90 font-medium text-center sm:text-left">
               Showing {filteredAssessments.length} of {allAssessments.length} assessments
             </div>
           </div>
