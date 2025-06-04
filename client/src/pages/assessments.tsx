@@ -220,7 +220,7 @@ export default function Assessments() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-white/90 font-medium">
               Showing {filteredAssessments.length} of {allAssessments.length} assessments
             </div>
           </div>
@@ -266,8 +266,8 @@ export default function Assessments() {
                   
                   {/* Client Assessments */}
                   {expandedClients.has(clientName) && (
-                    <div className="p-4 pt-0">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="p-6 pt-4 border-t border-white/10">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                         {clientAssessments.map((assessment: Assessment) => (
                 <Card key={assessment.id} className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
                   <CardHeader className="pb-3">
