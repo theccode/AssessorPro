@@ -164,9 +164,10 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
       <CardContent className="space-y-4">
         {/* Create new note form (admin only) */}
         {user?.role === "admin" && (
-          <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+          <div className="border rounded-lg p-4 bg-muted/30">
             {!isCreating ? (
-              <Button onClick={() => setIsCreating(true)} className="w-full">
+              <Button onClick={() => setIsCreating(true)} className="w-full" variant="outline">
+                <MessageSquare className="h-4 w-4 mr-2" />
                 Add New Note
               </Button>
             ) : (
@@ -250,10 +251,10 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
               return (
                 <div
                   key={note.id}
-                  className={`border rounded-lg p-4 ${
+                  className={`border rounded-lg p-4 bg-card shadow-sm ${
                     !note.isRead && user?.id === note.assignedUserId
-                      ? "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950"
-                      : "border-gray-200 dark:border-gray-700"
+                      ? "border-primary/30 ring-1 ring-primary/20"
+                      : "border-border"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -262,7 +263,7 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                         {(note.priority || 'medium').toUpperCase()}
                       </Badge>
                       {!note.isRead && user?.id === note.assignedUserId && (
-                        <Badge variant="outline" className="text-blue-600 border-blue-600">
+                        <Badge variant="outline" className="text-primary border-primary">
                           Unread
                         </Badge>
                       )}
@@ -281,11 +282,11 @@ export default function AdminNotes({ assessmentId, assessmentStatus }: AdminNote
                     )}
                   </div>
                   
-                  <p className="text-gray-900 dark:text-gray-100 mb-3 whitespace-pre-wrap">
+                  <p className="text-foreground mb-3 whitespace-pre-wrap">
                     {note.content || note.noteContent || 'No content'}
                   </p>
                   
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
