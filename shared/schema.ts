@@ -82,6 +82,10 @@ export const assessments = pgTable("assessments", {
   assessorName: text("assessor_name"), // name of the person who conducted the assessment
   assessorRole: varchar("assessor_role"), // role of the assessor (admin/assessor)
   conductedAt: timestamp("conducted_at"), // when the assessment was actually conducted
+  // Edit tracking
+  lastEditedBy: varchar("last_edited_by").references(() => users.id), // user ID who last edited
+  lastEditedByName: text("last_edited_by_name"), // name of the person who last edited
+  lastEditedAt: timestamp("last_edited_at"), // when the assessment was last edited by someone other than conductor
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

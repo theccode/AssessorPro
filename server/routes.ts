@@ -692,6 +692,13 @@ For security reasons, we recommend using a strong, unique password and not shari
         updateData.lockedAt = new Date();
       }
 
+      // Track edit history if someone other than the original conductor is editing
+      if (existing.userId !== userId) {
+        updateData.lastEditedBy = userId;
+        updateData.lastEditedByName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.email;
+        updateData.lastEditedAt = new Date();
+      }
+
       // Convert empty strings to null for numeric fields to prevent database errors
       const numericFields = [
         'buildingFootprint', 'roomHeight', 'numberOfBedrooms', 'siteArea',

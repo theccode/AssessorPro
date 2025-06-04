@@ -752,6 +752,11 @@ export default function AssessmentPreview({ params }: { params: { id: string } }
                         : user?.email || "Assessment Team"}
                     </div>
                     <div className="text-xs text-white/60">Professional Assessor</div>
+                    {assessmentData.lastEditedBy && assessmentData.lastEditedByName && (
+                      <div className="mt-1 text-xs text-amber-200 bg-amber-600/20 px-2 py-1 rounded">
+                        Edited by {assessmentData.lastEditedByName}
+                      </div>
+                    )}
                   </div>
                   <div className="sm:col-span-2 lg:col-span-1">
                     <div className="text-xs sm:text-sm text-white/70">Status</div>
