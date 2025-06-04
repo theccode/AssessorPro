@@ -17,6 +17,7 @@ import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { assessmentSections, sectionVariables } from "@/lib/assessment-data";
 import type { Assessment, AssessmentSection } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface AssessmentFormProps {
@@ -27,6 +28,7 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   // Get assessment ID from URL query parameter (now using UUID)
   const urlParams = new URLSearchParams(window.location.search);
@@ -52,6 +54,18 @@ export default function AssessmentForm({ params }: { params: { id?: string } }) 
 
   // Check if assessment is locked
   const isAssessmentLocked = assessment?.isLocked || false;
+
+  // Redirect if trying to edit a locked assessment
+  useEffect(() => {
+    if (assessment && isAssessmentLocked && user?.role !== 'admin') {
+      toast({
+        title: "Assessment Locked",
+        description: "This assessment is locked and cannot be edited. Redirecting to view mode.",
+        variant: "destructive",
+      });
+      navigate(`/assessments/${assessmentId}/preview`);
+    }
+  }, [assessment, isAssessmentLocked, user, assessmentId, navigate, toast]);
 
 
 

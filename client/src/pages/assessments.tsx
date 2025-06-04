@@ -178,12 +178,19 @@ export default function Assessments() {
                           </Link>
                         </Button>
                         {(user?.role === "admin" || user?.role === "assessor") && (
-                          <Button variant="outline" size="sm" className="flex-1" asChild>
-                            <Link href={`/assessments/${assessment.publicId}/edit`}>
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
+                          assessment.isLocked ? (
+                            <Button variant="outline" size="sm" className="flex-1" disabled>
+                              <Lock className="h-3 w-3 mr-1" />
+                              Locked
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" className="flex-1" asChild>
+                              <Link href={`/assessments/${assessment.publicId}/edit`}>
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit
+                              </Link>
+                            </Button>
+                          )
                         )}
                       </div>
 
