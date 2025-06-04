@@ -39,23 +39,33 @@ export function registerAdminRoutes(app: Express) {
     try {
       const userData = req.body;
       
+      if (!userData.password) {
+        return res.status(400).json({ message: "Password is required" });
+      }
+      
       // Generate a unique user ID (simulate what would come from auth provider)
       const userId = crypto.randomUUID();
       
-      // Create user with generated ID
+      // Hash the password
+      const passwordHash = await hashPassword(userData.password);
+      
+      // Create user with generated ID and hashed password
       const user = await storage.upsertUser({
         id: userId,
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
         role: userData.role,
+        passwordHash: passwordHash,
         status: "active",
-        subscriptionTier: userData.subscriptionTier,
+        subscriptionTier: userData.subscriptionTier || "basic",
         subscriptionStatus: "active",
         organizationName: userData.organizationName || null,
       });
       
-      res.json(user);
+      // Return user without password hash
+      const { passwordHash: _, ...userResponse } = user;
+      res.json(userResponse);
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(500).json({ message: "Failed to create user" });
