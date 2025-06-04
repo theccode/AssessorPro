@@ -76,7 +76,7 @@ export class NotificationService {
     // Notify admin
     const adminUsers = await storage.getUsersByRole("admin");
     for (const admin of adminUsers) {
-      await storage.createNotification({
+      const notification = await storage.createNotification({
         userId: admin.id,
         type: "assessment_submitted",
         title: "Assessment Submitted",
@@ -92,10 +92,28 @@ export class NotificationService {
           clientId: client.id
         }
       });
+
+      // Send real-time notification via WebSocket
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(admin.id, {
+          type: 'new_notification',
+          notification: {
+            id: notification.id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            priority: notification.priority,
+            isRead: false,
+            createdAt: notification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(admin.id)
+        });
+      }
     }
 
     // Notify client
-    await storage.createNotification({
+    const clientNotification = await storage.createNotification({
       userId: client.id,
       type: "assessment_submitted",
       title: "Assessment Submitted for Review",
@@ -110,6 +128,101 @@ export class NotificationService {
         assessorName: `${assessor.firstName} ${assessor.lastName}`
       }
     });
+
+    // Send real-time notification to client
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(client.id, {
+        type: 'new_notification',
+        notification: {
+          id: clientNotification.id,
+          type: clientNotification.type,
+          title: clientNotification.title,
+          message: clientNotification.message,
+          priority: clientNotification.priority,
+          isRead: false,
+          createdAt: clientNotification.createdAt
+        },
+        count: await storage.getUnreadNotificationCount(client.id)
+      });
+    }
+  }
+
+  // Create notification when assessment is started for a client's building
+  async notifyAssessmentStarted(assessment: Assessment, assessor: User, client: User) {
+    // Notify client that assessment has started on their building
+    const notification = await storage.createNotification({
+      userId: client.id,
+      type: "assessment_started",
+      title: "Assessment Started",
+      message: `Assessment has been started for your building "${assessment.buildingName}" by ${assessor.firstName} ${assessor.lastName}`,
+      assessmentId: assessment.id,
+      assessmentPublicId: assessment.publicId,
+      buildingName: assessment.buildingName,
+      clientName: assessment.clientName,
+      priority: "medium",
+      metadata: {
+        assessorId: assessor.id,
+        assessorName: `${assessor.firstName} ${assessor.lastName}`,
+        buildingAddress: assessment.buildingLocation
+      }
+    });
+
+    // Send real-time notification via WebSocket
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(client.id, {
+        type: 'new_notification',
+        notification: {
+          id: notification.id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          priority: notification.priority,
+          isRead: false,
+          createdAt: notification.createdAt
+        },
+        count: await storage.getUnreadNotificationCount(client.id)
+      });
+    }
+
+    // Also notify admin for tracking purposes
+    const adminUsers = await storage.getUsersByRole("admin");
+    for (const admin of adminUsers) {
+      const adminNotification = await storage.createNotification({
+        userId: admin.id,
+        type: "assessment_started",
+        title: "Assessment Started",
+        message: `Assessment started for ${assessment.buildingName} by ${assessor.firstName} ${assessor.lastName}`,
+        assessmentId: assessment.id,
+        assessmentPublicId: assessment.publicId,
+        buildingName: assessment.buildingName,
+        clientName: assessment.clientName,
+        priority: "low",
+        metadata: {
+          assessorId: assessor.id,
+          assessorName: `${assessor.firstName} ${assessor.lastName}`,
+          clientId: client.id
+        }
+      });
+
+      // Send real-time notification to admin
+      if (wsManager) {
+        wsManager.sendToUser(admin.id, {
+          type: 'new_notification',
+          notification: {
+            id: adminNotification.id,
+            type: adminNotification.type,
+            title: adminNotification.title,
+            message: adminNotification.message,
+            priority: adminNotification.priority,
+            isRead: false,
+            createdAt: adminNotification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(admin.id)
+        });
+      }
+    }
   }
 
   // Create notification for edit request

@@ -150,13 +150,15 @@ export const notifications = pgTable("notifications", {
   type: varchar("type", { 
     enum: [
       "assessment_completed", 
-      "assessment_submitted", 
+      "assessment_submitted",
+      "assessment_started",
       "edit_request_created", 
       "edit_request_approved", 
       "edit_request_denied",
       "report_ready",
       "assessment_locked",
-      "assessment_unlocked"
+      "assessment_unlocked",
+      "test_notification"
     ] 
   }).notNull(),
   title: varchar("title").notNull(),

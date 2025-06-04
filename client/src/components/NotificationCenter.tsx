@@ -37,12 +37,14 @@ const priorityColors = {
 const notificationIcons = {
   assessment_completed: "✅",
   assessment_submitted: "📋",
+  assessment_started: "🏗️",
   edit_request_created: "✏️",
   edit_request_approved: "✅",
   edit_request_denied: "❌",
   report_ready: "📄",
   assessment_locked: "🔒",
   assessment_unlocked: "🔓",
+  test_notification: "🧪",
 };
 
 export function NotificationCenter() {

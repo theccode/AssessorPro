@@ -428,6 +428,18 @@ For security reasons, we recommend using a strong, unique password and not shari
       });
       
       const assessment = await storage.createAssessment(data);
+
+      // Get client information and send notification
+      try {
+        const client = await storage.getUser(assessment.clientId);
+        if (client) {
+          await notificationService.notifyAssessmentStarted(assessment, user, client);
+        }
+      } catch (notificationError) {
+        console.error("Failed to send assessment started notification:", notificationError);
+        // Don't fail the assessment creation if notification fails
+      }
+
       res.json(assessment);
     } catch (error) {
       console.error("Error creating assessment:", error);
@@ -1383,7 +1395,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       });
 
       // Send real-time notification via WebSocket
-      const wsManager = getWSManager();
+      const wsManager = (global as any).wsManager;
       if (wsManager) {
         const sent = wsManager.sendToUser(user.id, {
           type: 'new_notification',
