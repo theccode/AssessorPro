@@ -3,14 +3,24 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Shield, Menu, X, User, LogOut, Activity } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import { NotificationCenter } from "@/components/NotificationCenter";
 
 export default function Header() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Determine if we should show the Dashboard link based on current location
+  const shouldShowDashboard = () => {
+    // Hide Dashboard link if user is already on their respective dashboard
+    if (location === "/") return false; // Main dashboard
+    if (location === "/admin" && (user as any)?.role === "admin") return false; // Admin dashboard
+    if (location === "/assessor" && (user as any)?.role === "assessor") return false; // Assessor dashboard (if exists)
+    return true;
+  };
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -54,9 +64,11 @@ export default function Header() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
-              Dashboard
-            </Link>
+            {shouldShowDashboard() && (
+              <Link href="/" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
+                Dashboard
+              </Link>
+            )}
             {((user as any)?.role === "admin" || (user as any)?.role === "assessor") && (
               <>
                 <Link href="/assessments/select-client" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
@@ -125,13 +137,15 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-card">
           <div className="px-4 py-3 space-y-2">
-            <Link 
-              href="/" 
-              className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Dashboard
-            </Link>
+            {shouldShowDashboard() && (
+              <Link 
+                href="/" 
+                className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             {((user as any)?.role === "admin" || (user as any)?.role === "assessor") && (
               <>
                 <Link 
