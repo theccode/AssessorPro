@@ -569,21 +569,17 @@ export class NotificationService {
     }
 
     // Send email notification to assessor
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #D32F2F;">Edit Request Denied - GREDA GBC</h2>
-        <p>Dear ${requestingUser.firstName} ${requestingUser.lastName},</p>
-        <p>Your request to edit the assessment has been reviewed and denied.</p>
-        <div style="background-color: #fff3e0; padding: 15px; margin: 15px 0; border-left: 4px solid #D32F2F;">
-          <strong>Building:</strong> ${assessment.buildingName}<br>
-          <strong>Reviewed by:</strong> ${denyingAdmin.firstName} ${denyingAdmin.lastName}<br>
-          ${reason ? `<strong>Reason:</strong> ${reason}<br>` : ''}
-          <strong>Status:</strong> Assessment remains locked
-        </div>
-        <p>The assessment remains locked and cannot be edited at this time. If you have questions about this decision, please contact the administrator.</p>
-        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+    const emailHtml = this.createProfessionalEmailTemplate(
+      `Hi ${requestingUser.firstName},`,
+      `Your request to edit the assessment for <strong>${assessment.buildingName}</strong> has been reviewed and denied.`,
+      `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+        <div style="margin-bottom: 12px;"><strong>Reviewed by:</strong> ${denyingAdmin.firstName} ${denyingAdmin.lastName}</div>
+        ${reason ? `<div style="margin-bottom: 12px;"><strong>Reason:</strong> ${reason}</div>` : ''}
+        <div><strong>Status:</strong> Assessment remains locked</div>
       </div>
-    `;
+      <p>The assessment remains locked and cannot be edited at this time. If you have questions about this decision, please contact the administrator.</p>`
+    );
     await this.sendEmailNotification(requestingUser, "Edit Request Denied", emailHtml);
   }
 
@@ -711,23 +707,19 @@ export class NotificationService {
     }
 
     // Send email notification to assigned user
-    const userEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2E7D32;">New Admin Note - GREDA GBC</h2>
-        <p>Dear ${assignedUser.firstName} ${assignedUser.lastName},</p>
-        <p>An administrator has left an important note for you regarding one of your assessments:</p>
-        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
-          <strong>Assessment:</strong> ${assessment.buildingName}<br>
-          <strong>Admin:</strong> ${admin.firstName} ${admin.lastName}<br>
-          <strong>Note:</strong><br>
-          <div style="background-color: white; padding: 10px; margin-top: 10px; border-radius: 4px; font-style: italic;">
-            "${noteContent}"
-          </div>
+    const userEmailHtml = this.createProfessionalEmailTemplate(
+      `Hi ${assignedUser.firstName},`,
+      `An administrator has left an important note for you regarding the assessment for <strong>${assessment.buildingName}</strong>.`,
+      `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;"><strong>Assessment:</strong> ${assessment.buildingName}</div>
+        <div style="margin-bottom: 12px;"><strong>Admin:</strong> ${admin.firstName} ${admin.lastName}</div>
+        <div style="margin-bottom: 12px;"><strong>Note:</strong></div>
+        <div style="background-color: white; padding: 15px; margin-top: 10px; border-radius: 6px; border-left: 3px solid #33A366; font-style: italic;">
+          "${noteContent}"
         </div>
-        <p>Please log in to the GREDA GBC platform to view the complete note and take any necessary action.</p>
-        <p>Best regards,<br>GREDA Green Building Certification Team</p>
       </div>
-    `;
+      <p>Please log in to the platform to view the complete note and take any necessary action.</p>`
+    );
     await this.sendEmailNotification(assignedUser, "New Admin Note - Action Required", userEmailHtml);
   }
 
