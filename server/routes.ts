@@ -13,6 +13,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { notificationService } from "./notification-service";
+import { activityService } from "./activity-service";
 
 // WebSocket connection manager
 interface AuthenticatedWebSocket extends WebSocket {
@@ -1462,9 +1463,12 @@ For security reasons, we recommend using a strong, unique password and not shari
       // Mark notification as read
       await storage.markNotificationRead(notificationId);
 
-      // Send approval notification
+      // Send approval notification and log activity
       const { notificationService } = await import('./notification-service');
       await notificationService.notifyEditRequestApproved(assessment, requestingUser, admin);
+      
+      // Log the edit request approval activity
+      await activityService.logEditRequestApproved(admin, requestingUser, assessment);
 
       res.json({ 
         message: "Edit request approved successfully. Assessment has been unlocked.",
@@ -1511,9 +1515,12 @@ For security reasons, we recommend using a strong, unique password and not shari
       // Mark notification as read
       await storage.markNotificationRead(notificationId);
 
-      // Send denial notification
+      // Send denial notification and log activity
       const { notificationService } = await import('./notification-service');
       await notificationService.notifyEditRequestDenied(assessment, requestingUser, admin, reason);
+      
+      // Log the edit request denial activity
+      await activityService.logEditRequestDenied(admin, requestingUser, assessment, reason);
 
       res.json({ 
         message: "Edit request denied successfully.",
@@ -1898,6 +1905,105 @@ For security reasons, we recommend using a strong, unique password and not shari
     } catch (error) {
       console.error("Error marking note as read:", error);
       res.status(500).json({ message: "Failed to mark note as read" });
+    }
+  });
+
+  // Activity logging routes
+  app.get('/api/activities', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      const { type, limit = 50 } = req.query;
+      let activities;
+
+      if (user.role === 'admin') {
+        // Admins can see all activities or filter by type
+        if (type) {
+          activities = await storage.getActivityLogsByType(type, parseInt(limit));
+        } else {
+          activities = await storage.getAllActivityLogs(parseInt(limit));
+        }
+      } else {
+        // Non-admins can only see their own activities
+        activities = await storage.getUserActivityLogs(userId, parseInt(limit));
+      }
+
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  app.get('/api/activities/user/:userId', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const requestingUserId = req.user.id;
+      const targetUserId = req.params.userId;
+      const user = await storage.getUser(requestingUserId);
+      
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Only admins can view other users' activities
+      if (user.role !== 'admin' && requestingUserId !== targetUserId) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const { limit = 50 } = req.query;
+      const activities = await storage.getUserActivityLogs(targetUserId, parseInt(limit));
+
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching user activities:", error);
+      res.status(500).json({ message: "Failed to fetch user activities" });
+    }
+  });
+
+  app.get('/api/activities/stats', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // Get activity statistics
+      const allActivities = await storage.getAllActivityLogs(1000);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayActivities = allActivities.filter(activity => 
+        new Date(activity.createdAt || '') >= today
+      );
+
+      const activityTypes = allActivities.reduce((acc, activity) => {
+        acc[activity.activityType] = (acc[activity.activityType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const priorityBreakdown = allActivities.reduce((acc, activity) => {
+        const priority = activity.priority || 'medium';
+        acc[priority] = (acc[priority] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      res.json({
+        totalActivities: allActivities.length,
+        todayActivities: todayActivities.length,
+        activityTypes,
+        priorityBreakdown,
+        recentActivities: allActivities.slice(0, 10)
+      });
+    } catch (error) {
+      console.error("Error fetching activity stats:", error);
+      res.status(500).json({ message: "Failed to fetch activity statistics" });
     }
   });
 
