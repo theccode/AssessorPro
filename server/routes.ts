@@ -797,6 +797,23 @@ For security reasons, we recommend using a strong, unique password and not shari
             console.log('No client found for assessment completed notification');
           }
         }
+        
+        // Auto-lock completed assessments after editing
+        if (existing.status === 'completed' && !existing.isLocked && existing.userId !== userId) {
+          console.log('Auto-locking completed assessment after editing');
+          await storage.updateAssessment(existing.id, { 
+            isLocked: true, 
+            lockedBy: assessor?.id || userId,
+            lockedAt: new Date()
+          });
+          
+          // Log the auto-lock activity
+          const { activityService } = await import('./activity-service');
+          const lockingUser = assessor || currentUser;
+          if (lockingUser) {
+            await activityService.logAssessmentLocked(lockingUser, updated, 'Auto-locked after editing completed assessment');
+          }
+        }
       } catch (notificationError) {
         console.error("Error sending notifications:", notificationError);
         // Don't fail the request if notifications fail
