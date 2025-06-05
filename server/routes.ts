@@ -535,8 +535,19 @@ For security reasons, we recommend using a strong, unique password and not shari
       const userId = req.user.id;
       const user = await storage.getUser(userId);
       
-      // Check if user has access to this assessment
-      if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
+      // Allow access if:
+      // 1. User is the assessment owner
+      // 2. User is the client
+      // 3. User is an admin
+      // 4. User is an assessor and assessment is unlocked (edit request approved)
+      const hasAccess = (
+        assessment.userId === userId ||
+        assessment.clientId === userId ||
+        user?.role === 'admin' ||
+        (user?.role === 'assessor' && !assessment.isLocked)
+      );
+      
+      if (!hasAccess) {
         return res.status(403).json({ message: "Access denied" });
       }
 
