@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut, Archive, Trash2 } from "lucide-react";
@@ -48,21 +49,22 @@ export default function AdminDashboard() {
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const [inviteForm, setInviteForm] = useState({
     email: "",
-    role: "client" as const,
-    subscriptionTier: "free" as const,
+    role: "client" as "admin" | "assessor" | "client",
+    subscriptionTier: "free",
     organizationName: ""
   });
+
   const [createUserForm, setCreateUserForm] = useState({
     email: "",
     firstName: "",
     lastName: "",
-    role: "client" as const,
-    subscriptionTier: "free" as const,
+    role: "client" as "admin" | "assessor" | "client",
+    subscriptionTier: "free",
     organizationName: "",
     password: ""
   });
 
-  // Fetch all users
+  // Fetch users
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users"],
     retry: false,
@@ -71,6 +73,12 @@ export default function AdminDashboard() {
   // Fetch invitations
   const { data: invitations = [], isLoading: invitationsLoading } = useQuery({
     queryKey: ["/api/admin/invitations"],
+    retry: false,
+  });
+
+  // Fetch assessments
+  const { data: assessments = [], isLoading: assessmentsLoading } = useQuery({
+    queryKey: ["/api/assessments"],
     retry: false,
   });
 
@@ -91,6 +99,28 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ title: "Failed to send invitation", variant: "destructive" });
+    }
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: (data: typeof createUserForm) => apiRequest("/api/admin/users", "POST", data),
+    onSuccess: () => {
+      toast({ title: "User created successfully" });
+      setCreateUserDialogOpen(false);
+      setCreateUserForm({ 
+        email: "", 
+        firstName: "", 
+        lastName: "", 
+        role: "client", 
+        subscriptionTier: "free", 
+        organizationName: "",
+        password: ""
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to create user", variant: "destructive" });
     }
   });
 
@@ -120,375 +150,102 @@ export default function AdminDashboard() {
     }
   });
 
-  // Track loading states per invitation
-  const [loadingStates, setLoadingStates] = useState<Record<number, { canceling?: boolean; resending?: boolean }>>({});
-
-  // Cancel invitation mutation
-  const cancelInvitationMutation = useMutation({
-    mutationFn: (invitationId: number) => 
-      apiRequest(`/api/admin/invitations/${invitationId}`, "DELETE", {}),
-    onSuccess: (_, invitationId) => {
-      toast({ title: "Invitation canceled successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
-      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: false } }));
-    },
-    onError: (_, invitationId) => {
-      toast({ title: "Failed to cancel invitation", variant: "destructive" });
-      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: false } }));
-    }
-  });
-
-  // Resend invitation mutation
-  const resendInvitationMutation = useMutation({
-    mutationFn: ({ invitationId, email }: { invitationId: number; email: string }) => 
-      apiRequest(`/api/admin/invitations/${invitationId}/resend`, "POST", {}),
-    onSuccess: (_, { invitationId }) => {
-      toast({ title: "Invitation resent successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/invitations"] });
-      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: false } }));
-    },
-    onError: (_, { invitationId }) => {
-      toast({ title: "Failed to resend invitation", variant: "destructive" });
-      setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: false } }));
-    }
-  });
-
-  // Create user directly mutation
-  const createUserMutation = useMutation({
-    mutationFn: (userData: typeof createUserForm) => 
-      apiRequest("/api/admin/users", "POST", userData),
-    onSuccess: () => {
-      toast({ title: "User created successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setCreateUserDialogOpen(false);
-      setCreateUserForm({
-        email: "",
-        firstName: "",
-        lastName: "",
-        role: "client",
-        subscriptionTier: "free",
-        organizationName: "",
-        password: ""
-      });
-    },
-    onError: () => {
-      toast({ title: "Failed to create user", variant: "destructive" });
-    }
-  });
-
-  // Archive assessment mutation
-  const archiveAssessmentMutation = useMutation({
-    mutationFn: (assessmentId: string) => 
-      apiRequest(`/api/assessments/${assessmentId}/archive`, "POST"),
-    onSuccess: () => {
-      toast({ 
-        title: "Assessment Archived", 
-        description: "Assessment has been archived and notifications sent to all parties." 
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
-      setArchiveDialogOpen(false);
-      setSelectedAssessment(null);
-    },
-    onError: () => {
-      toast({ 
-        title: "Failed to archive assessment", 
-        variant: "destructive" 
-      });
-    }
-  });
-
-  // Reset user password mutation
+  // Reset password mutation
   const resetUserPasswordMutation = useMutation({
-    mutationFn: (userId: string) => 
-      apiRequest(`/api/admin/users/${userId}/reset-password`, "POST"),
-    onSuccess: (data: any) => {
-      const email = data?.email || 'user';
-      const tempPassword = data?.tempPassword || 'generated';
-      toast({ 
-        title: "Password reset successfully", 
-        description: `Temporary password: ${tempPassword} (sent to ${email})` 
-      });
+    mutationFn: (userId: string) => apiRequest(`/api/admin/users/${userId}/reset-password`, "POST"),
+    onSuccess: () => {
+      toast({ title: "Password reset email sent" });
     },
     onError: () => {
       toast({ title: "Failed to reset password", variant: "destructive" });
     }
   });
 
-  // Handler functions
-  const handleCancelInvitation = (invitationId: number) => {
-    setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], canceling: true } }));
-    cancelInvitationMutation.mutate(invitationId);
-  };
+  // Archive assessment mutation
+  const archiveAssessmentMutation = useMutation({
+    mutationFn: (assessmentId: number) => apiRequest(`/api/assessments/${assessmentId}/archive`, "POST"),
+    onSuccess: () => {
+      toast({ title: "Assessment archived successfully" });
+      setArchiveDialogOpen(false);
+      setSelectedAssessment(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to archive assessment", variant: "destructive" });
+    }
+  });
 
-  const handleResendInvitation = (invitationId: number, email: string) => {
-    setLoadingStates(prev => ({ ...prev, [invitationId]: { ...prev[invitationId], resending: true } }));
-    resendInvitationMutation.mutate({ invitationId, email });
-  };
-
+  // Helper functions for styling
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "assessor": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "client": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "admin": return "bg-red-100 text-red-800";
+      case "assessor": return "bg-blue-100 text-blue-800";
+      case "client": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "suspended": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "pending": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "active": return "bg-green-100 text-green-800";
+      case "suspended": return "bg-red-100 text-red-800";
+      case "pending": return "bg-yellow-100 text-yellow-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getTierColor = (tier: string) => {
     switch (tier) {
-      case "enterprise": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-      case "premium": return "bg-gold-100 text-gold-800 dark:bg-gold-900 dark:text-gold-200";
-      case "basic": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "free": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "free": return "bg-gray-100 text-gray-800";
+      case "basic": return "bg-blue-100 text-blue-800";
+      case "premium": return "bg-purple-100 text-purple-800";
+      case "enterprise": return "bg-orange-100 text-orange-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-      <div className="flex flex-col gap-4">
+    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage users, invitations, and system access</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Manage users, assessments, and system settings
+          </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button variant="outline" asChild>
-            <Link href="/">
+        <div className="flex flex-col xs:flex-row gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              <span className="hidden xs:inline">Back to Dashboard</span>
+              <span className="xs:hidden">Back</span>
             </Link>
           </Button>
-          <Button asChild>
-            <Link href="/assessments/select-client">
-              <Plus className="w-4 h-4 mr-2" />
-              New Assessment
+          <Button asChild variant="outline" size="sm">
+            <Link href="/api/logout">
+              <LogOut className="w-4 h-4 mr-2" />
+              <span className="hidden xs:inline">Logout</span>
             </Link>
           </Button>
-          <Dialog open={createUserDialogOpen} onOpenChange={setCreateUserDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserCheck className="w-4 h-4 mr-2" />
-                Add User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription>
-                  Create a new user account directly without requiring an invitation
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="createEmail">Email</Label>
-                  <Input
-                    id="createEmail"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={createUserForm.email}
-                    onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="John"
-                      value={createUserForm.firstName}
-                      onChange={(e) => setCreateUserForm({ ...createUserForm, firstName: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Doe"
-                      value={createUserForm.lastName}
-                      onChange={(e) => setCreateUserForm({ ...createUserForm, lastName: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="createPassword">Password</Label>
-                  <Input
-                    id="createPassword"
-                    type="password"
-                    placeholder="Enter a temporary password"
-                    value={createUserForm.password}
-                    onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    User can change this password after their first login
-                  </p>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="createRole">Role</Label>
-                  <Select value={createUserForm.role} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, role: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="client">Client</SelectItem>
-                      <SelectItem value="assessor">Assessor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {createUserForm.role === "client" && (
-                  <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="createTier">Subscription Tier</Label>
-                      <Select value={createUserForm.subscriptionTier} onValueChange={(value: any) => setCreateUserForm({ ...createUserForm, subscriptionTier: value })}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="free">Free</SelectItem>
-                          <SelectItem value="basic">Basic</SelectItem>
-                          <SelectItem value="premium">Premium</SelectItem>
-                          <SelectItem value="enterprise">Enterprise</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="createOrganization">Building Name (Optional)</Label>
-                      <Input
-                        id="createOrganization"
-                        placeholder="Building or Organization Name"
-                        value={createUserForm.organizationName}
-                        onChange={(e) => setCreateUserForm({ ...createUserForm, organizationName: e.target.value })}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateUserDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => createUserMutation.mutate(createUserForm)}
-                  disabled={createUserMutation.isPending || !createUserForm.email || !createUserForm.firstName || !createUserForm.lastName}
-                >
-                  {createUserMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create User
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="secondary">
-                <UserPlus className="w-4 h-4 mr-2" />
-                Invite User
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Invite New User</DialogTitle>
-              <DialogDescription>
-                Send an invitation to a new user with specified role and access level
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="user@example.com"
-                  value={inviteForm.email}
-                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="role">Role</Label>
-                <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="client">Client</SelectItem>
-                    <SelectItem value="assessor">Assessor</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tier">Subscription Tier</Label>
-                <Select value={inviteForm.subscriptionTier} onValueChange={(value: any) => setInviteForm({ ...inviteForm, subscriptionTier: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="organization">Building Name (Optional)</Label>
-                <Input
-                  id="organization"
-                  placeholder="Building Name"
-                  value={inviteForm.organizationName}
-                  onChange={(e) => setInviteForm({ ...inviteForm, organizationName: e.target.value })}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button 
-                type="submit" 
-                onClick={() => inviteUserMutation.mutate(inviteForm)}
-                disabled={inviteUserMutation.isPending}
-              >
-                {inviteUserMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending Invitation...
-                  </>
-                ) : (
-                  "Send Invitation"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-          </Dialog>
         </div>
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-            <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4">
+          <TabsTrigger value="users" className="text-xs sm:text-sm">
+            <Users className="w-4 h-4 mr-1 sm:mr-2" />
             <span className="hidden xs:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="assessments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-            <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Assess</span>
+          <TabsTrigger value="assessments" className="text-xs sm:text-sm">
+            <Shield className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Assessments</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Invites</span>
+          <TabsTrigger value="invitations" className="text-xs sm:text-sm">
+            <UserPlus className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Invitations</span>
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-            <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Logs</span>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
-            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+          <TabsTrigger value="activity" className="text-xs sm:text-sm">
+            <Activity className="w-4 h-4 mr-1 sm:mr-2" />
             <span className="hidden xs:inline">Activity</span>
           </TabsTrigger>
         </TabsList>
@@ -496,10 +253,209 @@ export default function AdminDashboard() {
         <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>
-                Manage user accounts, roles, and subscription levels
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>
+                    Manage user accounts, roles, and subscription levels
+                  </CardDescription>
+                </div>
+                <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+                  <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="w-full xs:w-auto">
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        <span className="hidden xs:inline">Send Invitation</span>
+                        <span className="xs:hidden">Invite</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[95vw] max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Send User Invitation</DialogTitle>
+                        <DialogDescription>
+                          Send an invitation email to a new user
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={inviteForm.email}
+                            onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="user@example.com"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="role">Role</Label>
+                          <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm(prev => ({ ...prev, role: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="client">Client</SelectItem>
+                              <SelectItem value="assessor">Assessor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="subscriptionTier">Subscription Tier</Label>
+                          <Select value={inviteForm.subscriptionTier} onValueChange={(value) => setInviteForm(prev => ({ ...prev, subscriptionTier: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="free">Free</SelectItem>
+                              <SelectItem value="basic">Basic</SelectItem>
+                              <SelectItem value="premium">Premium</SelectItem>
+                              <SelectItem value="enterprise">Enterprise</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="organizationName">Organization (Optional)</Label>
+                          <Input
+                            id="organizationName"
+                            value={inviteForm.organizationName}
+                            onChange={(e) => setInviteForm(prev => ({ ...prev, organizationName: e.target.value }))}
+                            placeholder="Company Name"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          onClick={() => inviteUserMutation.mutate(inviteForm)}
+                          disabled={inviteUserMutation.isPending || !inviteForm.email}
+                          className="w-full"
+                        >
+                          {inviteUserMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            "Send Invitation"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={createUserDialogOpen} onOpenChange={setCreateUserDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full xs:w-auto">
+                        <Plus className="w-4 h-4 mr-2" />
+                        <span className="hidden xs:inline">Create User</span>
+                        <span className="xs:hidden">Create</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Create New User</DialogTitle>
+                        <DialogDescription>
+                          Create a new user account directly
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                              id="firstName"
+                              value={createUserForm.firstName}
+                              onChange={(e) => setCreateUserForm(prev => ({ ...prev, firstName: e.target.value }))}
+                              placeholder="John"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                              id="lastName"
+                              value={createUserForm.lastName}
+                              onChange={(e) => setCreateUserForm(prev => ({ ...prev, lastName: e.target.value }))}
+                              placeholder="Doe"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="createEmail">Email</Label>
+                          <Input
+                            id="createEmail"
+                            type="email"
+                            value={createUserForm.email}
+                            onChange={(e) => setCreateUserForm(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="user@example.com"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Password</Label>
+                          <Input
+                            id="password"
+                            type="password"
+                            value={createUserForm.password}
+                            onChange={(e) => setCreateUserForm(prev => ({ ...prev, password: e.target.value }))}
+                            placeholder="Enter password"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="createRole">Role</Label>
+                          <Select value={createUserForm.role} onValueChange={(value: any) => setCreateUserForm(prev => ({ ...prev, role: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="client">Client</SelectItem>
+                              <SelectItem value="assessor">Assessor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="createSubscriptionTier">Subscription Tier</Label>
+                          <Select value={createUserForm.subscriptionTier} onValueChange={(value) => setCreateUserForm(prev => ({ ...prev, subscriptionTier: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="free">Free</SelectItem>
+                              <SelectItem value="basic">Basic</SelectItem>
+                              <SelectItem value="premium">Premium</SelectItem>
+                              <SelectItem value="enterprise">Enterprise</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="createOrganizationName">Organization (Optional)</Label>
+                          <Input
+                            id="createOrganizationName"
+                            value={createUserForm.organizationName}
+                            onChange={(e) => setCreateUserForm(prev => ({ ...prev, organizationName: e.target.value }))}
+                            placeholder="Company Name"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          onClick={() => createUserMutation.mutate(createUserForm)}
+                          disabled={createUserMutation.isPending || !createUserForm.email || !createUserForm.firstName || !createUserForm.lastName || !createUserForm.password}
+                          className="w-full"
+                        >
+                          {createUserMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            "Create User"
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {usersLoading ? (
@@ -512,66 +468,119 @@ export default function AdminDashboard() {
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                           <h4 className="font-medium text-sm sm:text-base">{user.firstName} {user.lastName}</h4>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
-                            <Badge className={`${getRoleColor(user.role)} text-xs`}>{user.role}</Badge>
-                            <Badge className={`${getStatusColor(user.status)} text-xs`}>{user.status}</Badge>
-                            <Badge className={`${getTierColor(user.subscriptionTier)} text-xs`}>
-                              {user.subscriptionTier}
-                            </Badge>
+                            <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
+                            <Badge className={getStatusColor(user.status)}>{user.status}</Badge>
+                            <Badge className={getTierColor(user.subscriptionTier)}>{user.subscriptionTier}</Badge>
                           </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground break-all">{user.email}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{user.email}</p>
                         {user.organizationName && (
-                          <p className="text-xs sm:text-sm text-muted-foreground">{user.organizationName}</p>
+                          <p className="text-xs text-muted-foreground">Organization: {user.organizationName}</p>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          Joined: {new Date(user.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <div className="flex flex-col gap-2 w-full sm:w-auto">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Select
-                            value={user.status}
-                            onValueChange={(status) => 
-                              updateUserStatusMutation.mutate({ userId: user.id, status })
-                            }
-                          >
-                            <SelectTrigger className="w-full sm:w-24 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="active">Active</SelectItem>
-                              <SelectItem value="suspended">Suspended</SelectItem>
-                              <SelectItem value="pending">Pending</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Select
-                            value={`${user.subscriptionTier}-${user.subscriptionStatus}`}
-                            onValueChange={(value) => {
-                              const [tier, status] = value.split('-');
-                              updateSubscriptionMutation.mutate({ 
-                                userId: user.id, 
-                                tier, 
-                                status 
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="w-full sm:w-32 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="free-inactive">Free (Inactive)</SelectItem>
-                              <SelectItem value="basic-active">Basic (Active)</SelectItem>
-                              <SelectItem value="premium-active">Premium (Active)</SelectItem>
-                              <SelectItem value="enterprise-active">Enterprise (Active)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs w-full sm:w-auto"
+                          onClick={() => updateUserStatusMutation.mutate({
+                            userId: user.id,
+                            status: user.status === "active" ? "suspended" : "active"
+                          })}
+                          disabled={updateUserStatusMutation.isPending}
+                        >
+                          {user.status === "active" ? "Suspend" : "Activate"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => resetUserPasswordMutation.mutate(user.id)}
                           disabled={resetUserPasswordMutation.isPending}
                         >
-                          {resetUserPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                          Reset Password
                         </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="assessments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assessment Management</CardTitle>
+              <CardDescription>
+                Manage all assessments, archive completed ones, and monitor assessment lifecycle
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {assessmentsLoading ? (
+                <div className="text-center py-4">Loading assessments...</div>
+              ) : assessments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No assessments available
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {assessments.map((assessment: any) => (
+                    <div key={assessment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          <h4 className="font-medium text-sm sm:text-base">{assessment.buildingName || 'Unnamed Assessment'}</h4>
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
+                            <Badge className={assessment.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                              {assessment.status}
+                            </Badge>
+                            {assessment.isLocked && (
+                              <Badge className="bg-red-100 text-red-800">Locked</Badge>
+                            )}
+                            {assessment.isArchived && (
+                              <Badge className="bg-gray-100 text-gray-800">Archived</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{assessment.buildingLocation}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Assessor: {assessment.assessorName} | Client: {assessment.clientName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 0}
+                        </p>
+                        {assessment.conductedAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Completed: {new Date(assessment.conductedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                        >
+                          <Link href={`/assessments/${assessment.publicId}/preview`}>
+                            View Details
+                          </Link>
+                        </Button>
+                        {assessment.status === 'completed' && !assessment.isArchived && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAssessment(assessment);
+                              setArchiveDialogOpen(true);
+                            }}
+                            disabled={archiveAssessmentMutation.isPending}
+                          >
+                            <Archive className="w-4 h-4 mr-1" />
+                            Archive
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -584,9 +593,9 @@ export default function AdminDashboard() {
         <TabsContent value="invitations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pending Invitations</CardTitle>
+              <CardTitle>Invitation Management</CardTitle>
               <CardDescription>
-                Track and manage user invitations
+                View and manage pending user invitations
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -600,75 +609,27 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {invitations.map((invite: Invitation) => (
                     <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
-                      <div className="space-y-2 min-w-0 flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <h4 className="font-medium text-sm sm:text-base break-all">{invite.email}</h4>
-                          <div className="flex flex-wrap gap-1">
-                            <Badge className={`${getRoleColor(invite.role)} text-xs`}>{invite.role}</Badge>
-                            <Badge className={`${getStatusColor(invite.status)} text-xs`}>{invite.status}</Badge>
+                      <div className="space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          <h4 className="font-medium text-sm sm:text-base">{invite.email}</h4>
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
+                            <Badge className={getRoleColor(invite.role)}>{invite.role}</Badge>
+                            <Badge className={invite.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}>
+                              {invite.status}
+                            </Badge>
+                            <Badge className={getTierColor(invite.subscriptionTier)}>{invite.subscriptionTier}</Badge>
                           </div>
                         </div>
                         {invite.organizationName && (
-                          <p className="text-xs sm:text-sm text-muted-foreground">{invite.organizationName}</p>
+                          <p className="text-xs text-muted-foreground">Organization: {invite.organizationName}</p>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          Sent: {new Date(invite.createdAt).toLocaleDateString()}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           Expires: {new Date(invite.expiresAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs w-full sm:w-auto"
-                          onClick={() => handleResendInvitation(invite.id, invite.email)}
-                          disabled={loadingStates[invite.id]?.resending}
-                        >
-                          {loadingStates[invite.id]?.resending ? "Resending..." : "Resend"}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="text-xs w-full sm:w-auto"
-                          onClick={() => handleCancelInvitation(invite.id)}
-                          disabled={loadingStates[invite.id]?.canceling}
-                        >
-                          {loadingStates[invite.id]?.canceling ? "Canceling..." : "Cancel"}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="audit" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>System Activity</CardTitle>
-              <CardDescription>
-                View system activity and admin actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {auditLoading ? (
-                <div className="text-center py-4">Loading audit logs...</div>
-              ) : auditLogs.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No audit logs available
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {auditLogs.slice(0, 10).map((log: any) => (
-                    <div key={log.id} className="flex items-center justify-between p-3 border rounded">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">{log.action}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                      <Badge variant="outline">{log.userId}</Badge>
                     </div>
                   ))}
                 </div>
@@ -681,6 +642,36 @@ export default function AdminDashboard() {
           <ActivityTracker />
         </TabsContent>
       </Tabs>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive Assessment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive "{selectedAssessment?.buildingName || 'this assessment'}"? 
+              This will remove it from the public gallery and notify all parties involved. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => selectedAssessment && archiveAssessmentMutation.mutate(selectedAssessment.id)}
+              disabled={archiveAssessmentMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {archiveAssessmentMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Archiving...
+                </>
+              ) : (
+                "Archive Assessment"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
