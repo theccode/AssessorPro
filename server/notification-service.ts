@@ -633,6 +633,107 @@ export class NotificationService {
     `;
     await this.sendEmailNotification(assignedUser, "New Admin Note - Action Required", userEmailHtml);
   }
+
+  // Notify when assessment editing is completed and automatically locked
+  async notifyEditingCompleted(assessment: Assessment, editor: User) {
+    const client = await storage.getUser(assessment.clientId);
+    const assessor = await storage.getUser(assessment.userId);
+
+    // Notify client that editing is complete
+    if (client) {
+      const clientNotification = await storage.createNotification({
+        userId: client.id,
+        type: "assessment_editing_completed",
+        title: "Assessment Editing Completed",
+        message: `Editing has been completed for your assessment: ${assessment.buildingName}. The assessment is now locked for security.`,
+        assessmentId: assessment.id,
+        assessmentPublicId: assessment.publicId,
+        buildingName: assessment.buildingName,
+        clientName: assessment.clientName,
+        priority: "medium",
+        metadata: {
+          editorId: editor.id,
+          editorName: `${editor.firstName} ${editor.lastName}`,
+          lockAction: "auto_locked_after_editing"
+        }
+      });
+
+      // Send real-time notification to client
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(client.id, {
+          type: 'new_notification',
+          notification: {
+            id: clientNotification.id,
+            type: clientNotification.type,
+            title: clientNotification.title,
+            message: clientNotification.message,
+            priority: clientNotification.priority,
+            isRead: false,
+            createdAt: clientNotification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(client.id)
+        });
+      }
+
+      // Send email notification to client
+      const clientEmailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2E7D32;">Assessment Editing Completed - GREDA GBC</h2>
+          <p>Dear ${client.firstName} ${client.lastName},</p>
+          <p>We wanted to inform you that the editing process for your building assessment has been completed.</p>
+          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+            <strong>Assessment:</strong> ${assessment.buildingName}<br>
+            <strong>Editor:</strong> ${editor.firstName} ${editor.lastName}<br>
+            <strong>Status:</strong> Locked for security
+          </div>
+          <p>Your assessment is now securely locked to maintain data integrity. You can view the updated assessment by logging into the GREDA GBC platform.</p>
+          <p>If you have any questions about the changes made, please contact our support team.</p>
+          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+        </div>
+      `;
+      await this.sendEmailNotification(client, "Assessment Editing Completed", clientEmailHtml);
+    }
+
+    // Notify admins that editing is complete
+    const adminUsers = await storage.getUsersByRole("admin");
+    for (const admin of adminUsers) {
+      const adminNotification = await storage.createNotification({
+        userId: admin.id,
+        type: "assessment_editing_completed",
+        title: "Assessment Editing Completed",
+        message: `Assessment editing for ${assessment.buildingName} has been completed by ${editor.firstName} ${editor.lastName} and automatically locked.`,
+        assessmentId: assessment.id,
+        assessmentPublicId: assessment.publicId,
+        buildingName: assessment.buildingName,
+        clientName: assessment.clientName,
+        priority: "low",
+        metadata: {
+          editorId: editor.id,
+          editorName: `${editor.firstName} ${editor.lastName}`,
+          lockAction: "auto_locked_after_editing"
+        }
+      });
+
+      // Send real-time notification to admin
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(admin.id, {
+          type: 'new_notification',
+          notification: {
+            id: adminNotification.id,
+            type: adminNotification.type,
+            title: adminNotification.title,
+            message: adminNotification.message,
+            priority: adminNotification.priority,
+            isRead: false,
+            createdAt: adminNotification.createdAt
+          },
+          count: await storage.getUnreadNotificationCount(admin.id)
+        });
+      }
+    }
+  }
 }
 
 export const notificationService = new NotificationService();

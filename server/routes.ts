@@ -813,6 +813,10 @@ For security reasons, we recommend using a strong, unique password and not shari
           if (lockingUser) {
             await activityService.logAssessmentLocked(lockingUser, updated, 'Auto-locked after editing completed assessment');
           }
+          
+          // Send notification that editing is complete and assessment is locked
+          console.log('Sending assessment editing completed notification');
+          await notificationService.notifyEditingCompleted(updated, lockingUser || currentUser);
         }
       } catch (notificationError) {
         console.error("Error sending notifications:", notificationError);
