@@ -679,6 +679,15 @@ export default function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Footer */}
+      <footer className="mt-12 py-6 border-t border-border">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} BuildAssess Pro - GREDA Green Building Assessment Platform. All Rights Reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
