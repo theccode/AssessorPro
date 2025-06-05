@@ -157,6 +157,13 @@ export default function Header() {
             >
               {(user as any)?.role === "client" ? "My Reports" : "Reports"}
             </Link>
+            <Link 
+              href="/activity-logs" 
+              className="block text-muted-foreground hover:text-foreground py-2 text-sm font-medium transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Activity Logs
+            </Link>
             {(user as any)?.role === "admin" && (
               <Link 
                 href="/admin" 
