@@ -14,6 +14,123 @@ function getWSManager() {
 
 export class NotificationService {
   
+  // Create professional email template matching Upwork design
+  private createProfessionalEmailTemplate(greeting: string, mainContent: string, additionalContent: string = '') {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>GREDA Green Building Assessment</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background-color: #f5f5f5;
+              line-height: 1.6;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #ffffff;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background: linear-gradient(135deg, #33A366 0%, #2E7D32 100%);
+              padding: 40px 40px 30px 40px;
+              text-align: left;
+            }
+            .logo {
+              color: #ffffff;
+              font-size: 32px;
+              font-weight: bold;
+              margin: 0;
+              letter-spacing: -1px;
+            }
+            .content {
+              padding: 40px 40px 30px 40px;
+              color: #333333;
+            }
+            .greeting {
+              font-size: 24px;
+              color: #333333;
+              margin: 0 0 30px 0;
+              font-weight: 400;
+            }
+            .main-text {
+              font-size: 16px;
+              color: #333333;
+              margin: 0 0 20px 0;
+            }
+            .highlight {
+              font-weight: 600;
+              color: #2E7D32;
+            }
+            .link {
+              color: #33A366;
+              text-decoration: underline;
+            }
+            .footer {
+              background-color: #f8f9fa;
+              padding: 30px 40px;
+              text-align: center;
+              border-top: 1px solid #e9ecef;
+            }
+            .footer-links {
+              margin-bottom: 20px;
+            }
+            .footer-links a {
+              color: #6c757d;
+              text-decoration: underline;
+              margin: 0 10px;
+              font-size: 14px;
+            }
+            .footer-text {
+              color: #6c757d;
+              font-size: 14px;
+              margin: 5px 0;
+            }
+            .signature {
+              margin-top: 30px;
+              font-size: 16px;
+              color: #333333;
+            }
+            .signature-line {
+              margin: 4px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="header">
+              <div class="logo">Assessor Pro</div>
+            </div>
+            <div class="content">
+              <div class="greeting">${greeting}</div>
+              <div class="main-text">${mainContent}</div>
+              ${additionalContent}
+              <div class="signature">
+                <div class="signature-line">Thanks,</div>
+                <div class="signature-line">The Assessor Pro Team</div>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="footer-links">
+                <a href="#">Privacy Policy</a> |
+                <a href="#">Contact Support</a> |
+                <a href="#">Help Center</a>
+              </div>
+              <div class="footer-text">GREDA Green Building Assessment Platform</div>
+              <div class="footer-text">© ${new Date().getFullYear()} Assessor Pro Inc.</div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+  
   // Helper method to send email notification
   private async sendEmailNotification(user: User, subject: string, htmlContent: string) {
     try {
@@ -81,21 +198,17 @@ export class NotificationService {
       }
 
       // Send email notification to admin
-      const adminEmailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2E7D32;">Assessment Completed - GREDA GBC</h2>
-          <p>Dear ${admin.firstName} ${admin.lastName},</p>
-          <p>An assessment has been completed and requires your review:</p>
-          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
-            <strong>Building:</strong> ${assessment.buildingName}<br>
-            <strong>Client:</strong> ${assessment.clientName}<br>
-            <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
-            <strong>Overall Score:</strong> ${assessment.overallScore || 'Pending'}%
-          </div>
-          <p>Please log in to the GREDA GBC platform to review the assessment details.</p>
-          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      const adminEmailHtml = this.createProfessionalEmailTemplate(
+        `Hi ${admin.firstName},`,
+        `Assessment for <strong>${assessment.buildingName}</strong> has been completed by ${assessor.firstName} ${assessor.lastName} and requires your review.`,
+        `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+          <div style="margin-bottom: 12px;"><strong>Client:</strong> ${assessment.clientName}</div>
+          <div style="margin-bottom: 12px;"><strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}</div>
+          <div><strong>Overall Score:</strong> ${assessment.overallScore || 'Pending'}${assessment.overallScore ? '%' : ''}</div>
         </div>
-      `;
+        <p>Please log in to the platform to review the assessment details and provide any necessary feedback.</p>`
+      );
       await this.sendEmailNotification(admin, "Assessment Completed - Action Required", adminEmailHtml);
     }
 
@@ -141,25 +254,20 @@ export class NotificationService {
     }
 
     // Send email notification to client
-    const clientEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2E7D32;">Your Building Assessment is Complete!</h2>
-        <p>Dear ${client.firstName} ${client.lastName},</p>
-        <p>Great news! Your building assessment has been completed.</p>
-        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
-          <strong>Building:</strong> ${assessment.buildingName}<br>
-          <strong>Location:</strong> ${assessment.buildingLocation}<br>
-          <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
-          ${assessment.overallScore ? `<strong>Overall Score:</strong> ${assessment.overallScore}%<br>` : ''}
-          <strong>Completion Date:</strong> ${new Date().toLocaleDateString()}
-        </div>
-        <p>Your detailed assessment report is now available for review in your dashboard.</p>
-        <p>Please log in to the GREDA GBC platform to view your complete assessment results and recommendations.</p>
-        <p>Thank you for choosing GREDA Green Building Certification!</p>
-        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+    const clientEmailHtml = this.createProfessionalEmailTemplate(
+      `Hi ${client.firstName},`,
+      `Great news! Your building assessment for <strong>${assessment.buildingName}</strong> has been completed and is ready for review.`,
+      `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+        <div style="margin-bottom: 12px;"><strong>Location:</strong> ${assessment.buildingLocation || 'Not specified'}</div>
+        <div style="margin-bottom: 12px;"><strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}</div>
+        ${assessment.overallScore ? `<div style="margin-bottom: 12px;"><strong>Overall Score:</strong> ${assessment.overallScore}%</div>` : ''}
+        <div><strong>Completion Date:</strong> ${new Date().toLocaleDateString()}</div>
       </div>
-    `;
-    await this.sendEmailNotification(client, "Your Building Assessment is Complete! 🏗️", clientEmailHtml);
+      <p>Your detailed assessment report is now available for review in your dashboard. Please log in to the platform to view your complete assessment results and recommendations.</p>
+      <p>Thank you for choosing our green building certification services!</p>`
+    );
+    await this.sendEmailNotification(client, "Your Building Assessment is Complete", clientEmailHtml);
   }
 
   // Create notification for assessment submission
@@ -278,24 +386,18 @@ export class NotificationService {
     }
 
     // Send email notification to client
-    const clientEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2E7D32;">Your Building Assessment Has Started!</h2>
-        <p>Dear ${client.firstName} ${client.lastName},</p>
-        <p>Good news! Your building assessment has been initiated by our certified assessor.</p>
-        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
-          <strong>Building:</strong> ${assessment.buildingName}<br>
-          <strong>Location:</strong> ${assessment.buildingLocation}<br>
-          <strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}<br>
-          <strong>Start Date:</strong> ${new Date().toLocaleDateString()}
-        </div>
-        <p>Your assessor will now begin the comprehensive evaluation of your building's sustainability features.</p>
-        <p>You can track the progress of your assessment in your dashboard. We'll notify you when the assessment is complete.</p>
-        <p>Thank you for choosing GREDA Green Building Certification!</p>
-        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+    const clientEmailHtml = this.createProfessionalEmailTemplate(
+      `Hi ${client.firstName},`,
+      `Good news! Your building assessment for <strong>${assessment.buildingName}</strong> has been initiated by our certified assessor.`,
+      `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+        <div style="margin-bottom: 12px;"><strong>Location:</strong> ${assessment.buildingLocation || 'Not specified'}</div>
+        <div style="margin-bottom: 12px;"><strong>Assessor:</strong> ${assessor.firstName} ${assessor.lastName}</div>
+        <div><strong>Start Date:</strong> ${new Date().toLocaleDateString()}</div>
       </div>
-    `;
-    await this.sendEmailNotification(client, "Your Building Assessment Has Started!", clientEmailHtml);
+      <p>Your assessor will now begin the comprehensive evaluation of your building's sustainability features. You can track the progress in your dashboard, and we'll notify you when the assessment is complete.</p>`
+    );
+    await this.sendEmailNotification(client, "Your Building Assessment Has Started", clientEmailHtml);
 
     // Also notify admin for tracking purposes
     const adminUsers = await storage.getUsersByRole("admin");
@@ -417,22 +519,17 @@ export class NotificationService {
     }
 
     // Send email notification to assessor
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2E7D32;">Edit Request Approved - GREDA GBC</h2>
-        <p>Dear ${requestingUser.firstName} ${requestingUser.lastName},</p>
-        <p>Great news! Your request to edit the assessment has been approved.</p>
-        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
-          <strong>Building:</strong> ${assessment.buildingName}<br>
-          <strong>Approved by:</strong> ${approvingAdmin.firstName} ${approvingAdmin.lastName}<br>
-          <strong>Status:</strong> Assessment is now unlocked for editing
-        </div>
-        <p>You can now access and edit the assessment. The assessment has been unlocked and is ready for your updates.</p>
-        <p>Please log in to the GREDA GBC platform to begin editing.</p>
-        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+    const emailHtml = this.createProfessionalEmailTemplate(
+      `Hi ${requestingUser.firstName},`,
+      `Great news! Your request to edit the assessment for <strong>${assessment.buildingName}</strong> has been approved.`,
+      `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+        <div style="margin-bottom: 12px;"><strong>Approved by:</strong> ${approvingAdmin.firstName} ${approvingAdmin.lastName}</div>
+        <div><strong>Status:</strong> Assessment is now unlocked for editing</div>
       </div>
-    `;
-    await this.sendEmailNotification(requestingUser, "Edit Request Approved - You Can Now Edit", emailHtml);
+      <p>You can now access and edit the assessment. Please log in to the platform to begin making your updates.</p>`
+    );
+    await this.sendEmailNotification(requestingUser, "Edit Request Approved", emailHtml);
   }
 
   // Create notification for edit request denial
