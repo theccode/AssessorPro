@@ -497,7 +497,7 @@ export default function Landing() {
                 <li><a href="#" className="hover:text-primary transition-colors">GREDA Assessments</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Certification Reports</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Performance Analytics</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">API Access</a></li>
+
               </ul>
             </div>
             <div>
@@ -506,7 +506,7 @@ export default function Landing() {
                 <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Contact Support</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">System Status</a></li>
+
               </ul>
             </div>
             <div>
@@ -521,7 +521,7 @@ export default function Landing() {
           </div>
           <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-muted-foreground text-sm">
-              © 2024 BuildAssess Pro - GREDA Green Building Assessment Platform. All rights reserved.
+              © {new Date().getFullYear()} BuildAssess Pro - GREDA Green Building Assessment Platform. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
