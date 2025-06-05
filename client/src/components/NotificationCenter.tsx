@@ -55,6 +55,12 @@ export function NotificationCenter() {
   // Initialize WebSocket connection for real-time notifications
   const { isConnected, connectionStatus } = useWebSocket();
 
+  // Fetch current user to check role for admin features
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+  });
+
   // Fetch unread notification count
   const { data: countData } = useQuery({
     queryKey: ["/api/notifications/count"],
@@ -280,7 +286,7 @@ export function NotificationCenter() {
                               </div>
                               
                               {/* Edit request action buttons for admins */}
-                              {notification.type === 'edit_request_created' && !notification.isRead && (
+                              {notification.type === 'edit_request_created' && !notification.isRead && user?.role === 'admin' && (
                                 <div className="flex gap-2 mt-2">
                                   <Button
                                     size="sm"
