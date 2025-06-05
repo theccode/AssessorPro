@@ -251,7 +251,7 @@ export function ActivityTracker() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                          <h3 className="font-medium text-foreground truncate">
                             {activity.title}
                           </h3>
                           <Badge variant={getPriorityColor(activity.priority)}>
@@ -262,18 +262,18 @@ export function ActivityTracker() {
                           </Badge>
                         </div>
                         
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           {activity.description}
                         </p>
                         
                         {activity.buildingName && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
                             <Building className="h-3 w-3" />
                             <span>{activity.buildingName}</span>
                           </div>
                         )}
                         
-                        <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             <span>{formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}</span>

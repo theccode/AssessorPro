@@ -175,15 +175,10 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex items-center min-w-[60px]">
-                            {assessment.isLocked ? (
+                            {assessment.isLocked && (
                               <>
-                                <Lock className="h-3 w-3 text-blue-500 mr-1" />
-                                <span className="text-xs text-blue-600">Locked</span>
-                              </>
-                            ) : (
-                              <>
-                                <Unlock className="h-3 w-3 text-green-500 mr-1" />
-                                <span className="text-xs text-green-600">Unlocked</span>
+                                <Lock className="h-3 w-3 text-red-500 mr-1" />
+                                <span className="text-xs text-red-600">Locked</span>
                               </>
                             )}
                           </div>
