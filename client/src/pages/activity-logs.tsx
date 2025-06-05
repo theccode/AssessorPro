@@ -25,7 +25,7 @@ export default function ActivityLogs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -36,11 +36,11 @@ export default function ActivityLogs() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Activity className="h-6 w-6" />
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Activity className="h-6 w-6 text-primary" />
                 Activity Logs
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-muted-foreground">
                 {user.role === 'admin' 
                   ? 'Monitor all system activities and user actions'
                   : 'View your recent activities and system interactions'

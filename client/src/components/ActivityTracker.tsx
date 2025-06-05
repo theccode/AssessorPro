@@ -113,8 +113,8 @@ export function ActivityTracker() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Activity className="h-6 w-6" />
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary" />
           Activity Tracker
         </h2>
       </div>
@@ -181,7 +181,7 @@ export function ActivityTracker() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Search activities..."
                       value={searchTerm}
@@ -228,11 +228,11 @@ export function ActivityTracker() {
               <Card>
                 <CardContent className="flex items-center justify-center py-12">
                   <div className="text-center">
-                    <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">
                       No activities found
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       Try adjusting your filters or search terms.
                     </p>
                   </div>
