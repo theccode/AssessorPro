@@ -287,7 +287,12 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center mt-2">
+                      <div className="flex items-center gap-2 mt-2">
+                        {assessment.isArchived && (
+                          <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full font-medium">
+                            Archived
+                          </span>
+                        )}
                         <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-2 py-1 rounded-full">
                           {assessment.status}
                         </span>

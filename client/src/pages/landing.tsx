@@ -424,7 +424,14 @@ export default function Landing() {
                     </div>
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">{assessment.buildingName}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-foreground">{assessment.buildingName}</h3>
+                          {assessment.isArchived && (
+                            <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full font-medium">
+                              Archived
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-1">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star 

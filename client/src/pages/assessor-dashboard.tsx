@@ -269,9 +269,16 @@ export default function AssessorDashboard() {
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-base">{assessment.buildingName || "Unnamed Building"}</CardTitle>
-                            <Badge className={getStatusColor(assessment.status)}>
-                              {assessment.status.replace('_', ' ')}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              {assessment.isArchived && (
+                                <Badge variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                  Archived
+                                </Badge>
+                              )}
+                              <Badge className={getStatusColor(assessment.status)}>
+                                {assessment.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -341,7 +348,14 @@ export default function AssessorDashboard() {
                         .map((assessment: any) => (
                           <div key={assessment.id} className="flex items-center justify-between p-3 border rounded-lg">
                             <div>
-                              <p className="font-medium text-foreground">{assessment.buildingName || "Unnamed Building"}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-medium text-foreground">{assessment.buildingName || "Unnamed Building"}</p>
+                                {assessment.isArchived && (
+                                  <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full font-medium">
+                                    Archived
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 Completed: {new Date(assessment.updatedAt).toLocaleDateString()}
                               </p>
