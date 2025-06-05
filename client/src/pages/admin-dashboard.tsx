@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut } from "lucide-react";
 import { Link } from "wouter";
+import { ActivityTracker } from "@/components/ActivityTracker";
 
 interface User {
   id: string;
@@ -446,7 +447,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Users</span>
@@ -458,6 +459,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="audit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
             <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Logs</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Activity</span>
           </TabsTrigger>
         </TabsList>
 
@@ -643,6 +648,10 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-4">
+          <ActivityTracker />
         </TabsContent>
       </Tabs>
     </div>
