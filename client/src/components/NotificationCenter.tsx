@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, Trash2, CheckCheck, X } from "lucide-react";
+import { Bell, Check, Trash2, CheckCheck, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -298,7 +298,14 @@ export function NotificationCenter() {
                                     disabled={approveEditRequestMutation.isPending || denyEditRequestMutation.isPending}
                                     className="h-7 px-3 text-xs"
                                   >
-                                    ✓ Approve
+                                    {approveEditRequestMutation.isPending ? (
+                                      <>
+                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        Approving...
+                                      </>
+                                    ) : (
+                                      <>✓ Approve</>
+                                    )}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -310,7 +317,14 @@ export function NotificationCenter() {
                                     disabled={approveEditRequestMutation.isPending || denyEditRequestMutation.isPending}
                                     className="h-7 px-3 text-xs"
                                   >
-                                    ✗ Deny
+                                    {denyEditRequestMutation.isPending ? (
+                                      <>
+                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        Denying...
+                                      </>
+                                    ) : (
+                                      <>✗ Deny</>
+                                    )}
                                   </Button>
                                 </div>
                               )}
