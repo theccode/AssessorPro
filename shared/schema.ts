@@ -86,6 +86,10 @@ export const assessments = pgTable("assessments", {
   lastEditedBy: varchar("last_edited_by").references(() => users.id), // user ID who last edited
   lastEditedByName: text("last_edited_by_name"), // name of the person who last edited
   lastEditedAt: timestamp("last_edited_at"), // when the assessment was last edited by someone other than conductor
+  // Archive status
+  isArchived: boolean("is_archived").default(false),
+  archivedBy: varchar("archived_by").references(() => users.id),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

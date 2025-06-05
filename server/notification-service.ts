@@ -734,6 +734,127 @@ export class NotificationService {
       }
     }
   }
+
+  // Notify assessment archived
+  async notifyAssessmentArchived(assessment: Assessment, archivingAdmin: User) {
+    // Get the assessor who conducted the assessment
+    const assessor = await storage.getUser(assessment.userId);
+    
+    // Get the client who owns the assessment
+    const client = await storage.getUser(assessment.clientId);
+
+    // Notify assessor
+    if (assessor) {
+      const assessorNotification = await storage.createNotification({
+        userId: assessor.id,
+        type: "assessment_archived",
+        title: "Assessment Archived",
+        message: `Your assessment for ${assessment.buildingName} has been archived by ${archivingAdmin.firstName} ${archivingAdmin.lastName}`,
+        assessmentId: assessment.id,
+        assessmentPublicId: assessment.publicId,
+        buildingName: assessment.buildingName,
+        clientName: assessment.clientName,
+        priority: "medium",
+        metadata: {
+          archivingAdminId: archivingAdmin.id,
+          archivingAdminName: `${archivingAdmin.firstName} ${archivingAdmin.lastName}`,
+          archivedAt: new Date().toISOString()
+        }
+      });
+
+      // Send real-time notification to assessor
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(assessor.id, {
+          type: 'new_notification',
+          notification: {
+            id: assessorNotification.id,
+            type: assessorNotification.type,
+            title: assessorNotification.title,
+            message: assessorNotification.message,
+            priority: assessorNotification.priority,
+            createdAt: assessorNotification.createdAt
+          }
+        });
+      }
+
+      // Send email notification to assessor
+      const assessorEmailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #FF6B35;">Assessment Archived - GREDA GBC</h2>
+          <p>Dear ${assessor.firstName} ${assessor.lastName},</p>
+          <p>This is to inform you that an assessment you conducted has been archived.</p>
+          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #FF6B35;">
+            <strong>Building:</strong> ${assessment.buildingName}<br>
+            <strong>Location:</strong> ${assessment.buildingLocation}<br>
+            <strong>Client:</strong> ${assessment.clientName}<br>
+            <strong>Archived by:</strong> ${archivingAdmin.firstName} ${archivingAdmin.lastName}<br>
+            <strong>Archived on:</strong> ${new Date().toLocaleDateString()}
+          </div>
+          <p>The assessment has been moved to the archives and is no longer visible in the public gallery or active assessments list. All data remains securely stored for compliance and record-keeping purposes.</p>
+          <p>If you have any questions about this action, please contact the administrator.</p>
+          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+        </div>
+      `;
+      await this.sendEmailNotification(assessor, "Assessment Archived - GREDA GBC", assessorEmailHtml);
+    }
+
+    // Notify client
+    if (client) {
+      const clientNotification = await storage.createNotification({
+        userId: client.id,
+        type: "assessment_archived",
+        title: "Your Assessment Archived",
+        message: `Your building assessment for ${assessment.buildingName} has been archived`,
+        assessmentId: assessment.id,
+        assessmentPublicId: assessment.publicId,
+        buildingName: assessment.buildingName,
+        clientName: assessment.clientName,
+        priority: "medium",
+        metadata: {
+          archivingAdminId: archivingAdmin.id,
+          archivingAdminName: `${archivingAdmin.firstName} ${archivingAdmin.lastName}`,
+          archivedAt: new Date().toISOString()
+        }
+      });
+
+      // Send real-time notification to client
+      const wsManager = getWSManager();
+      if (wsManager) {
+        wsManager.sendToUser(client.id, {
+          type: 'new_notification',
+          notification: {
+            id: clientNotification.id,
+            type: clientNotification.type,
+            title: clientNotification.title,
+            message: clientNotification.message,
+            priority: clientNotification.priority,
+            createdAt: clientNotification.createdAt
+          }
+        });
+      }
+
+      // Send email notification to client
+      const clientEmailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #FF6B35;">Assessment Archived - GREDA GBC</h2>
+          <p>Dear ${client.firstName} ${client.lastName},</p>
+          <p>This is to inform you that your building assessment has been archived.</p>
+          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #FF6B35;">
+            <strong>Building:</strong> ${assessment.buildingName}<br>
+            <strong>Location:</strong> ${assessment.buildingLocation}<br>
+            <strong>Assessment Score:</strong> ${assessment.overallScore}%<br>
+            <strong>Archived on:</strong> ${new Date().toLocaleDateString()}
+          </div>
+          <p>Your assessment has been moved to the archives and is no longer visible in the public gallery. However, you can still access your assessment report through your dashboard.</p>
+          <p>All certification data remains valid and securely stored for your records.</p>
+          <p>If you have any questions, please don't hesitate to contact us.</p>
+          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+        </div>
+      `;
+      await this.sendEmailNotification(client, "Your Assessment Archived - GREDA GBC", clientEmailHtml);
+    }
+  }
 }
 
 export const notificationService = new NotificationService();
