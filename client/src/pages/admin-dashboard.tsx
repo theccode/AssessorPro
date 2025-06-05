@@ -527,14 +527,16 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {assessments.map((assessment: any) => (
+                  {assessments.map((assessment: any) => {
+                    console.log('Assessment data in admin dashboard:', assessment);
+                    return (
                     <div key={assessment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg space-y-3 sm:space-y-0">
                       <div className="space-y-2">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                           <h4 className="font-medium text-sm sm:text-base">{assessment.buildingName || 'Unnamed Assessment'}</h4>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
                             <Badge className={assessment.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                              {assessment.status}
+                              {assessment.status || 'Unknown'}
                             </Badge>
                             {assessment.isLocked && (
                               <Badge className="bg-red-100 text-red-800">Locked</Badge>
@@ -544,18 +546,21 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{assessment.buildingLocation}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{assessment.buildingLocation || 'Location not specified'}</p>
                         <p className="text-xs text-muted-foreground">
-                          Assessor: {assessment.assessorName} | Client: {assessment.clientName}
+                          Assessor: {assessment.assessorName || 'Unknown'} | Client: {assessment.clientName || 'Unknown'}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 0}
+                          Score: {assessment.overallScore || 0}/{assessment.maxPossibleScore || 127}
                         </p>
                         {assessment.conductedAt && (
                           <p className="text-xs text-muted-foreground">
                             Completed: {new Date(assessment.conductedAt).toLocaleDateString()}
                           </p>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          ID: {assessment.id} | Status: {assessment.status} | Archived: {assessment.isArchived ? 'Yes' : 'No'}
+                        </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Button
@@ -567,11 +572,12 @@ export default function AdminDashboard() {
                             View Details
                           </Link>
                         </Button>
-                        {assessment.status === 'completed' && !assessment.isArchived && (
+                        {(assessment.status === 'completed' || assessment.status === 'submitted') && !assessment.isArchived && (
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => {
+                              console.log('Archive button clicked for assessment:', assessment);
                               setSelectedAssessment(assessment);
                               setArchiveDialogOpen(true);
                             }}
@@ -583,7 +589,8 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </CardContent>
