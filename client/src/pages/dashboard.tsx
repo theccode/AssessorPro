@@ -196,23 +196,6 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {(user as any)?.role === "admin" && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => lockMutation.mutate({ 
-                            assessmentId: assessment.id, 
-                            isLocked: !assessment.isLocked 
-                          })}
-                          disabled={lockMutation.isPending}
-                        >
-                          {assessment.isLocked ? (
-                            <Unlock className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Lock className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </Button>
-                      )}
                       {assessment.isLocked ? (
                         <Lock className="h-4 w-4 text-blue-600" />
                       ) : (
