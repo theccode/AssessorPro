@@ -331,7 +331,9 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.get('/api/public/gallery', async (req, res) => {
     try {
       const allAssessments = await db.select().from(assessments);
-      const completedAssessments = allAssessments.filter(assessment => assessment.status === 'completed');
+      const completedAssessments = allAssessments.filter(assessment => 
+        assessment.status === 'completed' && !assessment.isArchived
+      );
       
       // Get assessment sections and media to provide comprehensive data
       const galleryItems = await Promise.all(

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut } from "lucide-react";
+import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut, Archive, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { ActivityTracker } from "@/components/ActivityTracker";
 
@@ -44,6 +44,8 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     role: "client" as const,
@@ -171,6 +173,27 @@ export default function AdminDashboard() {
     },
     onError: () => {
       toast({ title: "Failed to create user", variant: "destructive" });
+    }
+  });
+
+  // Archive assessment mutation
+  const archiveAssessmentMutation = useMutation({
+    mutationFn: (assessmentId: string) => 
+      apiRequest(`/api/assessments/${assessmentId}/archive`, "POST"),
+    onSuccess: () => {
+      toast({ 
+        title: "Assessment Archived", 
+        description: "Assessment has been archived and notifications sent to all parties." 
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/assessments"] });
+      setArchiveDialogOpen(false);
+      setSelectedAssessment(null);
+    },
+    onError: () => {
+      toast({ 
+        title: "Failed to archive assessment", 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -447,20 +470,24 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+          <TabsTrigger value="assessments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Assess</span>
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
             <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Invites</span>
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+          <TabsTrigger value="audit" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
             <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Logs</span>
           </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+          <TabsTrigger value="activity" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3">
             <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">Activity</span>
           </TabsTrigger>
