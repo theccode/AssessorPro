@@ -4,15 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Header from "@/components/Header";
-import { Building, Plus, FileText, Users, BarChart3, Star, Lock, Unlock } from "lucide-react";
+import { Building, Plus, FileText, Users, BarChart3, Star, Lock, Unlock, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { Assessment } from "@shared/schema";
+import { useState, useMemo } from "react";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
@@ -36,7 +48,53 @@ export default function Dashboard() {
   const completedAssessments = (assessments as Assessment[]).filter((a: Assessment) => 
     a.status === "completed" || a.status === "submitted"
   );
-  const recentAssessments = completedAssessments.slice(0, 5);
+
+  // Filtered and sorted assessments with search
+  const filteredAssessments = useMemo(() => {
+    let filtered = [...completedAssessments];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter((assessment) =>
+        assessment.buildingName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assessment.buildingLocation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assessment.clientName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((assessment) => assessment.status === statusFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "date":
+          return new Date(b.updatedAt || "").getTime() - new Date(a.updatedAt || "").getTime();
+        case "score":
+          return (b.overallScore || 0) - (a.overallScore || 0);
+        case "name":
+          return (a.buildingName || "").localeCompare(b.buildingName || "");
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [completedAssessments, searchTerm, statusFilter, sortBy]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAssessments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAssessments = filteredAssessments.slice(startIndex, startIndex + itemsPerPage);
+  
+  // Reset current page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, sortBy]);
+
+  const recentAssessments = paginatedAssessments;
   const completedThisMonth = (assessments as Assessment[]).filter((a: Assessment) => 
     a.status === "completed" && new Date(a.updatedAt || "").getMonth() === new Date().getMonth()
   ).length;
@@ -150,12 +208,57 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Assessments */}
-        {recentAssessments.length > 0 && (
+        {completedAssessments.length > 0 && (
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="text-xl">
-                {(user as any)?.role === "client" ? "Recent Reports" : "Recent Assessments"}
-              </CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <CardTitle className="text-xl">
+                  {(user as any)?.role === "client" ? "Recent Reports" : "Recent Assessments"}
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  {/* Search Input */}
+                  <div className="relative min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search assessments..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  
+                  {/* Status Filter */}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[140px]">
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Sort By */}
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Latest</SelectItem>
+                      <SelectItem value="score">Score</SelectItem>
+                      <SelectItem value="name">Name</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Results Summary */}
+              <div className="text-sm text-muted-foreground mt-2">
+                Showing {paginatedAssessments.length} of {filteredAssessments.length} assessments
+                {searchTerm && ` matching "${searchTerm}"`}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -204,7 +307,77 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
+                
+                {/* No Results Message */}
+                {paginatedAssessments.length === 0 && (
+                  <div className="text-center py-8">
+                    <Building className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                    <h4 className="text-lg font-medium text-foreground mb-1">No assessments found</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {searchTerm ? `No assessments match "${searchTerm}"` : "Try adjusting your filters"}
+                    </p>
+                  </div>
+                )}
               </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
