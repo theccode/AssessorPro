@@ -175,10 +175,15 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div className="flex items-center min-w-[60px]">
-                            {assessment.isLocked && (
+                            {assessment.isLocked ? (
                               <>
-                                <Lock className="h-3 w-3 text-red-500 mr-1" />
-                                <span className="text-xs text-red-600">Locked</span>
+                                <Lock className="h-3 w-3 text-blue-500 mr-1" />
+                                <span className="text-xs text-blue-600">Locked</span>
+                              </>
+                            ) : (
+                              <>
+                                <Unlock className="h-3 w-3 text-green-500 mr-1" />
+                                <span className="text-xs text-green-600">Unlocked</span>
                               </>
                             )}
                           </div>
@@ -207,6 +212,11 @@ export default function Dashboard() {
                             <Lock className="h-4 w-4 text-muted-foreground" />
                           )}
                         </Button>
+                      )}
+                      {assessment.isLocked ? (
+                        <Lock className="h-4 w-4 text-blue-600" />
+                      ) : (
+                        <Unlock className="h-4 w-4 text-green-600" />
                       )}
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/assessment/${assessment.publicId}`}>
