@@ -9,22 +9,51 @@ export async function validateAndCleanupFiles() {
     // Get all media records from database
     const allMedia = await getAllMediaRecords();
     let cleanedCount = 0;
+    let checkedCount = 0;
     
+    // Only clean up records that are clearly orphaned (more conservative approach)
     for (const media of allMedia) {
-      const fullPath = path.join(process.cwd(), media.filePath);
+      checkedCount++;
       
-      try {
-        // Check if file exists on disk
-        await fs.promises.access(fullPath);
-      } catch (error) {
-        // File doesn't exist, remove database record
-        console.log(`Removing orphaned media record: ${media.fileName} (ID: ${media.id})`);
-        await storage.deleteAssessmentMedia(media.id);
-        cleanedCount++;
+      // Skip validation if file path is missing or invalid
+      if (!media.filePath || typeof media.filePath !== 'string') {
+        continue;
+      }
+      
+      // Try multiple path variations to account for different storage patterns
+      const pathsToCheck = [
+        path.join(process.cwd(), media.filePath),
+        path.resolve(media.filePath),
+        media.filePath
+      ];
+      
+      let fileExists = false;
+      
+      for (const fullPath of pathsToCheck) {
+        try {
+          await fs.promises.access(fullPath, fs.constants.F_OK);
+          fileExists = true;
+          break;
+        } catch (error) {
+          // Continue checking other paths
+        }
+      }
+      
+      // Only remove database record if we're absolutely sure the file doesn't exist
+      // AND the record is old enough (older than 1 hour) to avoid race conditions
+      if (!fileExists && media.createdAt) {
+        const recordAge = Date.now() - new Date(media.createdAt).getTime();
+        const oneHour = 60 * 60 * 1000;
+        
+        if (recordAge > oneHour) {
+          console.log(`Removing confirmed orphaned media record: ${media.fileName} (ID: ${media.id})`);
+          await storage.deleteAssessmentMedia(media.id);
+          cleanedCount++;
+        }
       }
     }
     
-    console.log(`File validation complete. Cleaned up ${cleanedCount} orphaned records.`);
+    console.log(`File validation complete. Checked ${checkedCount} records, cleaned up ${cleanedCount} orphaned records.`);
   } catch (error) {
     console.error("Error during file validation:", error);
   }
