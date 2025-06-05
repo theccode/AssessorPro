@@ -961,14 +961,33 @@ For security reasons, we recommend using a strong, unique password and not shari
       const publicId = req.params.id;
       const userId = req.user.id;
       
-      // Verify ownership using public ID
+      // Get assessment and verify access
       const assessment = await storage.getAssessmentByPublicId(publicId);
-      if (!assessment || assessment.userId !== userId) {
+      if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      // Check if assessment is locked and user is not admin
-      if (assessment.isLocked && req.user.role !== 'admin') {
+      // Get current user info
+      const user = await storage.getUser(userId);
+      
+      // Allow access if:
+      // 1. User is the assessment owner
+      // 2. User is the client
+      // 3. User is an admin
+      // 4. User is an assessor and assessment is unlocked (edit request approved)
+      const hasAccess = (
+        assessment.userId === userId ||
+        assessment.clientId === userId ||
+        user?.role === 'admin' ||
+        (user?.role === 'assessor' && !assessment.isLocked)
+      );
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check if assessment is locked and user is not admin/owner
+      if (assessment.isLocked && user?.role !== 'admin' && assessment.userId !== userId) {
         return res.status(403).json({ message: "Assessment is locked and cannot be edited. Contact an administrator to unlock it." });
       }
 
@@ -1434,16 +1453,11 @@ For security reasons, we recommend using a strong, unique password and not shari
       const admin = await storage.getUser(userId);
 
       // Unlock the assessment
-      console.log(`Unlocking assessment ${assessment.id} (${assessment.buildingName})`);
-      console.log(`Before unlock - isLocked: ${assessment.isLocked}, lockedBy: ${assessment.lockedBy}`);
-      
-      const unlockResult = await storage.updateAssessment(assessment.id, {
+      await storage.updateAssessment(assessment.id, {
         isLocked: false,
         lockedBy: null,
         lockedAt: null,
       });
-      
-      console.log(`After unlock - isLocked: ${unlockResult.isLocked}, lockedBy: ${unlockResult.lockedBy}`);
 
       // Mark notification as read
       await storage.markNotificationRead(notificationId);

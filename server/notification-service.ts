@@ -382,7 +382,8 @@ export class NotificationService {
 
   // Create notification for edit request approval
   async notifyEditRequestApproved(assessment: Assessment, requestingUser: User, approvingAdmin: User) {
-    await storage.createNotification({
+    // Create dashboard notification
+    const notification = await storage.createNotification({
       userId: requestingUser.id,
       type: "edit_request_approved",
       title: "Edit Request Approved",
@@ -397,6 +398,40 @@ export class NotificationService {
         approvingAdminName: `${approvingAdmin.firstName} ${approvingAdmin.lastName}`
       }
     });
+
+    // Send real-time notification
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(requestingUser.id, {
+        type: 'new_notification',
+        notification: {
+          id: notification.id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          priority: notification.priority,
+          createdAt: notification.createdAt
+        }
+      });
+    }
+
+    // Send email notification to assessor
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2E7D32;">Edit Request Approved - GREDA GBC</h2>
+        <p>Dear ${requestingUser.firstName} ${requestingUser.lastName},</p>
+        <p>Great news! Your request to edit the assessment has been approved.</p>
+        <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #2E7D32;">
+          <strong>Building:</strong> ${assessment.buildingName}<br>
+          <strong>Approved by:</strong> ${approvingAdmin.firstName} ${approvingAdmin.lastName}<br>
+          <strong>Status:</strong> Assessment is now unlocked for editing
+        </div>
+        <p>You can now access and edit the assessment. The assessment has been unlocked and is ready for your updates.</p>
+        <p>Please log in to the GREDA GBC platform to begin editing.</p>
+        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      </div>
+    `;
+    await this.sendEmailNotification(requestingUser, "Edit Request Approved - You Can Now Edit", emailHtml);
   }
 
   // Create notification for edit request denial
