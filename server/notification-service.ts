@@ -1,5 +1,6 @@
 import { storage } from "./storage";
 import { emailService } from "./email-service";
+import { activityService } from "./activity-service";
 import { 
   type InsertNotification,
   type Assessment,

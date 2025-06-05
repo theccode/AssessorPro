@@ -346,6 +346,11 @@ export const insertAssessmentNoteSchema = createInsertSchema(assessmentNotes).om
   readAt: true,
 });
 
+export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const updateUserSchema = createInsertSchema(users).partial().omit({
   id: true,
   createdAt: true,
@@ -368,4 +373,6 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type AssessmentNote = typeof assessmentNotes.$inferSelect;
 export type InsertAssessmentNote = z.infer<typeof insertAssessmentNoteSchema>;
+export type ActivityLog = typeof activityLogs.$inferSelect;
+export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;

@@ -7,6 +7,7 @@ import {
   auditLogs,
   notifications,
   assessmentNotes,
+  activityLogs,
   type User,
   type UpsertUser,
   type Assessment,
@@ -23,6 +24,8 @@ import {
   type InsertNotification,
   type AssessmentNote,
   type InsertAssessmentNote,
+  type ActivityLog,
+  type InsertActivityLog,
   type UpdateUser,
 } from "@shared/schema";
 import { eq, desc, and, lt } from "drizzle-orm";
@@ -55,6 +58,12 @@ export interface IStorage {
   // Audit logging
   createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
   getAuditLogs(userId?: string, limit?: number): Promise<AuditLog[]>;
+  
+  // Activity logging
+  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
+  getUserActivityLogs(userId: string, limit?: number): Promise<ActivityLog[]>;
+  getAllActivityLogs(limit?: number): Promise<ActivityLog[]>;
+  getActivityLogsByType(activityType: string, limit?: number): Promise<ActivityLog[]>;
   
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;
@@ -438,6 +447,41 @@ export class DatabaseStorage implements IStorage {
     
     return await query
       .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
+  }
+
+  // Activity logging operations
+  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
+    const [created] = await db
+      .insert(activityLogs)
+      .values(log)
+      .returning();
+    return created;
+  }
+
+  async getUserActivityLogs(userId: string, limit: number = 100): Promise<ActivityLog[]> {
+    return await db
+      .select()
+      .from(activityLogs)
+      .where(eq(activityLogs.userId, userId))
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(limit);
+  }
+
+  async getAllActivityLogs(limit: number = 100): Promise<ActivityLog[]> {
+    return await db
+      .select()
+      .from(activityLogs)
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(limit);
+  }
+
+  async getActivityLogsByType(activityType: string, limit: number = 100): Promise<ActivityLog[]> {
+    return await db
+      .select()
+      .from(activityLogs)
+      .where(eq(activityLogs.activityType, activityType))
+      .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
   }
 
