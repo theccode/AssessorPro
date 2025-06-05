@@ -1943,27 +1943,13 @@ For security reasons, we recommend using a strong, unique password and not shari
       let activities;
 
       if (user.role === 'admin') {
-        // Admins see admin-relevant activities and system-wide activities
-        // They should NOT see personal activities of other users like individual edit requests
-        const adminRelevantTypes = [
-          'edit_request_created',
-          'edit_request_approved', 
-          'edit_request_denied',
-          'assessment_completed',
-          'assessment_locked',
-          'assessment_unlocked',
-          'user_created',
-          'user_status_changed',
-          'assessment_editing_completed'
-        ];
-
+        // Admins see only their own activities and system-wide administrative activities
+        // They should NOT see personal activities of other users
         if (type) {
           activities = await storage.getActivityLogsByType(type, parseInt(limit));
         } else {
-          // Get activities that are either:
-          // 1. Admin's own activities 
-          // 2. System-wide activities that require admin attention
-          activities = await storage.getAdminRelevantActivityLogs(userId, adminRelevantTypes, parseInt(limit));
+          // Get only admin's own activities - no cross-user activity visibility
+          activities = await storage.getUserActivityLogs(userId, parseInt(limit));
         }
       } else {
         // Non-admins can only see their own activities
