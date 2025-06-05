@@ -125,9 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes with custom authentication
   app.get('/api/auth/user', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id;
-      const dbUser = await storage.getUser(userId);
-      res.json(dbUser);
+      // req.user is already populated by the middleware
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

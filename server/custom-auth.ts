@@ -6,6 +6,13 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
+// Extend session interface
+declare module 'express-session' {
+  interface SessionData {
+    customUserId?: string;
+  }
+}
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -20,9 +27,18 @@ const registerSchema = z.object({
 });
 
 // Middleware to check if user is authenticated via custom auth
-export const isCustomAuthenticated: RequestHandler = (req, res, next) => {
+export const isCustomAuthenticated: RequestHandler = async (req: any, res, next) => {
   if (req.session?.customUserId) {
-    return next();
+    try {
+      // Populate req.user with user data from the database
+      const user = await storage.getUser(req.session.customUserId);
+      if (user) {
+        req.user = user;
+        return next();
+      }
+    } catch (error) {
+      console.error("Error fetching user in auth middleware:", error);
+    }
   }
   return res.status(401).json({ message: "Unauthorized" });
 };
