@@ -215,7 +215,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex flex-col xs:flex-row gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link href="/dashboard">
+            <Link href="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               <span className="hidden xs:inline">Back to Dashboard</span>
               <span className="xs:hidden">Back</span>
