@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes with custom authentication
   app.get('/api/auth/user', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const dbUser = await storage.getUser(userId);
       res.json(dbUser);
     } catch (error) {
@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Profile management routes
   app.put('/api/auth/profile', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const { firstName, lastName, email, organizationName } = req.body;
 
       const updatedUser = await storage.updateUser(userId, {
@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/auth/reset-password', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const { currentPassword, newPassword } = req.body;
 
       const user = await storage.getUser(userId);
@@ -248,7 +248,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Audit logging endpoint
   app.post('/api/audit/log', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const { action, details } = req.body;
 
       await storage.createAuditLog({
@@ -415,7 +415,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Get all users for admin notes assignment
   app.get('/api/users', isCustomAuthenticated, requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const currentUser = await storage.getUser(userId);
       
       // Only admins can access user list
@@ -444,7 +444,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Assessment routes
   app.post('/api/assessments', isCustomAuthenticated, requireAuth, requireAdminOrAssessor, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -485,7 +485,7 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.get('/api/assessments', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Get current user to check role
       const currentUser = await storage.getUser(userId);
@@ -533,7 +533,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       }
 
       // Check if user has access to this assessment
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       // Check if user has access to this assessment
@@ -606,7 +606,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       }
 
       // Check if user has access to this assessment
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (assessment.userId !== userId && assessment.clientId !== userId && user?.role !== 'admin') {
@@ -668,7 +668,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.patch('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Verify ownership using public ID
       const existing = await storage.getAssessmentByPublicId(publicId);
@@ -801,7 +801,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.delete('/api/assessments/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Verify ownership
       const existing = await storage.getAssessment(id);
@@ -821,7 +821,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:id/lock', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Get current user to check admin role
       const currentUser = await storage.getUser(userId);
@@ -864,7 +864,7 @@ For security reasons, we recommend using a strong, unique password and not shari
     try {
       const id = parseInt(req.params.id);
       const { isLocked } = req.body;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Get current user to check admin role
       const currentUser = await storage.getUser(userId);
@@ -907,7 +907,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:id/unlock', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Get current user to check admin role
       const currentUser = await storage.getUser(userId);
@@ -949,7 +949,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:id/sections', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Verify ownership using public ID
       const assessment = await storage.getAssessmentByPublicId(publicId);
@@ -1009,15 +1009,15 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:id/media', isCustomAuthenticated, upload.array('files'), async (req: any, res) => {
     try {
       const publicId = req.params.id;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const { sectionType, fieldName } = req.body;
       
-      console.log(`Media upload started - Assessment: ${publicId}, Section: ${sectionType}, Field: ${fieldName}`);
+      console.log(`Media upload started - Assessment: ${publicId}, Section: ${sectionType}, Field: ${fieldName}, User: ${userId}`);
       
       // Verify ownership using public ID
       const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment || assessment.userId !== userId) {
-        console.error(`Assessment access denied - ID: ${publicId}, User: ${userId}`);
+        console.error(`Assessment access denied - ID: ${publicId}, User: ${userId}, Assessment Owner: ${assessment?.userId}`);
         return res.status(404).json({ message: "Assessment not found" });
       }
 
@@ -1193,7 +1193,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       
       console.log(`Serving media ${mediaId} for authenticated user`);
       
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       console.log(`Serving media ${mediaId} for user ${userId}`);
       
       // Get assessments where user is either the assessor (userId) or the client (clientId)
@@ -1248,7 +1248,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.delete('/api/media/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
       const mediaId = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // First find the media and verify ownership
       const allAssessments = await storage.getUserAssessments(userId);
@@ -1354,7 +1354,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:publicId/request-edit', isCustomAuthenticated, async (req: any, res) => {
     try {
       const publicId = req.params.publicId;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
@@ -1396,7 +1396,7 @@ For security reasons, we recommend using a strong, unique password and not shari
       const { transferUserMediaFiles } = await import('./media-transfer');
       const toPublicId = req.params.id;
       const { fromPublicId } = req.body;
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
 
       if (!fromPublicId) {
         return res.status(400).json({ message: "Source assessment ID required" });
@@ -1422,7 +1422,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Notification routes
   app.get('/api/notifications', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const isRead = req.query.isRead === 'true' ? true : req.query.isRead === 'false' ? false : undefined;
       const limit = parseInt(req.query.limit as string) || 50;
       
@@ -1436,7 +1436,7 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.get('/api/notifications/count', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const count = await storage.getUnreadNotificationCount(userId);
       res.json({ count });
     } catch (error) {
@@ -1447,7 +1447,7 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.patch('/api/notifications/:id/read', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const notificationId = parseInt(req.params.id);
       
       await storage.markNotificationAsRead(notificationId, userId);
@@ -1460,7 +1460,7 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.patch('/api/notifications/read-all', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       await storage.markAllNotificationsAsRead(userId);
       res.json({ message: "All notifications marked as read" });
     } catch (error) {
@@ -1471,7 +1471,7 @@ For security reasons, we recommend using a strong, unique password and not shari
 
   app.delete('/api/notifications/:id', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const notificationId = parseInt(req.params.id);
       
       await storage.deleteNotification(notificationId, userId);
@@ -1485,7 +1485,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Test WebSocket notification endpoint (for development/testing)
   app.post('/api/test-notification', isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -1535,7 +1535,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Create test users for role verification (admin only)
   app.post('/api/create-test-users', isCustomAuthenticated, requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'admin') {
@@ -1584,7 +1584,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   // Test email notification endpoint
   app.post("/api/test-email-notification", isCustomAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'admin') {
@@ -1662,7 +1662,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.post('/api/assessments/:id/notes', isCustomAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user || user.role !== 'admin') {
@@ -1713,7 +1713,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.get('/api/assessments/:id/notes', isCustomAuthenticated, async (req: any, res) => {
     try {
       const assessmentId = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -1746,7 +1746,7 @@ For security reasons, we recommend using a strong, unique password and not shari
   app.patch('/api/assessment-notes/:id/read', isCustomAuthenticated, async (req: any, res) => {
     try {
       const noteId = parseInt(req.params.id);
-      const userId = req.session.customUserId;
+      const userId = req.user.id;
       
       // Verify user can mark this note as read (must be assigned to them)
       const note = await storage.getAssessmentNote(noteId);
