@@ -436,7 +436,8 @@ export class NotificationService {
 
   // Create notification for edit request denial
   async notifyEditRequestDenied(assessment: Assessment, requestingUser: User, denyingAdmin: User, reason?: string) {
-    await storage.createNotification({
+    // Create dashboard notification
+    const notification = await storage.createNotification({
       userId: requestingUser.id,
       type: "edit_request_denied",
       title: "Edit Request Denied",
@@ -452,6 +453,40 @@ export class NotificationService {
         reason
       }
     });
+
+    // Send real-time notification
+    const wsManager = getWSManager();
+    if (wsManager) {
+      wsManager.sendToUser(requestingUser.id, {
+        type: 'new_notification',
+        notification: {
+          id: notification.id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          priority: notification.priority,
+          createdAt: notification.createdAt
+        }
+      });
+    }
+
+    // Send email notification to assessor
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D32F2F;">Edit Request Denied - GREDA GBC</h2>
+        <p>Dear ${requestingUser.firstName} ${requestingUser.lastName},</p>
+        <p>Your request to edit the assessment has been reviewed and denied.</p>
+        <div style="background-color: #fff3e0; padding: 15px; margin: 15px 0; border-left: 4px solid #D32F2F;">
+          <strong>Building:</strong> ${assessment.buildingName}<br>
+          <strong>Reviewed by:</strong> ${denyingAdmin.firstName} ${denyingAdmin.lastName}<br>
+          ${reason ? `<strong>Reason:</strong> ${reason}<br>` : ''}
+          <strong>Status:</strong> Assessment remains locked
+        </div>
+        <p>The assessment remains locked and cannot be edited at this time. If you have questions about this decision, please contact the administrator.</p>
+        <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      </div>
+    `;
+    await this.sendEmailNotification(requestingUser, "Edit Request Denied", emailHtml);
   }
 
   // Create notification for report readiness
