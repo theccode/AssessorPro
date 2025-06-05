@@ -147,6 +147,22 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Activity logs for comprehensive user activity tracking
+export const activityLogs = pgTable("activity_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  activityType: varchar("activity_type").notNull(), // edit_request_created, edit_request_approved, edit_request_denied, user_created, assessment_completed, etc.
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  targetUserId: varchar("target_user_id").references(() => users.id), // User who was affected by the activity
+  assessmentId: integer("assessment_id").references(() => assessments.id),
+  assessmentPublicId: varchar("assessment_public_id"),
+  buildingName: varchar("building_name"),
+  metadata: jsonb("metadata"), // Additional activity details
+  priority: varchar("priority", { enum: ["low", "medium", "high"] }).default("medium"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Notifications for assessment-related events
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
@@ -216,6 +232,21 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   targetUser: one(users, {
     fields: [auditLogs.targetUserId],
     references: [users.id],
+  }),
+}));
+
+export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [activityLogs.userId],
+    references: [users.id],
+  }),
+  targetUser: one(users, {
+    fields: [activityLogs.targetUserId],
+    references: [users.id],
+  }),
+  assessment: one(assessments, {
+    fields: [activityLogs.assessmentId],
+    references: [assessments.id],
   }),
 }));
 
