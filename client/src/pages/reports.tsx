@@ -158,6 +158,11 @@ export default function Reports() {
                             ? `${Math.round((assessment.overallScore / assessment.maxPossibleScore) * 100)}%`
                             : "0%"}
                         </span>
+                        {assessment.isArchived && (
+                          <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 text-xs">
+                            Archived
+                          </Badge>
+                        )}
                         <Badge variant="secondary" className="text-xs">
                           {assessment.status}
                         </Badge>
