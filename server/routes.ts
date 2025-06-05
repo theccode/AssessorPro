@@ -1143,8 +1143,11 @@ For security reasons, we recommend using a strong, unique password and not shari
       const [media] = await db.select().from(assessmentMedia).where(eq(assessmentMedia.id, mediaId));
       
       if (!media) {
+        console.log(`Media ${mediaId} not found in database`);
         return res.status(404).json({ message: "Media not found" });
       }
+
+      console.log(`Found media: ${media.fileName}, type: ${media.mimeType}, path: ${media.filePath}`);
 
       // Check if file exists
       const filePath = path.resolve(media.filePath);
@@ -1157,17 +1160,29 @@ For security reasons, we recommend using a strong, unique password and not shari
         });
       }
 
-      // Set appropriate headers
+      // Set appropriate headers with CORS support
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       res.setHeader('Content-Type', media.mimeType || 'application/octet-stream');
       res.setHeader('Content-Disposition', `inline; filename="${media.fileName}"`);
       res.setHeader('Cache-Control', 'public, max-age=31536000');
       
       // Stream the file
       const fileStream = fs.createReadStream(filePath);
+      fileStream.on('error', (error) => {
+        console.error(`Error reading file ${filePath}:`, error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error reading file" });
+        }
+      });
+      
       fileStream.pipe(res);
     } catch (error) {
       console.error("Error serving media:", error);
-      res.status(500).json({ message: "Failed to serve media" });
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Failed to serve media" });
+      }
     }
   });
 
