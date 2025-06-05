@@ -24,6 +24,7 @@ import Reports from "@/pages/reports";
 import InvitationAccept from "@/pages/invitation-accept";
 import Portfolio from "@/pages/portfolio";
 import Profile from "@/pages/profile";
+import ActivityLogs from "@/pages/activity-logs";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -70,6 +71,7 @@ function Router() {
               <Route path="/drafts" component={Drafts} />
               <Route path="/reports" component={Reports} />
               <Route path="/profile" component={Profile} />
+              <Route path="/activity-logs" component={ActivityLogs} />
               {user?.role === "admin" && (
                 <Route path="/admin" component={AdminDashboard} />
               )}
@@ -92,6 +94,7 @@ function Router() {
                   <Route path="/assessment/:id" component={AssessmentDetail} />
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
+                  <Route path="/activity-logs" component={ActivityLogs} />
                 </>
               ) : currentDomainRole === "assessor" && user?.role === "assessor" ? (
                 <>
@@ -105,6 +108,7 @@ function Router() {
                   <Route path="/drafts" component={Drafts} />
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
+                  <Route path="/activity-logs" component={ActivityLogs} />
                 </>
               ) : currentDomainRole === "client" && user?.role === "client" ? (
                 <>
@@ -114,6 +118,7 @@ function Router() {
                   <Route path="/assessment/:id" component={AssessmentDetail} />
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
+                  <Route path="/activity-logs" component={ActivityLogs} />
                 </>
               ) : (
                 /* Fallback routes for authenticated users when domain/role don't match */

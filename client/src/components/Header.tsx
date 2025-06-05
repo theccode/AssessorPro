@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Shield, Menu, X, User, LogOut } from "lucide-react";
+import { Shield, Menu, X, User, LogOut, Activity } from "lucide-react";
 import { Link } from "wouter";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -69,6 +69,10 @@ export default function Header() {
             )}
             <Link href="/reports" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-colors">
               {(user as any)?.role === "client" ? "My Reports" : "Reports"}
+            </Link>
+            <Link href="/activity-logs" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
+              <Activity className="h-4 w-4" />
+              Activity
             </Link>
             {(user as any)?.role === "admin" && (
               <Link href="/admin" className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center gap-2 transition-colors">
