@@ -1423,11 +1423,16 @@ For security reasons, we recommend using a strong, unique password and not shari
       const admin = await storage.getUser(userId);
 
       // Unlock the assessment
-      await storage.updateAssessment(assessment.id, {
+      console.log(`Unlocking assessment ${assessment.id} (${assessment.buildingName})`);
+      console.log(`Before unlock - isLocked: ${assessment.isLocked}, lockedBy: ${assessment.lockedBy}`);
+      
+      const unlockResult = await storage.updateAssessment(assessment.id, {
         isLocked: false,
         lockedBy: null,
         lockedAt: null,
       });
+      
+      console.log(`After unlock - isLocked: ${unlockResult.isLocked}, lockedBy: ${unlockResult.lockedBy}`);
 
       // Mark notification as read
       await storage.markNotificationRead(notificationId);
