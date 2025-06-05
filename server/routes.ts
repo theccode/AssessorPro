@@ -1354,6 +1354,7 @@ For security reasons, we recommend using a strong, unique password and not shari
     try {
       const publicId = req.params.publicId;
       const userId = req.user.id;
+      const { reason } = req.body;
       
       if (!userId) {
         return res.status(401).json({ message: "Authentication required" });
@@ -1375,17 +1376,122 @@ For security reasons, we recommend using a strong, unique password and not shari
         return res.status(400).json({ message: "Only completed assessments can be requested for editing" });
       }
 
-      // Here you would typically create a notification/request record for admins
-      // For now, we'll just unlock the assessment temporarily
-      await storage.unlockAssessment(publicId);
+      // Create notifications for admins
+      const { notificationService } = await import('./notification-service');
+      await notificationService.notifyEditRequestCreated(assessment, user, reason || "No reason provided");
 
       res.json({ 
-        message: "Edit request submitted successfully. Assessment has been temporarily unlocked.",
+        message: "Edit request submitted successfully. Administrators will be notified.",
         success: true 
       });
     } catch (error) {
       console.error("Error requesting edit access:", error);
       res.status(500).json({ message: "Failed to submit edit request" });
+    }
+  });
+
+  // Admin endpoints for managing edit requests
+  app.post('/api/edit-requests/:notificationId/approve', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = parseInt(req.params.notificationId);
+      const userId = req.user.id;
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can approve edit requests" });
+      }
+
+      // Get the notification
+      const notification = await storage.getNotification(notificationId);
+      if (!notification || notification.type !== 'edit_request_created') {
+        return res.status(404).json({ message: "Edit request not found" });
+      }
+
+      // Get the assessment
+      const assessment = await storage.getAssessment(notification.assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Get requesting user from metadata
+      const requestingUserId = notification.metadata?.requestingUserId;
+      if (!requestingUserId) {
+        return res.status(400).json({ message: "Invalid edit request data" });
+      }
+
+      const requestingUser = await storage.getUser(requestingUserId);
+      const admin = await storage.getUser(userId);
+
+      // Unlock the assessment
+      await storage.updateAssessment(assessment.id, {
+        isLocked: false,
+        lockedBy: null,
+        lockedAt: null,
+      });
+
+      // Mark notification as read
+      await storage.markNotificationRead(notificationId);
+
+      // Send approval notification
+      const { notificationService } = await import('./notification-service');
+      await notificationService.notifyEditRequestApproved(assessment, requestingUser, admin);
+
+      res.json({ 
+        message: "Edit request approved successfully. Assessment has been unlocked.",
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error approving edit request:", error);
+      res.status(500).json({ message: "Failed to approve edit request" });
+    }
+  });
+
+  app.post('/api/edit-requests/:notificationId/deny', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = parseInt(req.params.notificationId);
+      const userId = req.user.id;
+      const { reason } = req.body;
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can deny edit requests" });
+      }
+
+      // Get the notification
+      const notification = await storage.getNotification(notificationId);
+      if (!notification || notification.type !== 'edit_request_created') {
+        return res.status(404).json({ message: "Edit request not found" });
+      }
+
+      // Get the assessment
+      const assessment = await storage.getAssessment(notification.assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Get requesting user from metadata
+      const requestingUserId = notification.metadata?.requestingUserId;
+      if (!requestingUserId) {
+        return res.status(400).json({ message: "Invalid edit request data" });
+      }
+
+      const requestingUser = await storage.getUser(requestingUserId);
+      const admin = await storage.getUser(userId);
+
+      // Mark notification as read
+      await storage.markNotificationRead(notificationId);
+
+      // Send denial notification
+      const { notificationService } = await import('./notification-service');
+      await notificationService.notifyEditRequestDenied(assessment, requestingUser, admin, reason);
+
+      res.json({ 
+        message: "Edit request denied successfully.",
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error denying edit request:", error);
+      res.status(500).json({ message: "Failed to deny edit request" });
     }
   });
 
