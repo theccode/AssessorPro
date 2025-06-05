@@ -129,6 +129,50 @@ export function NotificationCenter() {
     },
   });
 
+  // Approve edit request
+  const approveEditRequestMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      await apiRequest(`/api/edit-requests/${notificationId}/approve`, "POST");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+      toast({
+        title: "Success",
+        description: "Edit request approved successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to approve edit request",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Deny edit request
+  const denyEditRequestMutation = useMutation({
+    mutationFn: async ({ notificationId, reason }: { notificationId: number; reason?: string }) => {
+      await apiRequest(`/api/edit-requests/${notificationId}/deny`, "POST", { reason });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/count"] });
+      toast({
+        title: "Success",
+        description: "Edit request denied",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to deny edit request",
+        variant: "destructive",
+      });
+    },
+  });
+
   const unreadCount = countData?.count || 0;
 
   const handleNotificationClick = (notification: Notification) => {
@@ -223,7 +267,7 @@ export function NotificationCenter() {
                               <p className="text-xs text-muted-foreground leading-relaxed mb-2">
                                 {notification.message}
                               </p>
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center justify-between mb-2">
                                 <Badge 
                                   variant="secondary" 
                                   className={`text-xs px-2 py-0.5 ${priorityColors[notification.priority]}`}
@@ -234,6 +278,36 @@ export function NotificationCenter() {
                                   {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                                 </span>
                               </div>
+                              
+                              {/* Edit request action buttons for admins */}
+                              {notification.type === 'edit_request_created' && !notification.isRead && (
+                                <div className="flex gap-2 mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      approveEditRequestMutation.mutate(notification.id);
+                                    }}
+                                    disabled={approveEditRequestMutation.isPending || denyEditRequestMutation.isPending}
+                                    className="h-7 px-3 text-xs"
+                                  >
+                                    ✓ Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      denyEditRequestMutation.mutate({ notificationId: notification.id });
+                                    }}
+                                    disabled={approveEditRequestMutation.isPending || denyEditRequestMutation.isPending}
+                                    className="h-7 px-3 text-xs"
+                                  >
+                                    ✗ Deny
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">

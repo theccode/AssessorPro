@@ -822,6 +822,33 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(assessmentNotes.id, id));
   }
+
+  // Additional notification methods for edit request management
+  async getNotification(id: number): Promise<Notification | undefined> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { notifications } = await import("@shared/schema");
+    
+    const [notification] = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.id, id));
+    return notification;
+  }
+
+  async markNotificationRead(id: number): Promise<void> {
+    const { db } = await import("./db");
+    const { eq } = await import("drizzle-orm");
+    const { notifications } = await import("@shared/schema");
+    
+    await db
+      .update(notifications)
+      .set({
+        isRead: true,
+        readAt: new Date()
+      })
+      .where(eq(notifications.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();
