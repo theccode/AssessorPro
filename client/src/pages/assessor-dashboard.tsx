@@ -279,11 +279,16 @@ export default function AssessorDashboard() {
                             <p>Publisher: {assessment.publisherName || "Not specified"}</p>
                             <p>Updated: {new Date(assessment.updatedAt).toLocaleDateString()}</p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
+                            {assessment.isLocked ? (
+                              <Lock className="h-4 w-4 text-blue-600" />
+                            ) : (
+                              <Lock className="h-4 w-4 text-green-600" />
+                            )}
                             <Button variant="outline" size="sm" asChild>
                               <Link href={`/assessments/${assessment.publicId}/preview`}>
                                 <Eye className="w-4 h-4 mr-1" />
-                                View
+                                View Details
                               </Link>
                             </Button>
                             {assessment.status !== "completed" && !assessment.isLocked && (
@@ -292,12 +297,6 @@ export default function AssessorDashboard() {
                                   Edit
                                 </Link>
                               </Button>
-                            )}
-                            {assessment.isLocked && (
-                              <div className="flex items-center text-xs text-red-600">
-                                <Lock className="h-3 w-3 mr-1" />
-                                Locked
-                              </div>
                             )}
                           </div>
                         </CardContent>
