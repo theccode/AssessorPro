@@ -64,6 +64,7 @@ export interface IStorage {
   getUserActivityLogs(userId: string, limit?: number): Promise<ActivityLog[]>;
   getAllActivityLogs(limit?: number): Promise<ActivityLog[]>;
   getActivityLogsByType(activityType: string, limit?: number): Promise<ActivityLog[]>;
+  getAdminRelevantActivityLogs(adminUserId: string, relevantTypes: string[], limit?: number): Promise<ActivityLog[]>;
   
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;
@@ -481,6 +482,25 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(activityLogs)
       .where(eq(activityLogs.activityType, activityType))
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(limit);
+  }
+
+  async getAdminRelevantActivityLogs(adminUserId: string, relevantTypes: string[], limit: number = 100): Promise<ActivityLog[]> {
+    const { or, inArray } = await import("drizzle-orm");
+    
+    // Get activities that are either:
+    // 1. The admin's own activities 
+    // 2. System-wide activities of relevant types that require admin attention
+    return await db
+      .select()
+      .from(activityLogs)
+      .where(
+        or(
+          eq(activityLogs.userId, adminUserId),
+          inArray(activityLogs.activityType, relevantTypes)
+        )
+      )
       .orderBy(desc(activityLogs.createdAt))
       .limit(limit);
   }
