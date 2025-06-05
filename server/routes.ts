@@ -2030,6 +2030,60 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // Admin endpoint to archive assessments
+  app.post('/api/assessments/:id/archive', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const assessmentId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Check if user is admin
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only administrators can archive assessments" });
+      }
+
+      // Get the assessment
+      const assessment = await storage.getAssessment(assessmentId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Check if already archived
+      if (assessment.isArchived) {
+        return res.status(400).json({ message: "Assessment is already archived" });
+      }
+
+      // Get the admin user
+      const admin = await storage.getUser(userId);
+      if (!admin) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      // Archive the assessment
+      await storage.updateAssessment(assessmentId, {
+        isArchived: true,
+        archivedBy: userId,
+        archivedAt: new Date(),
+      });
+
+      // Get updated assessment for notifications
+      const updatedAssessment = await storage.getAssessment(assessmentId);
+
+      // Send notifications and emails to assessor and client
+      await notificationService.notifyAssessmentArchived(updatedAssessment!, admin);
+
+      // Log the activity
+      await activityService.logAssessmentArchived(admin, updatedAssessment!);
+
+      res.json({ 
+        message: "Assessment archived successfully",
+        success: true 
+      });
+    } catch (error) {
+      console.error("Error archiving assessment:", error);
+      res.status(500).json({ message: "Failed to archive assessment" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup WebSocket server

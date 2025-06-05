@@ -320,6 +320,29 @@ export class ActivityService {
       }
     });
   }
+
+  // Log assessment archived
+  async logAssessmentArchived(
+    archivingAdmin: User,
+    assessment: Assessment
+  ) {
+    await storage.createActivityLog({
+      userId: archivingAdmin.id,
+      activityType: "assessment_archived",
+      title: "Assessment Archived",
+      description: `Archived assessment for ${assessment.buildingName}`,
+      assessmentId: assessment.id,
+      assessmentPublicId: assessment.publicId,
+      buildingName: assessment.buildingName,
+      priority: "high",
+      metadata: {
+        assessmentStatus: assessment.status,
+        archivedAt: new Date().toISOString(),
+        adminRole: archivingAdmin.role,
+        clientName: assessment.clientName
+      }
+    });
+  }
 }
 
 export const activityService = new ActivityService();

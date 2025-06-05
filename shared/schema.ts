@@ -183,6 +183,7 @@ export const notifications = pgTable("notifications", {
       "assessment_locked",
       "assessment_unlocked",
       "assessment_editing_completed",
+      "assessment_archived",
       "admin_note_created",
       "test_notification"
     ] 
