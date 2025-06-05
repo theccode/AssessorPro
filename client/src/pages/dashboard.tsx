@@ -24,7 +24,7 @@ export default function Dashboard() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(2); // Reduced to 2 to show pagination with current data
 
   const { data: assessments = [], isLoading } = useQuery({
     queryKey: ["/api/assessments"],
