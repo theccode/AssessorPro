@@ -583,7 +583,11 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
             {sections.length > 0 ? (
               <div className="space-y-6">
                 {sections.map((section: any) => {
-                  const sectionMedia = (media as any[]).filter((m: any) => m.sectionType === section.sectionType);
+                  // Normalize section types by converting hyphens to underscores for comparison
+                  const normalizedSectionType = section.sectionType.replace(/-/g, '_');
+                  const sectionMedia = (media as any[]).filter((m: any) => 
+                    m.sectionType === normalizedSectionType || m.sectionType === section.sectionType
+                  );
                   if (sectionMedia.length === 0) return null;
                   
                   return (
