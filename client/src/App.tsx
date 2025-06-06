@@ -93,6 +93,7 @@ function Router() {
                   <Route path="/assessments/:id/preview" component={AssessmentPreview} />
                   <Route path="/assessments" component={Assessments} />
                   <Route path="/assessment/:id" component={AssessmentDetail} />
+                  <Route path="/drafts" component={Drafts} />
                   <Route path="/reports" component={Reports} />
                   <Route path="/profile" component={Profile} />
                   <Route path="/activity-logs" component={ActivityLogs} />
