@@ -143,9 +143,6 @@ export default function Drafts() {
                   <Button variant="ghost">Admin</Button>
                 </Link>
               )}
-              <Link href="/api/logout">
-                <Button variant="outline">Logout</Button>
-              </Link>
             </div>
             <div className="md:hidden flex items-center space-x-2">
               <Button
@@ -185,13 +182,7 @@ export default function Drafts() {
                   </Button>
                 </Link>
               )}
-              <div className="pt-2 border-t border-border/20 mt-2">
-                <Link href="/api/logout" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full justify-start h-12 text-base">
-                    Logout
-                  </Button>
-                </Link>
-              </div>
+
             </div>
           </div>
         )}
