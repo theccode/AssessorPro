@@ -868,24 +868,20 @@ export class NotificationService {
       }
 
       // Send email notification to assessor
-      const assessorEmailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #FF6B35;">Assessment Archived - GREDA GBC</h2>
-          <p>Dear ${assessor.firstName} ${assessor.lastName},</p>
-          <p>This is to inform you that an assessment you conducted has been archived.</p>
-          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #FF6B35;">
-            <strong>Building:</strong> ${assessment.buildingName}<br>
-            <strong>Location:</strong> ${assessment.buildingLocation}<br>
-            <strong>Client:</strong> ${assessment.clientName}<br>
-            <strong>Archived by:</strong> ${archivingAdmin.firstName} ${archivingAdmin.lastName}<br>
-            <strong>Archived on:</strong> ${new Date().toLocaleDateString()}
-          </div>
-          <p>The assessment has been moved to the archives and is no longer visible in the public gallery or active assessments list. All data remains securely stored for compliance and record-keeping purposes.</p>
-          <p>If you have any questions about this action, please contact the administrator.</p>
-          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      const assessorEmailHtml = this.createProfessionalEmailTemplate(
+        `Hi ${assessor.firstName},`,
+        `An assessment you conducted for <strong>${assessment.buildingName}</strong> has been permanently archived by an administrator.`,
+        `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+          <div style="margin-bottom: 12px;"><strong>Location:</strong> ${assessment.buildingLocation}</div>
+          <div style="margin-bottom: 12px;"><strong>Client:</strong> ${assessment.clientName}</div>
+          <div style="margin-bottom: 12px;"><strong>Archived by:</strong> ${archivingAdmin.firstName} ${archivingAdmin.lastName}</div>
+          <div><strong>Archived on:</strong> ${new Date().toLocaleDateString()}</div>
         </div>
-      `;
-      await this.sendEmailNotification(assessor, "Assessment Archived - GREDA GBC", assessorEmailHtml);
+        <p>The assessment is no longer visible in the public gallery or active assessments list. All data remains securely stored for compliance and record-keeping purposes.</p>
+        <p>If you have questions about this action, please contact the administrator.</p>`
+      );
+      await this.sendEmailNotification(assessor, "Assessment Archived", assessorEmailHtml);
     }
 
     // Notify client
@@ -924,24 +920,19 @@ export class NotificationService {
       }
 
       // Send email notification to client
-      const clientEmailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #FF6B35;">Assessment Archived - GREDA GBC</h2>
-          <p>Dear ${client.firstName} ${client.lastName},</p>
-          <p>This is to inform you that your building assessment has been archived.</p>
-          <div style="background-color: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #FF6B35;">
-            <strong>Building:</strong> ${assessment.buildingName}<br>
-            <strong>Location:</strong> ${assessment.buildingLocation}<br>
-            <strong>Assessment Score:</strong> ${assessment.overallScore}%<br>
-            <strong>Archived on:</strong> ${new Date().toLocaleDateString()}
-          </div>
-          <p>Your assessment has been moved to the archives and is no longer visible in the public gallery. However, you can still access your assessment report through your dashboard.</p>
-          <p>All certification data remains valid and securely stored for your records.</p>
-          <p>If you have any questions, please don't hesitate to contact us.</p>
-          <p>Best regards,<br>GREDA Green Building Certification Team</p>
+      const clientEmailHtml = this.createProfessionalEmailTemplate(
+        `Hi ${client.firstName},`,
+        `Your building assessment for <strong>${assessment.buildingName}</strong> has been permanently archived and is no longer visible in the public gallery.`,
+        `<div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <div style="margin-bottom: 12px;"><strong>Building:</strong> ${assessment.buildingName}</div>
+          <div style="margin-bottom: 12px;"><strong>Location:</strong> ${assessment.buildingLocation}</div>
+          <div style="margin-bottom: 12px;"><strong>Assessment Score:</strong> ${assessment.overallScore}%</div>
+          <div><strong>Archived on:</strong> ${new Date().toLocaleDateString()}</div>
         </div>
-      `;
-      await this.sendEmailNotification(client, "Your Assessment Archived - GREDA GBC", clientEmailHtml);
+        <p>You can still access your assessment report through your dashboard. All certification data remains valid and securely stored for your records.</p>
+        <p>If you have any questions about this action, please contact us.</p>`
+      );
+      await this.sendEmailNotification(client, "Your Assessment Archived", clientEmailHtml);
     }
   }
 }

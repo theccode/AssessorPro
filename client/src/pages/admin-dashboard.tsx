@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut, Archive, Trash2 } from "lucide-react";
+import { Users, UserPlus, Shield, Activity, CreditCard, Settings, Plus, Loader2, ArrowLeft, UserCheck, LogOut, Archive, Trash2, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { ActivityTracker } from "@/components/ActivityTracker";
 
@@ -652,12 +652,28 @@ export default function AdminDashboard() {
 
       {/* Archive Confirmation Dialog */}
       <AlertDialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive Assessment</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to archive "{selectedAssessment?.buildingName || 'this assessment'}"? 
-              This will remove it from the public gallery and notify all parties involved. This action cannot be undone.
+            <AlertDialogTitle className="flex items-center text-destructive">
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Archive Assessment - Irreversible Action
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <div className="font-medium text-foreground">
+                You are about to permanently archive "{selectedAssessment?.buildingName || 'this assessment'}".
+              </div>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                <div className="font-medium text-destructive mb-2">⚠️ WARNING: This action is IRREVERSIBLE</div>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Assessment will be permanently removed from public gallery</li>
+                  <li>• All parties (assessor and client) will be notified</li>
+                  <li>• Assessment cannot be restored once archived</li>
+                  <li>• Data will remain for compliance but assessment becomes inactive</li>
+                </ul>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Only proceed if you are certain this assessment should be permanently archived.
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -673,7 +689,7 @@ export default function AdminDashboard() {
                   Archiving...
                 </>
               ) : (
-                "Archive Assessment"
+                "Permanently Archive Assessment"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
