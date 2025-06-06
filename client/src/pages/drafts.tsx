@@ -13,6 +13,7 @@ import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface Assessment {
   id: number;
+  publicId: string;
   buildingName?: string;
   clientName?: string;
   publisherName?: string;
@@ -39,7 +40,8 @@ export default function Drafts() {
 
   // Filter and search draft assessments, then group by client
   const clientFolders = useMemo(() => {
-    let filtered = assessments.filter((a: Assessment) => a.status === "draft");
+    const assessmentList = Array.isArray(assessments) ? assessments as Assessment[] : [];
+    let filtered = assessmentList.filter((a: Assessment) => a.status === "draft");
 
     // Apply search filter
     if (searchTerm) {
@@ -65,11 +67,11 @@ export default function Drafts() {
 
     // Apply sorting to individual assessments
     if (sortBy === "updated") {
-      filtered = filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      filtered = filtered.sort((a: Assessment, b: Assessment) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     } else if (sortBy === "progress") {
-      filtered = filtered.sort((a, b) => (b.completedSections || 0) - (a.completedSections || 0));
+      filtered = filtered.sort((a: Assessment, b: Assessment) => (b.completedSections || 0) - (a.completedSections || 0));
     } else if (sortBy === "building") {
-      filtered = filtered.sort((a, b) => (a.buildingName || "").localeCompare(b.buildingName || ""));
+      filtered = filtered.sort((a: Assessment, b: Assessment) => (a.buildingName || "").localeCompare(b.buildingName || ""));
     }
 
     // Group by client
@@ -87,7 +89,7 @@ export default function Drafts() {
       clientName,
       assessments,
       totalDrafts: assessments.length,
-      lastUpdated: Math.max(...assessments.map(a => new Date(a.updatedAt).getTime()))
+      lastUpdated: Math.max(...(assessments as Assessment[]).map((a: Assessment) => new Date(a.updatedAt).getTime()))
     }));
 
     // Sort client folders
@@ -332,7 +334,7 @@ export default function Drafts() {
                   <CollapsibleContent>
                     <CardContent className="pt-0">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                        {folder.assessments.map((assessment: Assessment) => (
+                        {(folder.assessments as Assessment[]).map((assessment: Assessment) => (
                           <Card key={assessment.id} className="hover:shadow-md transition-shadow border-l-4 border-l-primary/20">
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
@@ -378,13 +380,13 @@ export default function Drafts() {
 
                                 {/* Actions */}
                                 <div className="flex gap-2 pt-2">
-                                  <Link href={`/assessments/new?id=${assessment.id}`} className="flex-1">
+                                  <Link href={`/assessments/${assessment.publicId}/edit`} className="flex-1">
                                     <Button className="w-full" size="sm">
                                       <Edit className="w-3 h-3 mr-2" />
                                       Continue
                                     </Button>
                                   </Link>
-                                  <Link href={`/assessments/${assessment.id}/preview`}>
+                                  <Link href={`/assessments/${assessment.publicId}/preview`}>
                                     <Button variant="outline" size="sm">
                                       <FileText className="w-3 h-3" />
                                     </Button>
