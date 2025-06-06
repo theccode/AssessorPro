@@ -658,21 +658,23 @@ export default function AdminDashboard() {
               <AlertTriangle className="w-5 h-5 mr-2" />
               Archive Assessment - Irreversible Action
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <div className="font-medium text-foreground">
-                You are about to permanently archive "{selectedAssessment?.buildingName || 'this assessment'}".
-              </div>
-              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                <div className="font-medium text-destructive mb-2">⚠️ WARNING: This action is IRREVERSIBLE</div>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• Assessment will be permanently removed from public gallery</li>
-                  <li>• All parties (assessor and client) will be notified</li>
-                  <li>• Assessment cannot be restored once archived</li>
-                  <li>• Data will remain for compliance but assessment becomes inactive</li>
-                </ul>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Only proceed if you are certain this assessment should be permanently archived.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <div className="font-medium text-foreground">
+                  You are about to permanently archive "{selectedAssessment?.buildingName || 'this assessment'}".
+                </div>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                  <div className="font-medium text-destructive mb-2">⚠️ WARNING: This action is IRREVERSIBLE</div>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Assessment will be permanently removed from public gallery</li>
+                    <li>• All parties (assessor and client) will be notified</li>
+                    <li>• Assessment cannot be restored once archived</li>
+                    <li>• Data will remain for compliance but assessment becomes inactive</li>
+                  </ul>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Only proceed if you are certain this assessment should be permanently archived.
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
