@@ -108,7 +108,7 @@ export function QRCodeModal({ publicId, buildingName, overallScore, maxPossibleS
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200">
+        <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700 hover:text-green-800">
           <QrCode className="w-4 h-4 mr-2 text-green-600" />
           Generate QR Code
         </Button>
