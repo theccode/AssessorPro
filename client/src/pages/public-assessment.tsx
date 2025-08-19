@@ -69,10 +69,14 @@ interface PublicAssessmentData {
 export function PublicAssessment() {
   const [match, params] = useRoute("/public/assessment/:publicId");
   
+  console.log("PublicAssessment component rendered", { match, params });
+  
   const { data, isLoading, error } = useQuery<PublicAssessmentData>({
     queryKey: [`/api/public/assessment/${params?.publicId}/full`],
     enabled: !!params?.publicId,
   });
+
+  console.log("Query state:", { data, isLoading, error, publicId: params?.publicId });
 
   const getCertificationType = (score: number, maxScore: number) => {
     const percentage = (score / maxScore) * 100;
@@ -133,12 +137,16 @@ export function PublicAssessment() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p>Loading assessment data...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !data) {
+    console.error("Error loading public assessment:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md mx-auto">
@@ -148,6 +156,28 @@ export function PublicAssessment() {
           <CardContent>
             <p className="text-center text-gray-700">
               The assessment you're looking for could not be found or is not publicly available.
+            </p>
+            {error && (
+              <p className="text-center text-sm text-red-500 mt-2">
+                Error: {error.message || "Unknown error"}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!params?.publicId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-red-600">Invalid URL</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-700">
+              No assessment ID provided in the URL.
             </p>
           </CardContent>
         </Card>
