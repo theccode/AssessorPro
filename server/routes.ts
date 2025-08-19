@@ -1698,6 +1698,115 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
+  // QR Code generation for public assessment access
+  app.get('/api/assessments/:publicId/qr', isCustomAuthenticated, async (req: any, res) => {
+    try {
+      const publicId = req.params.publicId;
+      
+      // Get assessment to verify it exists and is completed
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      if (assessment.status !== 'completed') {
+        return res.status(400).json({ message: "QR code is only available for completed assessments" });
+      }
+
+      // Generate public assessment URL
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? `https://${req.get('host')}` 
+        : `http://${req.get('host')}`;
+      const targetUrl = `${baseUrl}/public/assessment/${publicId}`;
+
+      // Generate QR code
+      const qrCodeDataUrl = await QRCode.toDataURL(targetUrl, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        width: 256,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      res.json({
+        qrCodeDataUrl,
+        targetUrl,
+        buildingName: assessment.buildingName,
+        overallScore: assessment.overallScore,
+        maxPossibleScore: assessment.maxPossibleScore
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ message: "Failed to generate QR code" });
+    }
+  });
+
+  // Public assessment data endpoint (no authentication required)
+  app.get('/api/public/assessment/:publicId/full', async (req: any, res) => {
+    try {
+      const publicId = req.params.publicId;
+      
+      // Get assessment by public ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Only allow access to completed assessments
+      if (assessment.status !== 'completed') {
+        return res.status(404).json({ message: "Assessment not available for public viewing" });
+      }
+
+      // Get assessment sections with scores
+      const sections = await storage.getAssessmentSections(assessment.id);
+      
+      // Get assessment media
+      const media = await storage.getAssessmentMedia(assessment.id);
+
+      // Get assessor and client names
+      const assessor = await storage.getUser(assessment.userId);
+      const client = assessment.clientId ? await storage.getUser(assessment.clientId) : null;
+
+      // Prepare response data
+      const responseData = {
+        assessment: {
+          ...assessment,
+          assessorName: assessor ? `${assessor.firstName} ${assessor.lastName}` : 'Unknown',
+          clientName: client ? `${client.firstName} ${client.lastName}` : assessment.clientName || 'Unknown'
+        },
+        sections: sections.map(section => ({
+          id: section.id,
+          sectionName: section.sectionName,
+          score: section.score || 0,
+          maxScore: section.maxScore || 0,
+          variables: section.variables ? 
+            Object.entries(section.variables).map(([key, value]: [string, any]) => ({
+              variableName: key,
+              value: value?.value || value,
+              score: value?.score || 0,
+              maxScore: value?.maxScore || 0
+            })) : []
+        })),
+        media: media.map(m => ({
+          id: m.id,
+          sectionName: m.sectionName,
+          variableName: m.variableName,
+          fileName: m.fileName,
+          fileType: m.fileType
+        }))
+      };
+
+      res.json(responseData);
+    } catch (error) {
+      console.error("Error fetching public assessment:", error);
+      res.status(500).json({ message: "Failed to fetch assessment data" });
+    }
+  });
+
   // Create test users for role verification (admin only)
   app.post('/api/create-test-users', isCustomAuthenticated, requireAuth, async (req: any, res) => {
     try {
