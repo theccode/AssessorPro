@@ -70,7 +70,8 @@ Preferred communication style: Simple, everyday language.
 ### Reporting & Analytics
 - **PDF Generation**: Dynamic report generation using jsPDF and html2canvas
 - **Excel Export**: Structured data export using XLSX library
-- **QR Code Integration**: Assessment sharing via QR codes for public access
+- **QR Code Integration**: Complete QR code system for public assessment sharing with mobile-optimized display
+- **Public Assessment Views**: Dedicated public pages with full assessment data, scores, and media files
 - **Progress Tracking**: Visual progress indicators and completion analytics
 
 ## External Dependencies
