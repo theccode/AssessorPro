@@ -213,39 +213,84 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
               <img src={gredaLogo} alt="GREDA Green Building" className="h-6 sm:h-8 w-auto flex-shrink-0" />
               <span className="ml-2 sm:ml-3 text-sm sm:text-lg lg:text-xl font-medium text-foreground truncate hidden sm:block">GREDA-GBC Assessor Pro</span>
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-              {(user?.role === "admin" || user?.role === "assessor") && (
-                <Button variant="outline" size="sm" asChild className="hidden lg:flex">
-                  <Link href={`/assessments/${publicId}/edit`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Assessment
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              {/* Mobile Menu - Show icons only */}
+              <div className="flex items-center space-x-1 sm:hidden">
+                {(user?.role === "admin" || user?.role === "assessor") && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/assessments/${publicId}/edit`}>
+                      <Edit className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
+                <QRCodeModal 
+                  publicId={publicId}
+                  buildingName={(assessment as any).buildingName || "Assessment"}
+                  overallScore={(assessment as any).overallScore || 0}
+                  maxPossibleScore={(assessment as any).maxPossibleScore || 0}
+                  status={(assessment as any).status || "draft"}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                  title={isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handlePrint}
+                  title="Print Assessment"
+                >
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/" title="Back to Dashboard">
+                    <ArrowLeft className="h-4 w-4" />
                   </Link>
                 </Button>
-              )}
-              <QRCodeModal 
-                publicId={publicId}
-                buildingName={(assessment as any).buildingName || "Assessment"}
-                overallScore={(assessment as any).overallScore || 0}
-                maxPossibleScore={(assessment as any).maxPossibleScore || 0}
-                status={(assessment as any).status || "draft"}
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-                className="hidden sm:flex"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {isGeneratingPDF ? "Generating..." : "Download PDF"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint} className="hidden sm:flex">
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/"><ArrowLeft className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Back to Dashboard</span></Link>
-              </Button>
+              </div>
+
+              {/* Desktop Menu - Show with text */}
+              <div className="hidden sm:flex items-center space-x-2">
+                {(user?.role === "admin" || user?.role === "assessor") && (
+                  <Button variant="outline" size="sm" asChild className="hidden lg:flex">
+                    <Link href={`/assessments/${publicId}/edit`}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Assessment
+                    </Link>
+                  </Button>
+                )}
+                <QRCodeModal 
+                  publicId={publicId}
+                  buildingName={(assessment as any).buildingName || "Assessment"}
+                  overallScore={(assessment as any).overallScore || 0}
+                  maxPossibleScore={(assessment as any).maxPossibleScore || 0}
+                  status={(assessment as any).status || "draft"}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {isGeneratingPDF ? "Generating..." : "Download PDF"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Dashboard
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

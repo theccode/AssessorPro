@@ -98,9 +98,9 @@ export function QRCodeModal({ publicId, buildingName, overallScore, maxPossibleS
 
   if (status !== 'completed') {
     return (
-      <Button variant="outline" disabled>
-        <QrCode className="w-4 h-4 mr-2" />
-        QR Code (Complete assessment first)
+      <Button variant="outline" size="sm" disabled className="text-muted-foreground">
+        <QrCode className="w-4 h-4 sm:mr-2" />
+        <span className="hidden sm:inline">QR Code</span>
       </Button>
     );
   }
@@ -108,9 +108,14 @@ export function QRCodeModal({ publicId, buildingName, overallScore, maxPossibleS
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200">
-          <QrCode className="w-4 h-4 mr-2 text-green-600" />
-          Generate QR Code
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700 hover:text-green-800 font-medium"
+          title="Generate QR Code for Public Assessment"
+        >
+          <QrCode className="w-4 h-4 sm:mr-2 text-green-600" />
+          <span className="hidden sm:inline">Generate QR Code</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
