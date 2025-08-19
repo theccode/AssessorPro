@@ -69,14 +69,10 @@ interface PublicAssessmentData {
 export function PublicAssessment() {
   const [match, params] = useRoute("/public/assessment/:publicId");
   
-  console.log("PublicAssessment component rendered", { match, params });
-  
   const { data, isLoading, error } = useQuery<PublicAssessmentData>({
     queryKey: [`/api/public/assessment/${params?.publicId}/full`],
     enabled: !!params?.publicId,
   });
-
-  console.log("Query state:", { data, isLoading, error, publicId: params?.publicId });
 
   const getCertificationType = (score: number, maxScore: number) => {
     const percentage = (score / maxScore) * 100;

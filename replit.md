@@ -1,6 +1,6 @@
 # Overview
 
-This is a comprehensive building assessment application for green building sustainability evaluation and certification tracking. The system enables assessors to conduct detailed sustainability assessments of buildings across multiple categories including site & transport, water efficiency, energy efficiency, indoor environmental quality, materials & resources, waste & pollution, and innovation. It provides role-based access for admins, assessors, and clients with features for assessment creation, media uploads, scoring, reporting, and collaboration.
+This is a comprehensive building assessment application for green building sustainability evaluation and certification tracking. The system enables assessors to conduct detailed sustainability assessments of buildings across multiple categories including site & transport, water efficiency, energy efficiency, indoor environmental quality, materials & resources, waste & pollution, and innovation. It provides role-based access for admins, assessors, and clients with features for assessment creation, media uploads, scoring, reporting, collaboration, and public QR code sharing for completed assessments.
 
 # User Preferences
 
@@ -42,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 - **Media Support**: Image, video, audio, and document uploads per field
 - **Scoring Engine**: Weighted scoring system with maximum values per variable
 - **Status Workflow**: Draft → In Progress → Completed → Submitted states
+- **QR Code Sharing**: Public QR codes for completed assessments enabling stakeholder access to detailed assessment data
 
 ## External Dependencies
 
