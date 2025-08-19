@@ -1,298 +1,368 @@
-import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Award, MapPin, User, Calendar, Building, Leaf, Star, FileText, Image, Video, Music, Download } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRoute } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { 
+  Building, 
+  MapPin, 
+  Calendar, 
+  User, 
+  Award,
+  BarChart3,
+  FileText,
+  Image as ImageIcon,
+  Video,
+  Music,
+  FileDown,
+  Star
+} from "lucide-react";
+import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 interface PublicAssessmentData {
-  id: string;
-  buildingName: string;
-  buildingLocation: string;
-  digitalAddress: string;
-  detailedAddress: string;
-  phoneNumber: string;
-  additionalNotes: string;
-  buildingFootprint: number;
-  roomHeight: number;
-  numberOfBedrooms: number;
-  siteArea: number;
-  numberOfWindows: number;
-  numberOfDoors: number;
-  averageWindowSize: number;
-  numberOfFloors: number;
-  totalGreenArea: number;
-  overallScore: number;
-  maxPossibleScore: number;
-  completedSections: number;
-  totalSections: number;
-  assessorName: string;
-  assessorRole: string;
-  clientName: string;
-  conductedAt: string;
-  certificationType: string;
+  assessment: {
+    id: number;
+    publicId: string;
+    buildingName: string;
+    buildingLocation: string;
+    digitalAddress: string;
+    phoneNumber: string;
+    additionalNotes: string;
+    overallScore: number;
+    maxPossibleScore: number;
+    status: string;
+    conductedAt: string;
+    assessorName: string;
+    clientName: string;
+    buildingFootprint: number;
+    roomHeight: number;
+    numberOfBedrooms: number;
+    siteArea: number;
+    numberOfWindows: number;
+    numberOfDoors: number;
+    averageWindowSize: number;
+    numberOfFloors: number;
+    totalGreenArea: number;
+  };
   sections: Array<{
-    sectionType: string;
+    id: number;
+    sectionName: string;
     score: number;
     maxScore: number;
-    responses: Record<string, any>;
-    notes: string;
-    completedAt: string;
+    variables: Array<{
+      variableName: string;
+      value: any;
+      score: number;
+      maxScore: number;
+    }>;
   }>;
   media: Array<{
     id: number;
-    sectionType: string;
-    fieldName: string;
+    sectionName: string;
+    variableName: string;
     fileName: string;
     fileType: string;
-    mimeType: string;
-    url: string;
   }>;
-  assessorInfo: {
-    name: string;
-    role: string;
-    email: string;
-  } | null;
-  clientInfo: {
-    name: string;
-    email: string;
-  } | null;
 }
 
-export default function PublicAssessment() {
-  const { publicId } = useParams<{ publicId: string }>();
-
-  const { data: assessment, isLoading, error } = useQuery<PublicAssessmentData>({
-    queryKey: ['/api/public/assessment', publicId, 'full'],
-    retry: false,
+export function PublicAssessment() {
+  const [match, params] = useRoute("/public/assessment/:publicId");
+  
+  const { data, isLoading, error } = useQuery<PublicAssessmentData>({
+    queryKey: [`/api/public/assessment/${params?.publicId}/full`],
+    enabled: !!params?.publicId,
   });
+
+  const getCertificationType = (score: number, maxScore: number) => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return { type: 'Gold', color: 'bg-yellow-500', textColor: 'text-yellow-700' };
+    if (percentage >= 60) return { type: 'Silver', color: 'bg-gray-400', textColor: 'text-gray-700' };
+    if (percentage >= 40) return { type: 'Bronze', color: 'bg-amber-600', textColor: 'text-amber-700' };
+    return { type: 'Basic', color: 'bg-green-600', textColor: 'text-green-700' };
+  };
+
+  const getMediaIcon = (fileType: string) => {
+    if (fileType.startsWith('image/')) return <ImageIcon className="h-4 w-4" />;
+    if (fileType.startsWith('video/')) return <Video className="h-4 w-4" />;
+    if (fileType.startsWith('audio/')) return <Music className="h-4 w-4" />;
+    return <FileDown className="h-4 w-4" />;
+  };
+
+  const formatVariableName = (name: string): string => {
+    if (!name || name === 'General') return 'Document Upload';
+    
+    let readable = name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .replace(/_/g, ' ')
+      .replace(/-/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    const mappings: Record<string, string> = {
+      'Building Info': 'Building Information',
+      'General Info': 'General Information',
+      'Water Conservation': 'Water Conservation',
+      'Energy Efficiency': 'Energy Efficiency',
+      'Indoor Environmental Quality': 'Indoor Environmental Quality',
+      'Site And Transport': 'Site And Transportation',
+      'Materials Resources': 'Materials And Resources',
+      'Waste Management': 'Waste Management',
+      'Innovation Points': 'Innovation Points',
+    };
+    
+    return mappings[readable] || readable;
+  };
+
+  const formatSectionName = (sectionName: string): string => {
+    const mappings: Record<string, string> = {
+      'site-transport': 'Site & Transportation',
+      'water-efficiency': 'Water Efficiency', 
+      'energy-efficiency': 'Energy Efficiency',
+      'materials-resources': 'Materials & Resources',
+      'indoor-environmental-quality': 'Indoor Environmental Quality',
+      'innovation': 'Innovation',
+      'waste-pollution': 'Waste & Pollution',
+      'regional-priority': 'Regional Priority'
+    };
+    
+    return mappings[sectionName] || sectionName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading assessment data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p>Loading assessment data...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !assessment) {
+  if (error || !data) {
+    console.error("Error loading public assessment:", error);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Assessment Not Found
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            The assessment you're looking for could not be found or is not available for public viewing.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
-            This may be because the assessment is not completed, has been archived, or the link is invalid.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const scorePercentage = assessment.maxPossibleScore > 0 
-    ? (assessment.overallScore / assessment.maxPossibleScore) * 100 
-    : 0;
-
-  const getCertificationColor = (type: string) => {
-    switch (type) {
-      case 'Gold': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20';
-      case 'Silver': return 'text-gray-600 bg-gray-100 dark:bg-gray-800';
-      case 'Bronze': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/20';
-      default: return 'text-blue-600 bg-blue-100 dark:bg-blue-900/20';
-    }
-  };
-
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith('image/')) return <Image className="w-4 h-4" />;
-    if (fileType.startsWith('video/')) return <Video className="w-4 h-4" />;
-    if (fileType.startsWith('audio/')) return <Music className="w-4 h-4" />;
-    return <FileText className="w-4 h-4" />;
-  };
-
-  const sectionNames: Record<string, string> = {
-    'building_information': 'Building Information',
-    'site_transport': 'Site & Transport',
-    'water_efficiency': 'Water Efficiency',
-    'energy_efficiency': 'Energy Efficiency',
-    'indoor_environmental_quality': 'Indoor Environmental Quality',
-    'materials_resources': 'Materials & Resources',
-    'waste_pollution': 'Waste & Pollution',
-    'innovation': 'Innovation'
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-green-600 text-white p-2 rounded-lg">
-              <Leaf className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                GREDA Green Building Assessment
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Verified Sustainability Rating
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center md:text-left">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {assessment.buildingName}
-              </h2>
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mt-1">
-                <MapPin className="w-4 h-4" />
-                <span>{assessment.buildingLocation}</span>
-              </div>
-              {assessment.digitalAddress && (
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                  Digital Address: {assessment.digitalAddress}
-                </p>
-              )}
-            </div>
-            
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600">
-                {assessment.overallScore}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                out of {assessment.maxPossibleScore}
-              </div>
-              <Progress 
-                value={scorePercentage} 
-                className="w-full mt-2"
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                {scorePercentage.toFixed(1)}% Score
-              </div>
-            </div>
-            
-            <div className="text-center md:text-right">
-              <Badge className={`text-lg px-4 py-2 ${getCertificationColor(assessment.certificationType)}`}>
-                <Award className="w-4 h-4 mr-2" />
-                {assessment.certificationType} Certified
-              </Badge>
-              <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                Certified on {new Date(assessment.conductedAt).toLocaleDateString()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Building Details */}
-        <Card>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="w-5 h-5" />
-              Building Details
-            </CardTitle>
+            <CardTitle className="text-center text-red-600">Assessment Not Found</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {assessment.buildingFootprint > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Building Footprint</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.buildingFootprint} m²</p>
-                </div>
-              )}
-              {assessment.numberOfBedrooms > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Bedrooms</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.numberOfBedrooms}</p>
-                </div>
-              )}
-              {assessment.numberOfFloors > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Floors</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.numberOfFloors}</p>
-                </div>
-              )}
-              {assessment.siteArea > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Site Area</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.siteArea} m²</p>
-                </div>
-              )}
-              {assessment.totalGreenArea > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Green Area</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.totalGreenArea} m²</p>
-                </div>
-              )}
-              {assessment.numberOfWindows > 0 && (
-                <div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Windows</span>
-                  <p className="text-lg text-gray-900 dark:text-white">{assessment.numberOfWindows}</p>
-                </div>
-              )}
+            <p className="text-center text-gray-700">
+              The assessment you're looking for could not be found or is not publicly available.
+            </p>
+            {error && (
+              <p className="text-center text-sm text-red-500 mt-2">
+                Error: {error.message || "Unknown error"}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!params?.publicId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-red-600">Invalid URL</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-700">
+              No assessment ID provided in the URL.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { assessment, sections, media } = data;
+  const certification = getCertificationType(assessment.overallScore, assessment.maxPossibleScore);
+  const scorePercentage = (assessment.overallScore / assessment.maxPossibleScore) * 100;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img src={gredaLogo} alt="GREDA Green Building" className="h-10 w-auto" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Green Building Assessment Report</h1>
+                <p className="text-gray-600">Detailed assessment data for {assessment.buildingName}</p>
+              </div>
             </div>
-            
+            <div className="text-right">
+              <Badge className={`${certification.color} text-white text-lg px-4 py-2`}>
+                {certification.type}
+              </Badge>
+              <p className="text-sm text-gray-600 mt-1">Certification Level</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Building Overview */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="flex items-center space-x-2 text-xl text-gray-900">
+              <Building className="h-6 w-6 text-green-600" />
+              <span>Building Overview</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg mb-3">Building Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Building className="h-5 w-5 text-gray-600" />
+                      <div>
+                        <span className="text-sm text-gray-600">Building Name:</span>
+                        <p className="font-medium text-gray-900">{assessment.buildingName}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-5 w-5 text-gray-600" />
+                      <div>
+                        <span className="text-sm text-gray-600">Location:</span>
+                        <p className="font-medium text-gray-900">{assessment.buildingLocation}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-5 w-5 text-gray-600" />
+                      <div>
+                        <span className="text-sm text-gray-600">Digital Address:</span>
+                        <p className="font-medium text-gray-900">{assessment.digitalAddress}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="h-5 w-5 text-gray-600" />
+                      <div>
+                        <span className="text-sm text-gray-600">Assessment Date:</span>
+                        <p className="font-medium text-gray-900">
+                          {new Date(assessment.conductedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <User className="h-5 w-5 text-gray-600" />
+                      <div>
+                        <span className="text-sm text-gray-600">Conducted by:</span>
+                        <p className="font-medium text-gray-900">{assessment.assessorName}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-lg mb-3">Overall Score</h3>
+                  <div className="text-center p-6 bg-gray-50 rounded-lg">
+                    <div className="text-4xl font-bold text-green-600 mb-2">
+                      {assessment.overallScore}/{assessment.maxPossibleScore}
+                    </div>
+                    <div className="text-lg text-gray-700 mb-4">
+                      {scorePercentage.toFixed(1)}% Score
+                    </div>
+                    <Progress value={scorePercentage} className="w-full h-3" />
+                    <Badge className={`${certification.color} text-white mt-4`}>
+                      <Award className="h-4 w-4 mr-1" />
+                      {certification.type} Certification
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {assessment.additionalNotes && (
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Additional Notes</span>
-                <p className="text-gray-900 dark:text-white mt-1">{assessment.additionalNotes}</p>
+              <div className="mt-6 pt-6 border-t">
+                <h3 className="font-semibold text-gray-900 mb-2">Additional Notes</h3>
+                <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{assessment.additionalNotes}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Assessment Sections */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5" />
-              Assessment Breakdown
+        {/* Building Specifications */}
+        {(assessment.buildingFootprint > 0 || assessment.siteArea > 0 || assessment.numberOfBedrooms > 0) && (
+          <Card className="shadow-lg">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="flex items-center space-x-2 text-xl text-gray-900">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+                <span>Building Specifications</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                {assessment.buildingFootprint > 0 && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{assessment.buildingFootprint}</div>
+                    <div className="text-sm text-gray-600">Building Footprint (m²)</div>
+                  </div>
+                )}
+                {assessment.siteArea > 0 && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{assessment.siteArea}</div>
+                    <div className="text-sm text-gray-600">Site Area (m²)</div>
+                  </div>
+                )}
+                {assessment.numberOfBedrooms > 0 && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{assessment.numberOfBedrooms}</div>
+                    <div className="text-sm text-gray-600">Number of Bedrooms</div>
+                  </div>
+                )}
+                {assessment.numberOfFloors > 0 && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{assessment.numberOfFloors}</div>
+                    <div className="text-sm text-gray-600">Number of Floors</div>
+                  </div>
+                )}
+                {assessment.totalGreenArea > 0 && (
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{assessment.totalGreenArea}</div>
+                    <div className="text-sm text-gray-600">Green Area (m²)</div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Assessment Scores by Category */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="flex items-center space-x-2 text-xl text-gray-900">
+              <Star className="h-6 w-6 text-green-600" />
+              <span>Detailed Scores by Assessment Category</span>
             </CardTitle>
-            <CardDescription>
-              Detailed scoring across all {assessment.sections.length} assessment categories
-            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {assessment.sections.map((section, index) => {
-                const sectionPercentage = section.maxScore > 0 
-                  ? (section.score / section.maxScore) * 100 
-                  : 0;
-                
+          <CardContent className="p-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {sections.map((section) => {
+                const sectionPercentage = section.maxScore > 0 ? (section.score / section.maxScore) * 100 : 0;
                 return (
-                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        {sectionNames[section.sectionType] || section.sectionType}
+                  <div key={section.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-semibold text-gray-900">
+                        {formatSectionName(section.sectionName)}
                       </h3>
-                      <div className="text-right">
-                        <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {section.score}/{section.maxScore}
-                        </span>
-                        <div className="text-xs text-gray-500">
-                          {sectionPercentage.toFixed(1)}%
-                        </div>
-                      </div>
+                      <Badge variant="outline" className="text-gray-700">
+                        {section.score}/{section.maxScore}
+                      </Badge>
                     </div>
-                    <Progress value={sectionPercentage} className="mb-2" />
-                    {section.notes && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                        {section.notes}
-                      </p>
-                    )}
+                    <Progress value={sectionPercentage} className="h-2 mb-2" />
+                    <p className="text-sm text-gray-600">{sectionPercentage.toFixed(1)}% achieved</p>
                   </div>
                 );
               })}
@@ -300,47 +370,36 @@ export default function PublicAssessment() {
           </CardContent>
         </Card>
 
-        {/* Media Files */}
-        {assessment.media.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Image className="w-5 h-5" />
-                Assessment Media
+        {/* Supporting Documentation */}
+        {media.length > 0 && (
+          <Card className="shadow-lg">
+            <CardHeader className="bg-purple-50">
+              <CardTitle className="flex items-center space-x-2 text-xl text-gray-900">
+                <FileText className="h-6 w-6 text-purple-600" />
+                <span>Supporting Documentation</span>
               </CardTitle>
-              <CardDescription>
-                Supporting documentation and evidence ({assessment.media.length} files)
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {assessment.media.map((mediaItem) => (
-                  <div key={mediaItem.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      {getFileIcon(mediaItem.mimeType)}
-                      <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {mediaItem.fileName}
-                      </span>
+            <CardContent className="p-6">
+              <p className="text-gray-600 mb-4">
+                Media files and documentation from the assessment
+              </p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {media.map((item) => (
+                  <div key={item.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3 mb-2">
+                      {getMediaIcon(item.fileType)}
+                      <span className="font-medium text-gray-900 truncate">{item.fileName}</span>
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-500 mb-2">
-                      {sectionNames[mediaItem.sectionType] || mediaItem.sectionType}
+                    <div className="text-sm space-y-1">
+                      <p className="text-gray-600">
+                        <span className="font-medium">Section:</span> {formatSectionName(item.sectionName)}
+                      </p>
+                      {item.variableName && item.variableName !== 'General' && (
+                        <p className="text-gray-600">
+                          <span className="font-medium">Category:</span> {formatVariableName(item.variableName)}
+                        </p>
+                      )}
                     </div>
-                    {mediaItem.mimeType.startsWith('image/') && (
-                      <img 
-                        src={mediaItem.url} 
-                        alt={mediaItem.fileName}
-                        className="w-full h-32 object-cover rounded mb-2"
-                      />
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => window.open(mediaItem.url, '_blank')}
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -348,60 +407,17 @@ export default function PublicAssessment() {
           </Card>
         )}
 
-        {/* Assessment Team */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Assessment Team
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {assessment.assessorInfo && (
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                    Lead Assessor
-                  </h3>
-                  <p className="text-gray-900 dark:text-white">{assessment.assessorInfo.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{assessment.assessorInfo.email}</p>
-                  <Badge variant="secondary" className="mt-2">
-                    {assessment.assessorInfo.role}
-                  </Badge>
-                </div>
-              )}
-              
-              {assessment.clientInfo && (
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                    Property Owner
-                  </h3>
-                  <p className="text-gray-900 dark:text-white">{assessment.clientInfo.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{assessment.clientInfo.email}</p>
-                </div>
-              )}
-            </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <Calendar className="w-4 h-4" />
-              <span>Assessment conducted on {new Date(assessment.conductedAt).toLocaleDateString()}</span>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Footer */}
-        <div className="text-center py-8 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
-            <Leaf className="w-5 h-5" />
-            <span className="font-semibold">GREDA Green Building Council</span>
+        <div className="text-center py-8 border-t border-gray-200">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img src={gredaLogo} alt="GREDA Green Building" className="h-8 w-auto" />
+            <span className="text-xl font-semibold text-gray-900">GREDA-GBC Assessment Platform</span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            This assessment is verified and certified by GREDA Green Building Council
+          <p className="text-gray-600">
+            This assessment was conducted using the GREDA Green Building Certification standards.
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            For more information, visit www.greda.org
+          <p className="text-sm text-gray-500 mt-2">
+            Generated on {new Date().toLocaleDateString()} • Assessment ID: {assessment.publicId}
           </p>
         </div>
       </div>

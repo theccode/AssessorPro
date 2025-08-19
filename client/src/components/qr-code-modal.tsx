@@ -1,18 +1,11 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { QrCode, Download, Share2, Copy, ExternalLink } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { QrCode, Download, Share2, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-
-interface QRCodeModalProps {
-  publicId: string;
-  buildingName: string;
-  overallScore: number;
-  maxPossibleScore: number;
-  status: string;
-  trigger?: React.ReactNode;
-}
+import { useToast } from "@/hooks/use-toast";
 
 interface QRCodeData {
   qrCodeDataUrl: string;
@@ -22,40 +15,34 @@ interface QRCodeData {
   maxPossibleScore: number;
 }
 
-export default function QRCodeModal({ publicId, buildingName, overallScore, maxPossibleScore, status, trigger }: QRCodeModalProps) {
+interface QRCodeModalProps {
+  publicId: string;
+  buildingName: string;
+  overallScore: number;
+  maxPossibleScore: number;
+  status: string;
+}
+
+export function QRCodeModal({ publicId, buildingName, overallScore, maxPossibleScore, status }: QRCodeModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Fetch QR code data when modal opens
   const { data: qrData, isLoading, error } = useQuery<QRCodeData>({
-    queryKey: ['/api/assessments', publicId, 'qr'],
-    enabled: isOpen,
+    queryKey: [`/api/assessments/${publicId}/qr`],
+    enabled: isOpen && status === 'completed',
   });
-
-  const handleDownload = () => {
-    if (qrData?.qrCodeDataUrl) {
-      const link = document.createElement('a');
-      link.href = qrData.qrCodeDataUrl;
-      link.download = `${buildingName.replace(/[^a-z0-9]/gi, '_')}_QR_Code.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "QR Code Downloaded",
-        description: "The QR code has been saved to your downloads folder.",
-      });
-    }
-  };
 
   const handleCopyUrl = async () => {
     if (qrData?.targetUrl) {
       try {
         await navigator.clipboard.writeText(qrData.targetUrl);
+        setCopied(true);
         toast({
           title: "URL Copied",
-          description: "The public assessment URL has been copied to your clipboard.",
+          description: "The assessment URL has been copied to your clipboard.",
         });
+        setTimeout(() => setCopied(false), 2000);
       } catch (error) {
         toast({
           title: "Copy Failed",
@@ -66,141 +53,167 @@ export default function QRCodeModal({ publicId, buildingName, overallScore, maxP
     }
   };
 
+  const handleDownloadQR = () => {
+    if (qrData?.qrCodeDataUrl) {
+      const link = document.createElement('a');
+      link.href = qrData.qrCodeDataUrl;
+      link.download = `${buildingName.replace(/[^a-zA-Z0-9]/g, '_')}_QR_Code.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast({
+        title: "QR Code Downloaded",
+        description: "The QR code has been saved to your downloads.",
+      });
+    }
+  };
+
   const handleShare = async () => {
-    if (navigator.share && qrData?.targetUrl) {
-      try {
-        await navigator.share({
-          title: `${buildingName} - GREDA Assessment`,
-          text: `View the green building assessment for ${buildingName}`,
-          url: qrData.targetUrl,
-        });
-      } catch (error) {
-        // Fallback to copy URL if native sharing fails
+    if (qrData?.targetUrl) {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `${buildingName} - Green Building Assessment`,
+            text: `View the detailed green building assessment for ${buildingName}`,
+            url: qrData.targetUrl,
+          });
+        } catch (error) {
+          console.log('Share cancelled or failed');
+        }
+      } else {
         handleCopyUrl();
       }
-    } else {
-      handleCopyUrl();
     }
   };
 
-  const handleViewPublic = () => {
-    if (qrData?.targetUrl) {
-      window.open(qrData.targetUrl, '_blank');
-    }
+  const getCertificationType = (score: number, maxScore: number) => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return { type: 'Gold', color: 'bg-yellow-500' };
+    if (percentage >= 60) return { type: 'Silver', color: 'bg-gray-400' };
+    if (percentage >= 40) return { type: 'Bronze', color: 'bg-amber-600' };
+    return { type: 'Basic', color: 'bg-green-600' };
   };
 
-  // Only show QR code for completed assessments
+  const certification = getCertificationType(overallScore, maxPossibleScore);
+
   if (status !== 'completed') {
-    return null;
+    return (
+      <Button variant="outline" disabled>
+        <QrCode className="w-4 h-4 mr-2" />
+        QR Code (Complete assessment first)
+      </Button>
+    );
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm">
-            <QrCode className="w-4 h-4 mr-2" />
-            Generate QR Code
-          </Button>
-        )}
+        <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200">
+          <QrCode className="w-4 h-4 mr-2 text-green-600" />
+          Generate QR Code
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <QrCode className="w-5 h-5" />
-            QR Code for {buildingName}
+            <QrCode className="w-5 h-5 text-green-600" />
+            Public Assessment QR Code
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-6">
-          {/* QR Code Display */}
-          <div className="flex justify-center p-6 bg-white rounded-lg border">
-            {isLoading ? (
-              <div className="w-48 h-48 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-                <QrCode className="w-12 h-12 text-gray-400" />
-              </div>
-            ) : error ? (
-              <div className="w-48 h-48 bg-red-50 rounded-lg flex items-center justify-center">
-                <p className="text-red-600 text-sm text-center">
-                  Failed to generate QR code
-                </p>
-              </div>
-            ) : qrData?.qrCodeDataUrl ? (
-              <img
-                src={qrData.qrCodeDataUrl}
-                alt={`QR Code for ${buildingName}`}
-                className="w-48 h-48 rounded-lg"
-              />
-            ) : null}
-          </div>
 
-          {/* Assessment Info */}
-          {qrData && (
-            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-              <h3 className="font-medium text-green-900 dark:text-green-100 mb-2">
-                Assessment Details
-              </h3>
-              <div className="text-sm text-green-800 dark:text-green-200 space-y-1">
-                <p><span className="font-medium">Building:</span> {qrData.buildingName}</p>
-                <p><span className="font-medium">Score:</span> {qrData.overallScore}/{qrData.maxPossibleScore}</p>
-                <p className="text-xs text-green-600 dark:text-green-300 mt-2">
-                  Scan this QR code to view the complete assessment data publicly
-                </p>
+        {isLoading && (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center p-4">
+            <p className="text-destructive text-sm">Failed to generate QR code. Please try again.</p>
+          </div>
+        )}
+
+        {qrData && (
+          <div className="space-y-4">
+            {/* QR Code Display */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  <div className="inline-block p-4 bg-white rounded-lg shadow-sm border">
+                    <img 
+                      src={qrData.qrCodeDataUrl} 
+                      alt={`QR Code for ${buildingName}`}
+                      className="w-48 h-48 mx-auto"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">{buildingName}</h3>
+                    <div className="flex items-center justify-center gap-2">
+                      <Badge className={`${certification.color} text-white`}>
+                        {certification.type} Certification
+                      </Badge>
+                      <Badge variant="outline">
+                        Score: {overallScore}/{maxPossibleScore}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* URL Display */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Public Assessment URL:</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={qrData.targetUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 text-sm border rounded-md bg-muted"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyUrl}
+                  className="shrink-0"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              onClick={handleDownload}
-              disabled={!qrData?.qrCodeDataUrl}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </Button>
-            
-            <Button
-              onClick={handleShare}
-              disabled={!qrData?.targetUrl}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            
-            <Button
-              onClick={handleCopyUrl}
-              disabled={!qrData?.targetUrl}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Copy className="w-4 h-4" />
-              Copy URL
-            </Button>
-            
-            <Button
-              onClick={handleViewPublic}
-              disabled={!qrData?.targetUrl}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View Public
-            </Button>
-          </div>
-
-          {/* Public URL Display */}
-          {qrData?.targetUrl && (
-            <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-              <p className="font-medium mb-1">Public URL:</p>
-              <p className="break-all font-mono">{qrData.targetUrl}</p>
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={handleDownloadQR}
+                className="flex-1"
+                variant="outline"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download QR
+              </Button>
+              <Button 
+                onClick={handleShare}
+                className="flex-1"
+                variant="outline"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share URL
+              </Button>
             </div>
-          )}
-        </div>
+
+            {/* Instructions */}
+            <div className="text-center text-sm text-muted-foreground border-t pt-4">
+              <p className="font-medium mb-1">How to use this QR code:</p>
+              <p>Anyone who scans this QR code can view the complete assessment data, including all sections, scores, and supporting documentation for {buildingName}.</p>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
