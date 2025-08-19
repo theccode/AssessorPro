@@ -25,6 +25,7 @@ import InvitationAccept from "@/pages/invitation-accept";
 import Portfolio from "@/pages/portfolio";
 import Profile from "@/pages/profile";
 import ActivityLogs from "@/pages/activity-logs";
+import { PublicAssessment } from "@/pages/public-assessment";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -50,6 +51,7 @@ function Router() {
       {/* Public routes - no authentication required */}
       <Route path="/invitations/:token/accept" component={InvitationAccept} />
       <Route path="/portfolio" component={Portfolio} />
+      <Route path="/public/assessment/:publicId" component={PublicAssessment} />
       <Route path="/login" component={Login} />
       
       {isLoading ? (

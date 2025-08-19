@@ -38,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { QRCodeModal } from "@/components/qr-code-modal";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 // Helper function to convert technical names to user-friendly names
@@ -221,6 +222,13 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                   </Link>
                 </Button>
               )}
+              <QRCodeModal 
+                publicId={publicId}
+                buildingName={(assessment as any).buildingName || "Assessment"}
+                overallScore={(assessment as any).overallScore || 0}
+                maxPossibleScore={(assessment as any).maxPossibleScore || 0}
+                status={(assessment as any).status || "draft"}
+              />
               <Button 
                 variant="outline" 
                 size="sm" 

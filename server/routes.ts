@@ -12,6 +12,7 @@ import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import QRCode from "qrcode";
 import { notificationService } from "./notification-service";
 import { activityService } from "./activity-service";
 
@@ -2083,6 +2084,163 @@ For security reasons, we recommend using a strong, unique password and not shari
     } catch (error) {
       console.error("Error archiving assessment:", error);
       res.status(500).json({ message: "Failed to archive assessment" });
+    }
+  });
+
+  // QR Code generation routes
+  app.get('/api/assessments/:publicId/qr', async (req, res) => {
+    try {
+      const publicId = req.params.publicId;
+      
+      // Get assessment by public ID
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Only generate QR codes for completed assessments
+      if (assessment.status !== 'completed') {
+        return res.status(400).json({ message: "QR codes are only available for completed assessments" });
+      }
+
+      // Generate QR code URL pointing to public assessment view
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const assessmentUrl = `${baseUrl}/public/assessment/${publicId}`;
+      
+      // Generate QR code as data URL
+      const qrCodeDataUrl = await QRCode.toDataURL(assessmentUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#33A366',  // Green color matching our theme
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M'
+      });
+
+      res.json({
+        qrCodeDataUrl,
+        targetUrl: assessmentUrl,
+        buildingName: assessment.buildingName,
+        overallScore: assessment.overallScore,
+        maxPossibleScore: assessment.maxPossibleScore
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ message: "Failed to generate QR code" });
+    }
+  });
+
+  // Public assessment view endpoint (for QR code scanning)
+  app.get('/api/public/assessment/:publicId/full', async (req, res) => {
+    try {
+      const publicId = req.params.publicId;
+      
+      // Get full assessment data
+      const assessment = await storage.getAssessmentByPublicId(publicId);
+      if (!assessment) {
+        return res.status(404).json({ message: "Assessment not found" });
+      }
+
+      // Only allow access to completed, non-archived assessments
+      if (assessment.status !== 'completed' || assessment.isArchived) {
+        return res.status(403).json({ message: "Assessment is not publicly accessible" });
+      }
+
+      // Get all assessment sections with detailed data
+      const sections = await storage.getAssessmentSections(assessment.id);
+      
+      // Get assessment media
+      const media = await storage.getAssessmentMedia(assessment.id);
+      
+      // Get assessor details
+      const assessor = await storage.getUser(assessment.userId);
+      
+      // Get client details (if available)
+      let client = null;
+      if (assessment.clientId) {
+        client = await storage.getUser(assessment.clientId);
+      }
+
+      // Prepare comprehensive assessment data for public viewing
+      const publicAssessmentData = {
+        // Basic information
+        id: assessment.publicId,
+        buildingName: assessment.buildingName,
+        buildingLocation: assessment.buildingLocation,
+        digitalAddress: assessment.digitalAddress,
+        detailedAddress: assessment.detailedAddress,
+        phoneNumber: assessment.phoneNumber,
+        additionalNotes: assessment.additionalNotes,
+        
+        // Building specifications
+        buildingFootprint: assessment.buildingFootprint,
+        roomHeight: assessment.roomHeight,
+        numberOfBedrooms: assessment.numberOfBedrooms,
+        siteArea: assessment.siteArea,
+        numberOfWindows: assessment.numberOfWindows,
+        numberOfDoors: assessment.numberOfDoors,
+        averageWindowSize: assessment.averageWindowSize,
+        numberOfFloors: assessment.numberOfFloors,
+        totalGreenArea: assessment.totalGreenArea,
+        
+        // Scoring and completion
+        overallScore: assessment.overallScore,
+        maxPossibleScore: assessment.maxPossibleScore,
+        completedSections: assessment.completedSections,
+        totalSections: assessment.totalSections,
+        
+        // Assessment details
+        assessorName: assessment.assessorName,
+        assessorRole: assessment.assessorRole,
+        clientName: assessment.clientName,
+        conductedAt: assessment.conductedAt,
+        
+        // Detailed section data
+        sections: sections.map(section => ({
+          sectionType: section.sectionType,
+          score: section.score,
+          maxScore: section.maxScore,
+          responses: section.responses,
+          notes: section.notes,
+          completedAt: section.completedAt
+        })),
+        
+        // Media files (publicly accessible)
+        media: media.map(mediaItem => ({
+          id: mediaItem.id,
+          sectionType: mediaItem.sectionType,
+          fieldName: mediaItem.fieldName,
+          fileName: mediaItem.fileName,
+          fileType: mediaItem.fileType,
+          mimeType: mediaItem.mimeType,
+          // Provide media access URL
+          url: `/api/media/${mediaItem.id}`
+        })),
+        
+        // Assessment metadata
+        certificationType: assessment.overallScore >= 80 ? 'Gold' : 
+                         assessment.overallScore >= 60 ? 'Silver' : 
+                         assessment.overallScore >= 40 ? 'Bronze' : 'Basic',
+        
+        // Assessor information (limited)
+        assessorInfo: assessor ? {
+          name: `${assessor.firstName} ${assessor.lastName}`,
+          role: assessor.role,
+          email: assessor.email
+        } : null,
+        
+        // Client information (limited, if available)
+        clientInfo: client ? {
+          name: `${client.firstName} ${client.lastName}`,
+          email: client.email
+        } : null
+      };
+
+      res.json(publicAssessmentData);
+    } catch (error) {
+      console.error("Error fetching public assessment data:", error);
+      res.status(500).json({ message: "Failed to fetch assessment data" });
     }
   });
 
