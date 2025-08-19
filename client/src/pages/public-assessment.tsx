@@ -67,7 +67,11 @@ interface PublicAssessmentData {
 }
 
 export function PublicAssessment() {
-  const [match, params] = useRoute("/public/assessment/:publicId");
+  const [publicMatch, publicParams] = useRoute("/public/assessment/:publicId");
+  const [assessmentMatch, assessmentParams] = useRoute("/assessment/:publicId");
+  
+  // Use whichever route matches
+  const params = publicParams || assessmentParams;
   
   const { data, isLoading, error } = useQuery<PublicAssessmentData>({
     queryKey: [`/api/public/assessment/${params?.publicId}/full`],

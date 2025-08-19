@@ -52,6 +52,7 @@ function Router() {
       <Route path="/invitations/:token/accept" component={InvitationAccept} />
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/public/assessment/:publicId" component={PublicAssessment} />
+      <Route path="/assessment/:publicId" component={PublicAssessment} />
       <Route path="/login" component={Login} />
       
       {isLoading ? (
