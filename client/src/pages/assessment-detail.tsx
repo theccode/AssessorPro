@@ -38,7 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QRCodeModal } from "@/components/qr-code-modal";
+import QRCodeModal from "@/components/qr-code-modal";
 import gredaLogo from "@assets/Greda-Green-Building-Logo.png";
 
 // Helper function to convert technical names to user-friendly names

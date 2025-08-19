@@ -25,7 +25,7 @@ import InvitationAccept from "@/pages/invitation-accept";
 import Portfolio from "@/pages/portfolio";
 import Profile from "@/pages/profile";
 import ActivityLogs from "@/pages/activity-logs";
-import { PublicAssessment } from "@/pages/public-assessment";
+import PublicAssessment from "@/pages/public-assessment";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();

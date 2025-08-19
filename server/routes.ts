@@ -2131,82 +2131,77 @@ For security reasons, we recommend using a strong, unique password and not shari
     }
   });
 
-  // Public assessment view endpoint (for QR code scanning)
+  // Public assessment view - No authentication required
   app.get('/api/public/assessment/:publicId/full', async (req, res) => {
     try {
       const publicId = req.params.publicId;
       
-      // Get full assessment data
+      // Get assessment by public ID
       const assessment = await storage.getAssessmentByPublicId(publicId);
       if (!assessment) {
         return res.status(404).json({ message: "Assessment not found" });
       }
 
-      // Only allow access to completed, non-archived assessments
-      if (assessment.status !== 'completed' || assessment.isArchived) {
-        return res.status(403).json({ message: "Assessment is not publicly accessible" });
+      // Only show completed assessments publicly
+      if (assessment.status !== 'completed') {
+        return res.status(404).json({ message: "Assessment not available for public viewing" });
       }
 
-      // Get all assessment sections with detailed data
+      // Get all assessment sections
       const sections = await storage.getAssessmentSections(assessment.id);
       
-      // Get assessment media
+      // Get all media files
       const media = await storage.getAssessmentMedia(assessment.id);
-      
-      // Get assessor details
-      const assessor = await storage.getUser(assessment.userId);
-      
-      // Get client details (if available)
-      let client = null;
-      if (assessment.clientId) {
-        client = await storage.getUser(assessment.clientId);
-      }
 
-      // Prepare comprehensive assessment data for public viewing
+      // Get assessor information
+      const assessor = await storage.getUser(assessment.userId);
+      const client = assessment.clientId ? await storage.getUser(assessment.clientId) : null;
+      
+      // Determine certification type based on score percentage
+      const scorePercentage = assessment.maxPossibleScore > 0 
+        ? (assessment.overallScore / assessment.maxPossibleScore) * 100 
+        : 0;
+      
+      let certificationType = 'Basic';
+      if (scorePercentage >= 80) certificationType = 'Gold';
+      else if (scorePercentage >= 60) certificationType = 'Silver';
+      else if (scorePercentage >= 40) certificationType = 'Bronze';
+
+      // Prepare public assessment data
       const publicAssessmentData = {
-        // Basic information
         id: assessment.publicId,
-        buildingName: assessment.buildingName,
+        buildingName: assessment.buildingName || 'Assessment',
         buildingLocation: assessment.buildingLocation,
         digitalAddress: assessment.digitalAddress,
         detailedAddress: assessment.detailedAddress,
         phoneNumber: assessment.phoneNumber,
         additionalNotes: assessment.additionalNotes,
-        
-        // Building specifications
-        buildingFootprint: assessment.buildingFootprint,
-        roomHeight: assessment.roomHeight,
-        numberOfBedrooms: assessment.numberOfBedrooms,
-        siteArea: assessment.siteArea,
-        numberOfWindows: assessment.numberOfWindows,
-        numberOfDoors: assessment.numberOfDoors,
-        averageWindowSize: assessment.averageWindowSize,
-        numberOfFloors: assessment.numberOfFloors,
-        totalGreenArea: assessment.totalGreenArea,
-        
-        // Scoring and completion
-        overallScore: assessment.overallScore,
-        maxPossibleScore: assessment.maxPossibleScore,
-        completedSections: assessment.completedSections,
-        totalSections: assessment.totalSections,
-        
-        // Assessment details
-        assessorName: assessment.assessorName,
-        assessorRole: assessment.assessorRole,
-        clientName: assessment.clientName,
+        buildingFootprint: assessment.buildingFootprint || 0,
+        roomHeight: assessment.roomHeight || 0,
+        numberOfBedrooms: assessment.numberOfBedrooms || 0,
+        siteArea: assessment.siteArea || 0,
+        numberOfWindows: assessment.numberOfWindows || 0,
+        numberOfDoors: assessment.numberOfDoors || 0,
+        averageWindowSize: assessment.averageWindowSize || 0,
+        numberOfFloors: assessment.numberOfFloors || 0,
+        totalGreenArea: assessment.totalGreenArea || 0,
+        overallScore: assessment.overallScore || 0,
+        maxPossibleScore: assessment.maxPossibleScore || 0,
+        completedSections: assessment.completedSections || 0,
+        totalSections: sections.length,
+        assessorName: assessment.assessorName || 'Unknown Assessor',
+        assessorRole: assessment.assessorRole || 'assessor',
+        clientName: assessment.clientName || 'Unknown Client',
         conductedAt: assessment.conductedAt,
-        
-        // Detailed section data
+        certificationType,
         sections: sections.map(section => ({
           sectionType: section.sectionType,
-          score: section.score,
-          maxScore: section.maxScore,
-          responses: section.responses,
+          score: section.score || 0,
+          maxScore: section.maxScore || 0,
+          responses: section.responses || {},
           notes: section.notes,
           completedAt: section.completedAt
         })),
-        
-        // Media files (publicly accessible)
         media: media.map(mediaItem => ({
           id: mediaItem.id,
           sectionType: mediaItem.sectionType,
@@ -2214,117 +2209,91 @@ For security reasons, we recommend using a strong, unique password and not shari
           fileName: mediaItem.fileName,
           fileType: mediaItem.fileType,
           mimeType: mediaItem.mimeType,
-          // Provide media access URL
-          url: `/api/media/${mediaItem.id}`
+          url: mediaItem.url
         })),
-        
-        // Assessment metadata
-        certificationType: assessment.overallScore >= 80 ? 'Gold' : 
-                         assessment.overallScore >= 60 ? 'Silver' : 
-                         assessment.overallScore >= 40 ? 'Bronze' : 'Basic',
-        
-        // Assessor information (limited)
         assessorInfo: assessor ? {
-          name: `${assessor.firstName} ${assessor.lastName}`,
+          name: `${assessor.firstName || ''} ${assessor.lastName || ''}`.trim() || assessor.email,
           role: assessor.role,
           email: assessor.email
         } : null,
-        
-        // Client information (limited, if available)
         clientInfo: client ? {
-          name: `${client.firstName} ${client.lastName}`,
+          name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
           email: client.email
         } : null
       };
 
       res.json(publicAssessmentData);
     } catch (error) {
-      console.error("Error fetching public assessment data:", error);
+      console.error("Error fetching public assessment:", error);
       res.status(500).json({ message: "Failed to fetch assessment data" });
     }
   });
 
+  // Create HTTP server and WebSocket setup
   const httpServer = createServer(app);
-  
-  // Setup WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  wss.on('connection', async (ws: AuthenticatedWebSocket, req) => {
+
+  wss.on('connection', (ws: AuthenticatedWebSocket, req) => {
     console.log('[WebSocket] New connection attempt');
     
-    // Extract session from cookie
-    const cookies = req.headers.cookie;
-    if (!cookies) {
-      console.log('[WebSocket] No cookies found, closing connection');
-      ws.close(1008, 'Authentication required');
-      return;
-    }
-    
-    // Parse session ID from cookie
-    const sessionMatch = cookies.match(/connect\.sid=([^;]+)/);
-    if (!sessionMatch) {
-      console.log('[WebSocket] No session cookie found, closing connection');
-      ws.close(1008, 'Authentication required');
-      return;
-    }
-    
-    try {
-      // For now, we'll use a simplified auth check
-      // In a real implementation, you'd verify the session properly
-      const sessionId = decodeURIComponent(sessionMatch[1]);
-      
-      // For demo purposes, we'll accept the connection and let the client send auth info
-      console.log('[WebSocket] Connection established, waiting for auth');
-      
-      ws.on('message', async (message) => {
-        try {
-          const data = JSON.parse(message.toString());
-          
-          if (data.type === 'auth') {
-            // Client sends auth info
-            const { userId, role } = data;
-            
-            if (userId && role) {
+    // Wait for authentication message
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === 'auth' && data.sessionId) {
+          // Verify session using custom auth
+          const userId = await verifySessionId(data.sessionId);
+          if (userId) {
+            const user = await storage.getUser(userId);
+            if (user) {
               ws.userId = userId;
-              ws.role = role;
-              wsManager.addConnection(userId, ws);
+              ws.role = user.role;
+              wsManager!.addConnection(userId, ws);
               
-              ws.send(JSON.stringify({
-                type: 'auth_success',
-                message: 'WebSocket authentication successful'
+              console.log(`[WebSocket] User ${userId} (${user.role}) authenticated`);
+              ws.send(JSON.stringify({ 
+                type: 'auth_success', 
+                message: 'WebSocket authentication successful' 
               }));
-              
-              console.log(`[WebSocket] User ${userId} (${role}) authenticated`);
+            } else {
+              console.log('[WebSocket] User not found');
+              ws.close(1008, 'User not found');
             }
-          } else if (data.type === 'ping') {
-            ws.send(JSON.stringify({ type: 'pong' }));
+          } else {
+            console.log('[WebSocket] Session verification failed');
+            ws.close(1008, 'Authentication failed');
           }
-        } catch (error) {
-          console.error('[WebSocket] Error parsing message:', error);
+        } else if (data.type === 'ping') {
+          ws.send(JSON.stringify({ type: 'pong' }));
         }
-      });
-      
-      ws.on('close', () => {
-        if (ws.userId) {
-          wsManager.removeConnection(ws.userId, ws);
-        }
-      });
-      
-      ws.on('error', (error) => {
-        console.error('[WebSocket] Connection error:', error);
-        if (ws.userId) {
-          wsManager.removeConnection(ws.userId, ws);
-        }
-      });
-      
-    } catch (error) {
-      console.error('[WebSocket] Authentication error:', error);
-      ws.close(1008, 'Authentication failed');
-    }
+      } catch (error) {
+        console.error('[WebSocket] Message handling error:', error);
+        ws.close(1008, 'Message parsing error');
+      }
+    });
+    
+    ws.on('close', () => {
+      if (ws.userId) {
+        wsManager!.removeConnection(ws.userId, ws);
+      }
+    });
+    
+    // Send connection established message
+    console.log('[WebSocket] Connection established, waiting for auth');
   });
-  
-  // Export wsManager for use in other modules
-  (global as any).wsManager = wsManager;
-  
+
   return httpServer;
+}
+
+// Session verification function for WebSocket authentication
+async function verifySessionId(sessionId: string): Promise<string | null> {
+  try {
+    // This should be implemented based on your session storage mechanism
+    // For now, return null to disable WebSocket auth
+    return null;
+  } catch (error) {
+    console.error('Session verification error:', error);
+    return null;
+  }
 }
