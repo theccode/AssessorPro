@@ -215,13 +215,26 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
               {(user?.role === "admin" || user?.role === "assessor") && (
-                <Button variant="outline" size="sm" asChild className="hidden lg:flex">
+                <Button variant="outline" size="sm" asChild>
                   <Link href={`/assessments/${publicId}/edit`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Assessment
+                    <Edit className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Edit Assessment</span>
                   </Link>
                 </Button>
               )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+              >
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{isGeneratingPDF ? "Generating..." : "Download PDF"}</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Print</span>
+              </Button>
               <QRCodeModal 
                 publicId={publicId}
                 buildingName={(assessment as any).buildingName || "Assessment"}
@@ -229,20 +242,6 @@ export default function AssessmentDetail({ params }: { params: { id: string } })
                 maxPossibleScore={(assessment as any).maxPossibleScore || 0}
                 status={(assessment as any).status || "draft"}
               />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-                className="hidden sm:flex"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {isGeneratingPDF ? "Generating..." : "Download PDF"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint} className="hidden sm:flex">
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </Button>
               <Button variant="outline" asChild>
                 <Link href="/"><ArrowLeft className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Back to Dashboard</span></Link>
               </Button>
