@@ -67,11 +67,7 @@ interface PublicAssessmentData {
 }
 
 export function PublicAssessment() {
-  const [publicMatch, publicParams] = useRoute("/public/assessment/:publicId");
-  const [assessmentMatch, assessmentParams] = useRoute("/assessment/:publicId");
-  
-  // Use whichever route matches
-  const params = publicParams || assessmentParams;
+  const [match, params] = useRoute("/public/assessment/:publicId");
   
   const { data, isLoading, error } = useQuery<PublicAssessmentData>({
     queryKey: [`/api/public/assessment/${params?.publicId}/full`],
@@ -96,7 +92,7 @@ export function PublicAssessment() {
   const formatVariableName = (name: string): string => {
     if (!name || name === 'General') return 'Document Upload';
     
-    let readable = String(name)
+    let readable = name
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase())
       .replace(/_/g, ' ')
@@ -120,8 +116,6 @@ export function PublicAssessment() {
   };
 
   const formatSectionName = (sectionName: string): string => {
-    if (!sectionName) return 'General';
-    
     const mappings: Record<string, string> = {
       'site-transport': 'Site & Transportation',
       'water-efficiency': 'Water Efficiency', 
@@ -133,7 +127,7 @@ export function PublicAssessment() {
       'regional-priority': 'Regional Priority'
     };
     
-    return mappings[sectionName] || String(sectionName).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return mappings[sectionName] || sectionName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   if (isLoading) {
@@ -147,7 +141,7 @@ export function PublicAssessment() {
     );
   }
 
-  if (error) {
+  if (error || !data) {
     console.error("Error loading public assessment:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -159,27 +153,11 @@ export function PublicAssessment() {
             <p className="text-center text-gray-700">
               The assessment you're looking for could not be found or is not publicly available.
             </p>
-            <p className="text-center text-sm text-red-500 mt-2">
-              Error: {error?.message || "Unknown error"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!data) {
-    console.log("No data received for public assessment");
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center text-gray-600">No Data</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-700">
-              Assessment data is not available.
-            </p>
+            {error && (
+              <p className="text-center text-sm text-red-500 mt-2">
+                Error: {error.message || "Unknown error"}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -203,29 +181,9 @@ export function PublicAssessment() {
     );
   }
 
-  console.log("Public assessment data:", data);
-  
-  if (!data.assessment) {
-    console.error("Assessment data missing from response");
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-center text-red-600">Data Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-700">
-              Assessment data structure is invalid.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const { assessment, sections = [], media = [] } = data;
-  const certification = getCertificationType(assessment?.overallScore || 0, assessment?.maxPossibleScore || 1);
-  const scorePercentage = ((assessment?.overallScore || 0) / (assessment?.maxPossibleScore || 1)) * 100;
+  const { assessment, sections, media } = data;
+  const certification = getCertificationType(assessment.overallScore, assessment.maxPossibleScore);
+  const scorePercentage = (assessment.overallScore / assessment.maxPossibleScore) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50">
