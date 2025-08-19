@@ -145,22 +145,22 @@ export function PublicAssessment() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Green Building Assessment Report
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-700 text-lg">
             Detailed assessment data for {assessment.buildingName}
           </p>
         </div>
 
         {/* Overview Card */}
-        <Card className="bg-white/80 backdrop-blur">
+        <Card className="bg-white/90 backdrop-blur border shadow-lg">
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <CardTitle className="flex items-center gap-2 text-2xl">
+                <CardTitle className="flex items-center gap-2 text-2xl text-gray-900">
                   <Building2 className="w-6 h-6 text-green-600" />
                   {assessment.buildingName}
                 </CardTitle>
                 {assessment.buildingLocation && (
-                  <p className="flex items-center gap-2 text-muted-foreground mt-1">
+                  <p className="flex items-center gap-2 text-gray-700 mt-1">
                     <MapPin className="w-4 h-4" />
                     {assessment.buildingLocation}
                   </p>
@@ -171,7 +171,7 @@ export function PublicAssessment() {
                   <div className="text-3xl font-bold text-green-600">
                     {assessment.overallScore}/{assessment.maxPossibleScore}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-gray-700 font-medium">
                     {completionPercentage}% Score
                   </div>
                 </div>
@@ -186,26 +186,26 @@ export function PublicAssessment() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
               {assessment.digitalAddress && (
                 <div>
-                  <span className="font-medium">Digital Address:</span>
-                  <p className="text-muted-foreground">{assessment.digitalAddress}</p>
+                  <span className="font-medium text-gray-900">Digital Address:</span>
+                  <p className="text-gray-700">{assessment.digitalAddress}</p>
                 </div>
               )}
               {assessment.phoneNumber && (
                 <div>
-                  <span className="font-medium">Contact:</span>
-                  <p className="text-muted-foreground">{assessment.phoneNumber}</p>
+                  <span className="font-medium text-gray-900">Contact:</span>
+                  <p className="text-gray-700">{assessment.phoneNumber}</p>
                 </div>
               )}
               <div>
-                <span className="font-medium">Assessed by:</span>
-                <p className="text-muted-foreground flex items-center gap-1">
+                <span className="font-medium text-gray-900">Assessed by:</span>
+                <p className="text-gray-700 flex items-center gap-1">
                   <User className="w-3 h-3" />
                   {assessment.assessorName}
                 </p>
               </div>
               <div>
-                <span className="font-medium">Assessment Date:</span>
-                <p className="text-muted-foreground flex items-center gap-1">
+                <span className="font-medium text-gray-900">Assessment Date:</span>
+                <p className="text-gray-700 flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   {new Date(assessment.conductedAt).toLocaleDateString()}
                 </p>
@@ -216,46 +216,46 @@ export function PublicAssessment() {
 
         {/* Building Specifications */}
         {(assessment.buildingFootprint > 0 || assessment.siteArea > 0 || assessment.numberOfBedrooms > 0) && (
-          <Card className="bg-white/80 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur border shadow-lg">
             <CardHeader>
-              <CardTitle>Building Specifications</CardTitle>
+              <CardTitle className="text-gray-900">Building Specifications</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
                 {assessment.buildingFootprint > 0 && (
                   <div>
-                    <span className="font-medium">Footprint:</span>
-                    <p className="text-muted-foreground">{assessment.buildingFootprint} m²</p>
+                    <span className="font-medium text-gray-900">Footprint:</span>
+                    <p className="text-gray-700">{assessment.buildingFootprint} m²</p>
                   </div>
                 )}
                 {assessment.siteArea > 0 && (
                   <div>
-                    <span className="font-medium">Site Area:</span>
-                    <p className="text-muted-foreground">{assessment.siteArea} m²</p>
+                    <span className="font-medium text-gray-900">Site Area:</span>
+                    <p className="text-gray-700">{assessment.siteArea} m²</p>
                   </div>
                 )}
                 {assessment.numberOfBedrooms > 0 && (
                   <div>
-                    <span className="font-medium">Bedrooms:</span>
-                    <p className="text-muted-foreground">{assessment.numberOfBedrooms}</p>
+                    <span className="font-medium text-gray-900">Bedrooms:</span>
+                    <p className="text-gray-700">{assessment.numberOfBedrooms}</p>
                   </div>
                 )}
                 {assessment.numberOfFloors > 0 && (
                   <div>
-                    <span className="font-medium">Floors:</span>
-                    <p className="text-muted-foreground">{assessment.numberOfFloors}</p>
+                    <span className="font-medium text-gray-900">Floors:</span>
+                    <p className="text-gray-700">{assessment.numberOfFloors}</p>
                   </div>
                 )}
                 {assessment.numberOfWindows > 0 && (
                   <div>
-                    <span className="font-medium">Windows:</span>
-                    <p className="text-muted-foreground">{assessment.numberOfWindows}</p>
+                    <span className="font-medium text-gray-900">Windows:</span>
+                    <p className="text-gray-700">{assessment.numberOfWindows}</p>
                   </div>
                 )}
                 {assessment.numberOfDoors > 0 && (
                   <div>
-                    <span className="font-medium">Doors:</span>
-                    <p className="text-muted-foreground">{assessment.numberOfDoors}</p>
+                    <span className="font-medium text-gray-900">Doors:</span>
+                    <p className="text-gray-700">{assessment.numberOfDoors}</p>
                   </div>
                 )}
               </div>
@@ -264,10 +264,10 @@ export function PublicAssessment() {
         )}
 
         {/* Assessment Sections */}
-        <Card className="bg-white/80 backdrop-blur">
+        <Card className="bg-white/90 backdrop-blur border shadow-lg">
           <CardHeader>
-            <CardTitle>Assessment Breakdown</CardTitle>
-            <p className="text-muted-foreground">
+            <CardTitle className="text-gray-900">Assessment Breakdown</CardTitle>
+            <p className="text-gray-700">
               Detailed scores by assessment category
             </p>
           </CardHeader>
@@ -276,15 +276,15 @@ export function PublicAssessment() {
               {assessment.sections.map((section, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => setSelectedSection(selectedSection === section.sectionType ? null : section.sectionType)}
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium">
+                    <h4 className="font-medium text-gray-900">
                       {sectionDisplayNames[section.sectionType] || section.sectionType}
                     </h4>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-gray-900 border-gray-300">
                         {section.score}/{section.maxScore}
                       </Badge>
                       {section.score > 0 && (
@@ -299,22 +299,22 @@ export function PublicAssessment() {
                   </div>
                   
                   {selectedSection === section.sectionType && (
-                    <div className="mt-3 pt-3 border-t">
+                    <div className="mt-3 pt-3 border-t border-gray-200">
                       {section.notes && (
                         <div className="mb-3">
-                          <p className="text-sm font-medium mb-1">Notes:</p>
-                          <p className="text-sm text-muted-foreground">{section.notes}</p>
+                          <p className="text-sm font-medium mb-1 text-gray-900">Notes:</p>
+                          <p className="text-sm text-gray-700">{section.notes}</p>
                         </div>
                       )}
                       
                       {section.responses && Object.keys(section.responses).length > 0 && (
                         <div className="mb-3">
-                          <p className="text-sm font-medium mb-2">Assessment Details:</p>
+                          <p className="text-sm font-medium mb-2 text-gray-900">Assessment Details:</p>
                           <div className="space-y-1">
                             {Object.entries(section.responses).map(([key, value]) => (
                               <div key={key} className="text-xs">
-                                <span className="font-medium">{key.replace(/_/g, ' ')}:</span>
-                                <span className="ml-2 text-muted-foreground">
+                                <span className="font-medium text-gray-900">{key.replace(/_/g, ' ')}:</span>
+                                <span className="ml-2 text-gray-700">
                                   {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
                                 </span>
                               </div>
@@ -324,7 +324,7 @@ export function PublicAssessment() {
                       )}
                       
                       {section.completedAt && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-gray-600">
                           Completed: {new Date(section.completedAt).toLocaleString()}
                         </p>
                       )}
@@ -338,13 +338,13 @@ export function PublicAssessment() {
 
         {/* Media Files */}
         {assessment.media.length > 0 && (
-          <Card className="bg-white/80 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur border shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <FileText className="w-5 h-5" />
                 Supporting Documentation
               </CardTitle>
-              <p className="text-muted-foreground">
+              <p className="text-gray-700">
                 Media files and documentation from the assessment
               </p>
             </CardHeader>
@@ -355,25 +355,25 @@ export function PublicAssessment() {
                   return (
                     <div
                       key={mediaItem.id}
-                      className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                      className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <IconComponent className="w-4 h-4 text-gray-500" />
-                        <span className="text-xs font-medium text-muted-foreground">
+                        <IconComponent className="w-4 h-4 text-gray-600" />
+                        <span className="text-xs font-medium text-gray-700">
                           {sectionDisplayNames[mediaItem.sectionType] || mediaItem.sectionType}
                         </span>
                       </div>
-                      <p className="text-sm font-medium truncate" title={mediaItem.fileName}>
+                      <p className="text-sm font-medium truncate text-gray-900" title={mediaItem.fileName}>
                         {mediaItem.fileName}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-600">
                         {mediaItem.fileType.toUpperCase()}
                       </p>
                       <a
                         href={mediaItem.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-green-600 hover:underline mt-1 block"
+                        className="text-xs text-green-600 hover:underline mt-1 block font-medium"
                       >
                         View File
                       </a>
@@ -387,12 +387,12 @@ export function PublicAssessment() {
 
         {/* Additional Notes */}
         {assessment.additionalNotes && (
-          <Card className="bg-white/80 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur border shadow-lg">
             <CardHeader>
-              <CardTitle>Additional Notes</CardTitle>
+              <CardTitle className="text-gray-900">Additional Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap">
+              <p className="text-gray-700 whitespace-pre-wrap">
                 {assessment.additionalNotes}
               </p>
             </CardContent>
@@ -400,13 +400,13 @@ export function PublicAssessment() {
         )}
 
         {/* Footer */}
-        <div className="text-center py-6 text-sm text-muted-foreground">
-          <Separator className="mb-4" />
-          <p>This assessment report was generated by the GREDA Green Building Certification system.</p>
+        <div className="text-center py-6 text-sm text-gray-700">
+          <Separator className="mb-4 bg-gray-300" />
+          <p className="font-medium">This assessment report was generated by the GREDA Green Building Certification system.</p>
           <p className="mt-1">
             For more information about green building certification, contact us at{' '}
             {assessment.assessorInfo && (
-              <span className="font-medium">{assessment.assessorInfo.email}</span>
+              <span className="font-medium text-gray-900">{assessment.assessorInfo.email}</span>
             )}
           </p>
         </div>
