@@ -96,7 +96,7 @@ export function PublicAssessment() {
   const formatVariableName = (name: string): string => {
     if (!name || name === 'General') return 'Document Upload';
     
-    let readable = name
+    let readable = String(name)
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase())
       .replace(/_/g, ' ')
@@ -120,6 +120,8 @@ export function PublicAssessment() {
   };
 
   const formatSectionName = (sectionName: string): string => {
+    if (!sectionName) return 'General';
+    
     const mappings: Record<string, string> = {
       'site-transport': 'Site & Transportation',
       'water-efficiency': 'Water Efficiency', 
@@ -131,7 +133,7 @@ export function PublicAssessment() {
       'regional-priority': 'Regional Priority'
     };
     
-    return mappings[sectionName] || sectionName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return mappings[sectionName] || String(sectionName).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   if (isLoading) {
@@ -145,7 +147,7 @@ export function PublicAssessment() {
     );
   }
 
-  if (error || !data) {
+  if (error) {
     console.error("Error loading public assessment:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -157,11 +159,27 @@ export function PublicAssessment() {
             <p className="text-center text-gray-700">
               The assessment you're looking for could not be found or is not publicly available.
             </p>
-            {error && (
-              <p className="text-center text-sm text-red-500 mt-2">
-                Error: {error.message || "Unknown error"}
-              </p>
-            )}
+            <p className="text-center text-sm text-red-500 mt-2">
+              Error: {error?.message || "Unknown error"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!data) {
+    console.log("No data received for public assessment");
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-gray-600">No Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-700">
+              Assessment data is not available.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -185,9 +203,29 @@ export function PublicAssessment() {
     );
   }
 
-  const { assessment, sections, media } = data;
-  const certification = getCertificationType(assessment.overallScore, assessment.maxPossibleScore);
-  const scorePercentage = (assessment.overallScore / assessment.maxPossibleScore) * 100;
+  console.log("Public assessment data:", data);
+  
+  if (!data.assessment) {
+    console.error("Assessment data missing from response");
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center text-red-600">Data Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-700">
+              Assessment data structure is invalid.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { assessment, sections = [], media = [] } = data;
+  const certification = getCertificationType(assessment?.overallScore || 0, assessment?.maxPossibleScore || 1);
+  const scorePercentage = ((assessment?.overallScore || 0) / (assessment?.maxPossibleScore || 1)) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50">
