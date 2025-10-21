@@ -104,9 +104,6 @@ export default function Landing() {
                 <Button size="lg" variant="default" className="eco-bounce" asChild>
                   <a href="/login">Start Assessment</a>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-                  View Analytics Demo
-                </Button>
               </div>
             </div>
             <div className="relative animate-in slide-in-from-right duration-500">
